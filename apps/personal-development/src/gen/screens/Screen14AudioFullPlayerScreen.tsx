@@ -98,7 +98,7 @@ export function Screen14AudioFullPlayerScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:6:257"
-                  accessibilityLabel="Show more"
+                  accessibilityLabel="Close player"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['725628ae014377354e2b29ee21eebcb03692b81e54f388fdb987014777187826']
