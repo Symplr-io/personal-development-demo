@@ -96,7 +96,7 @@ export function Screen06HomeScreen() {
                       numberOfLines={1}
                       adjustsFontSizeToFit
                       minimumFontScale={0.65}
-                    >{`Good morning,${toStr(getPath(lastResponse('bind:49uLGCSD'), 'user.user_metadata.full_name'))}`}</Txt>
+                    >{`Good morning, ${toStr(getPath(lastResponse('bind:49uLGCSD'), 'user.user_metadata.full_name'))}`}</Txt>
                   </Box>
                   <Box
                     pointerEvents="none"

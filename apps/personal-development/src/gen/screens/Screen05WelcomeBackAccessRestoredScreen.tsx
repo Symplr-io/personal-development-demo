@@ -84,7 +84,7 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.65}
-            >{`Welcome back,${toStr(getPath(lastResponse('bind:49uLGCSD'), 'user.user_metadata.full_name'))}`}</Txt>
+            >{`Welcome back, ${toStr(getPath(lastResponse('bind:49uLGCSD'), 'user.user_metadata.full_name'))}`}</Txt>
           </Box>
           <Box
             pointerEvents="none"
