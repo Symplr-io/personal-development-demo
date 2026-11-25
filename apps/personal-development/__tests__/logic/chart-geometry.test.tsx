@@ -177,6 +177,6 @@ describe("the names a kind's props may go by, and the words a screen reader hear
     expect(spokenWords(resolveChartProps({ chartType: 'area', values: [1], labels: ['Jan'] }))).toBe('Line chart: Jan 1.');
     expect(spokenWords(resolveChartProps({ chartType: 'pie', values: [] }))).toBe('Pie chart: no values.');
     expect(spokenWords(resolveChartProps({ chartType: 'donut', values: Array.from({ length: 15 }, (_, i) => i) }))).toContain(', and 3 more.');
-    expect(draw(<Chart {...sizes} chartType="bar" values={[1]} labels={['One']} />)).toContain('Bar chart: One 1.');
+    expect(draw(<Chart width={320} height={180} chartType="bar" values={[1]} labels={['One']} />)).toContain('Bar chart: One 1.');
   });
 });
