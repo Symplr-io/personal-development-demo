@@ -27,9 +27,9 @@ export function Screen18GuidedJournalingScreen() {
   const m0 = useSaveMyJournalEntries();
   const m0Opts: Parameters<typeof m0.mutate>[1] = {
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['getAllJournal_entries'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['getJournal_entriesById'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['listMyJournalEntries'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getAllJournal_entries'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getJournal_entriesById'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['listMyJournalEntries'], refetchType: 'none' });
       setField('w:7:189', '');
       goTo(navigation, 'navigate', 'Screen19JournalHistoryThisWeek');
     },

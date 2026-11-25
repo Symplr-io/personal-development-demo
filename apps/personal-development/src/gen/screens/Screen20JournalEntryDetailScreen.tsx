@@ -57,9 +57,9 @@ export function Screen20JournalEntryDetailScreen() {
   const m1 = useDeleteJournalEntries();
   const m1Opts: Parameters<typeof m1.mutate>[1] = {
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['getAllJournal_entries'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['getJournal_entriesById'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['listMyJournalEntries'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getAllJournal_entries'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getJournal_entriesById'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['listMyJournalEntries'], refetchType: 'none' });
       goTo(navigation, 'navigate', 'Screen19JournalHistoryThisWeek');
     },
     onError: (err) => {
@@ -72,7 +72,7 @@ export function Screen20JournalEntryDetailScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        q0.refetch();
+        void q0.refetch();
       }
       focusedOnce.current = true;
     });

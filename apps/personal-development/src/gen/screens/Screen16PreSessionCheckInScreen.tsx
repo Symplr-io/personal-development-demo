@@ -27,9 +27,9 @@ export function Screen16PreSessionCheckInScreen() {
   const m0 = useCreateCheckIns();
   const m0Opts: Parameters<typeof m0.mutate>[1] = {
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['getAllCheck_ins'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['getCheck_insById'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['listMyCheckIns'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getAllCheck_ins'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getCheck_insById'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['listMyCheckIns'], refetchType: 'none' });
       setField('w:7:81', '');
       setField('syn:7:64:chipGroup', '');
       setField('w:7:40', '');

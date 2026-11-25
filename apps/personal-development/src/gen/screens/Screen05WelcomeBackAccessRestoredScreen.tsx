@@ -32,8 +32,8 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        q0.refetch();
-        q1.refetch();
+        void q0.refetch();
+        void q1.refetch();
       }
       focusedOnce.current = true;
     });

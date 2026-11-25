@@ -34,9 +34,9 @@ export function Screen26AccountSettingsScreen() {
   const m1Opts: Parameters<typeof m1.mutate>[1] = {
     onSuccess: (data) => {
       fireAndForget(q0.refetch());
-      qc.invalidateQueries({ queryKey: ['getAllProfiles'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['getProfilesById'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['getMyProfile'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getAllProfiles'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getProfilesById'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getMyProfile'], refetchType: 'none' });
     },
     onError: (err) => {
       showToast(errorMessage(err));
@@ -48,7 +48,7 @@ export function Screen26AccountSettingsScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        q0.refetch();
+        void q0.refetch();
       }
       focusedOnce.current = true;
     });

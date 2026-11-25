@@ -27,9 +27,9 @@ export function Screen17PostSessionCheckInScreen() {
   const m0 = useCreateCheckIns();
   const m0Opts: Parameters<typeof m0.mutate>[1] = {
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['getAllCheck_ins'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['getCheck_insById'], refetchType: 'none' });
-      qc.invalidateQueries({ queryKey: ['listMyCheckIns'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getAllCheck_ins'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['getCheck_insById'], refetchType: 'none' });
+      void qc.invalidateQueries({ queryKey: ['listMyCheckIns'], refetchType: 'none' });
       setField('w:7:113', '');
       setField('w:7:161', '');
       goTo(navigation, 'navigate', 'Screen18GuidedJournaling', {
