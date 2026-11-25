@@ -9,6 +9,8 @@
 -- 2. Seed rows, kept in demo_admin.
 -- 3. demo_admin.reset_personal_development(), which puts every table back to the
 --    seed every 30 minutes, with the demo account's journal, check-ins and profile.
+-- 4. A trigger that keeps the shared account's password, email and name when a
+--    visitor tries to change them through Supabase Auth.
 --
 -- Afterwards, add the schema to PostgREST's exposed schemas (Settings > API).
 
@@ -494,3 +496,27 @@ end $function$
 revoke all on function demo_admin.reset_personal_development() from public, anon, authenticated;
 select demo_admin.reset_personal_development();
 select cron.schedule('personal-development-reset', '*/30 * * * *', 'select demo_admin.reset_personal_development()');
+
+-- The shared demo account's password is public, so a visitor could change it (or its email
+-- or name) through PUT /auth/v1/user and lock everyone else out. Writes that come from Supabase
+-- Auth keep those fields; the 30-minute resets run as postgres and still set them.
+create or replace function demo_admin.keep_demo_account() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if session_user = 'supabase_auth_admin' then
+    new.encrypted_password := old.encrypted_password;
+    new.email := old.email;
+    new.email_change := old.email_change;
+    new.email_change_token_new := old.email_change_token_new;
+    new.email_change_token_current := old.email_change_token_current;
+    new.phone := old.phone;
+    new.phone_change := old.phone_change;
+    new.raw_user_meta_data := old.raw_user_meta_data;
+  end if;
+  return new;
+end $$;
+revoke all on function demo_admin.keep_demo_account() from public, anon, authenticated;
+drop trigger if exists keep_demo_account on auth.users;
+create trigger keep_demo_account before update on auth.users
+  for each row when (old.id = 'dc9b81c8-0d95-4fec-9aeb-7bdb5a3f36dc')
+  execute function demo_admin.keep_demo_account();
