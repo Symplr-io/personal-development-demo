@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "PersonalDevelopmentAppMobileUIUX",
+    "slug": "personaldevelopmentappmobileuiux",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "personaldevelopmentappmobileuiux",
+    "splash": {
+      "backgroundColor": "#171a33",
+      "image": "./assets/splash.png",
+      "resizeMode": "cover"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "./plugins/with-worklets-pairing.js"
+    ]
+  }
+}
