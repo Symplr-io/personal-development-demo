@@ -16,7 +16,7 @@ afterEach(() => {
 
 function load() {
   jest.isolateModules(() => {
-    require('../../polyfills');
+    require('../../src/custom/polyfills');
   });
 }
 
