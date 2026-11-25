@@ -133,7 +133,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:116"
-                        accessibilityLabel="icon/heart"
+                        accessibilityLabel="Favorite"
                         source={
                           assets['1324fb2625ecdf38ff3e26bd88524ebc4a87d254fbb8e5e6d372d6fb993947c1']
                         }
@@ -169,7 +169,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:116"
-                        accessibilityLabel="icon/heart"
+                        accessibilityLabel="Favorite"
                         source={
                           assets['1324fb2625ecdf38ff3e26bd88524ebc4a87d254fbb8e5e6d372d6fb993947c1']
                         }
@@ -211,7 +211,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:121"
-                        accessibilityLabel="icon/moon"
+                        accessibilityLabel="Sleep"
                         source={
                           assets['f7faa7baf4caa0b3bd519220d8f2707bb7f60c57a8956c9eda1e9180c026eb09']
                         }
@@ -248,7 +248,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:121"
-                        accessibilityLabel="icon/moon"
+                        accessibilityLabel="Sleep"
                         source={
                           assets['f7faa7baf4caa0b3bd519220d8f2707bb7f60c57a8956c9eda1e9180c026eb09']
                         }
@@ -291,7 +291,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:126"
-                        accessibilityLabel="icon/target"
+                        accessibilityLabel="Goal"
                         source={
                           assets['30332c0bf4f4b1e510c29f79453b9d7fe2cb7a605419d9dc03f7584e7d37346d']
                         }
@@ -327,7 +327,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:126"
-                        accessibilityLabel="icon/target"
+                        accessibilityLabel="Goal"
                         source={
                           assets['30332c0bf4f4b1e510c29f79453b9d7fe2cb7a605419d9dc03f7584e7d37346d']
                         }
@@ -369,7 +369,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:133"
-                        accessibilityLabel="icon/flame"
+                        accessibilityLabel="Streak"
                         source={
                           assets['fad43caa3c50b4edc795d32fa40575f82dd965dd51936dd045902901df487f5c']
                         }
@@ -406,7 +406,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:133"
-                        accessibilityLabel="icon/flame"
+                        accessibilityLabel="Streak"
                         source={
                           assets['fad43caa3c50b4edc795d32fa40575f82dd965dd51936dd045902901df487f5c']
                         }
@@ -449,7 +449,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:138"
-                        accessibilityLabel="icon/refresh"
+                        accessibilityLabel="Repeat"
                         source={
                           assets['ac26f46d21730566b7719bf2fd8d9b909e1882c197537a87c5479ef852b2097c']
                         }
@@ -486,7 +486,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:138"
-                        accessibilityLabel="icon/refresh"
+                        accessibilityLabel="Repeat"
                         source={
                           assets['ac26f46d21730566b7719bf2fd8d9b909e1882c197537a87c5479ef852b2097c']
                         }
@@ -527,7 +527,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:146"
-                        accessibilityLabel="icon/check"
+                        accessibilityLabel="Done"
                         source={
                           assets['3ade105201c04e2a939a65d7d8a5a44cbfacb828f0de12ee8b8ab51df4c7657f']
                         }
@@ -563,7 +563,7 @@ export function Screen04PersonalizeGoalsScreen() {
                     >
                       <Img
                         testID="w:4:146"
-                        accessibilityLabel="icon/check"
+                        accessibilityLabel="Done"
                         source={
                           assets['3ade105201c04e2a939a65d7d8a5a44cbfacb828f0de12ee8b8ab51df4c7657f']
                         }

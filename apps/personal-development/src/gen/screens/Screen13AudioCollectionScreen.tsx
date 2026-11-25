@@ -159,7 +159,7 @@ export function Screen13AudioCollectionScreen() {
                     >
                       <Img
                         testID="w:6:175"
-                        accessibilityLabel="icon/play"
+                        accessibilityLabel="Play"
                         className="overflow-hidden"
                         source={
                           assets['58aa51586da61700d36f0bf304553add2f4767b1f88ff435532d3b2d808ec186']
@@ -188,7 +188,7 @@ export function Screen13AudioCollectionScreen() {
                     >
                       <Img
                         testID="w:6:179"
-                        accessibilityLabel="icon/download"
+                        accessibilityLabel="Download"
                         className="overflow-hidden"
                         source={
                           assets['7966e53ee73a2579ce5ab5ffe6bebe2af24c7ab91a6ec48e6794ed7d6dfc07e9']
@@ -260,7 +260,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:191"
-                  accessibilityLabel="icon/play"
+                  accessibilityLabel="Play"
                   className="overflow-hidden"
                   source={
                     assets['01c2f1b5645bd56294200d2badc36c5b6c9b8c18bde6cdbc65124efefcb060b3']
@@ -319,7 +319,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:200"
-                  accessibilityLabel="icon/play"
+                  accessibilityLabel="Play"
                   className="overflow-hidden"
                   source={
                     assets['01c2f1b5645bd56294200d2badc36c5b6c9b8c18bde6cdbc65124efefcb060b3']
@@ -378,7 +378,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:209"
-                  accessibilityLabel="icon/check"
+                  accessibilityLabel="Done"
                   className="overflow-hidden"
                   source={
                     assets['9851b96c99bf9405e31510d5dd71721e7b73e0fccc8b37c8896ddc3b7f1ff23e']
@@ -437,7 +437,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:218"
-                  accessibilityLabel="IconBtn/lock"
+                  accessibilityLabel="Locked"
                   source={
                     assets['58e17001801a3747a7a3e68f563cb62156c6be9adbb30e302af8acb0e88e880f']
                   }
@@ -495,7 +495,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:229"
-                  accessibilityLabel="IconBtn/lock"
+                  accessibilityLabel="Locked"
                   source={
                     assets['58e17001801a3747a7a3e68f563cb62156c6be9adbb30e302af8acb0e88e880f']
                   }
@@ -553,7 +553,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:240"
-                  accessibilityLabel="IconBtn/lock"
+                  accessibilityLabel="Locked"
                   source={
                     assets['58e17001801a3747a7a3e68f563cb62156c6be9adbb30e302af8acb0e88e880f']
                   }

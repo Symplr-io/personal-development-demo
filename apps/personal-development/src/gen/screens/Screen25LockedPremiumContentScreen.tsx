@@ -168,7 +168,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:426"
-                    accessibilityLabel="IconBtn/lock"
+                    accessibilityLabel="Locked"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -212,7 +212,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:434"
-                    accessibilityLabel="IconBtn/lock"
+                    accessibilityLabel="Locked"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -261,7 +261,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:442"
-                    accessibilityLabel="IconBtn/lock"
+                    accessibilityLabel="Locked"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -314,7 +314,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:426"
-                    accessibilityLabel="IconBtn/lock"
+                    accessibilityLabel="Locked"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -370,7 +370,7 @@ export function Screen25LockedPremiumContentScreen() {
           >
             <Img
               testID="w:8:450"
-              accessibilityLabel="IconBtn/crown"
+              accessibilityLabel="Premium"
               source={assets['7b509521a543ff745e7066916992478c6337f8220c66f9e298a79654556f1211']}
               resizeMode="cover"
               style={{ width: s(52), height: s(52) }}

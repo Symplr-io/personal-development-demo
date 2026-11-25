@@ -91,7 +91,7 @@ export function Screen12AudioLibraryScreen() {
               </Txt>
               <Img
                 testID="w:6:54"
-                accessibilityLabel="IconBtn/search"
+                accessibilityLabel="Search"
                 source={assets['cab464a4d1a521dbebd852f2afe3d08a1b4c19dedb4a412173e8b85c57bdb701']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}
@@ -635,7 +635,7 @@ export function Screen12AudioLibraryScreen() {
               </Box>
               <Img
                 testID="w:6:144"
-                accessibilityLabel="IconBtn/play"
+                accessibilityLabel="Play"
                 source={assets['083240b76aa4e7d5a14729aed972def15eabc74383c64da48bf4a06a470d54ea']}
                 resizeMode="cover"
                 style={{ width: s(36), height: s(36) }}

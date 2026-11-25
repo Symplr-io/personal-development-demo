@@ -75,7 +75,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
             >
               <Img
                 testID="w:8:234"
-                accessibilityLabel="IconBtn/chevL"
+                accessibilityLabel="Back"
                 source={assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}
@@ -202,7 +202,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
               </Box>
               <Img
                 testID="w:8:323"
-                accessibilityLabel="icon/chevR"
+                accessibilityLabel="Open"
                 className="overflow-hidden"
                 source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
                 resizeMode="cover"
@@ -265,7 +265,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
               </Box>
               <Img
                 testID="w:8:334"
-                accessibilityLabel="icon/chevR"
+                accessibilityLabel="Open"
                 className="overflow-hidden"
                 source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
                 resizeMode="cover"
@@ -328,7 +328,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
               </Box>
               <Img
                 testID="w:8:345"
-                accessibilityLabel="icon/chevR"
+                accessibilityLabel="Open"
                 className="overflow-hidden"
                 source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
                 resizeMode="cover"

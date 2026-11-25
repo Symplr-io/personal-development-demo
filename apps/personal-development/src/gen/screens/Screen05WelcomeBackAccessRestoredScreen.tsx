@@ -113,7 +113,7 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
               >
                 <Img
                   testID="w:4:173"
-                  accessibilityLabel="IconBtn/crown"
+                  accessibilityLabel="Premium"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['46141324986c0133b384d1b5d4b7a406a8974086b43b97673edab82209fa3109']
@@ -176,7 +176,7 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
               >
                 <Img
                   testID="w:4:181"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0.7692vw] flex-row justify-center items-center"
                   source={
                     assets['ab54f73470fb8201441f1f6b5585f5ed9bf41b3380569b71c3d82537be0d4bd4']
@@ -242,7 +242,7 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
               >
                 <Img
                   testID="w:4:188"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0.7692vw] flex-row justify-center items-center"
                   source={
                     assets['ab54f73470fb8201441f1f6b5585f5ed9bf41b3380569b71c3d82537be0d4bd4']
@@ -301,7 +301,7 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
               >
                 <Img
                   testID="w:4:195"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0.7692vw] flex-row justify-center items-center"
                   source={
                     assets['ab54f73470fb8201441f1f6b5585f5ed9bf41b3380569b71c3d82537be0d4bd4']
@@ -358,7 +358,7 @@ export function Screen05WelcomeBackAccessRestoredScreen() {
               >
                 <Img
                   testID="w:4:202"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0.7692vw] flex-row justify-center items-center"
                   source={
                     assets['ab54f73470fb8201441f1f6b5585f5ed9bf41b3380569b71c3d82537be0d4bd4']

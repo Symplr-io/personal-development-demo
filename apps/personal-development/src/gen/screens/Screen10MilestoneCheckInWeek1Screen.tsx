@@ -126,7 +126,7 @@ export function Screen10MilestoneCheckInWeek1Screen() {
             <PressableBox accessible={false} onPress={() => navigation.goBack()}>
               <Img
                 testID="w:5:399"
-                accessibilityLabel="IconBtn/chevL"
+                accessibilityLabel="Back"
                 source={assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}
@@ -154,7 +154,7 @@ export function Screen10MilestoneCheckInWeek1Screen() {
             >
               <Img
                 testID="w:5:394"
-                accessibilityLabel="IconBtn/x"
+                accessibilityLabel="Close"
                 source={assets['08975214e1b0c82b247775730b7341b3b301176313943052cded951f8ad8f787']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}

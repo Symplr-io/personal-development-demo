@@ -88,7 +88,7 @@ export function Screen19JournalHistoryThisWeekScreen() {
             >
               <Img
                 testID="w:7:252"
-                accessibilityLabel="IconBtn/plus"
+                accessibilityLabel="Add"
                 source={assets['e61e336763ffcbde666d7b54f9528a000157bc4ae9fe12d1d549c14dc93ab166']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}

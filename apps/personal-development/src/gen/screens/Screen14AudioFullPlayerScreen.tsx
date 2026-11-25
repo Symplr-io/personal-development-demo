@@ -98,7 +98,7 @@ export function Screen14AudioFullPlayerScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:6:257"
-                  accessibilityLabel="IconBtn/chevD"
+                  accessibilityLabel="Show more"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['725628ae014377354e2b29ee21eebcb03692b81e54f388fdb987014777187826']
@@ -138,7 +138,7 @@ export function Screen14AudioFullPlayerScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:6:260"
-                  accessibilityLabel="IconBtn/dots"
+                  accessibilityLabel="More options"
                   className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['a1e329fef5d4c0ef075d7b68d6b41d314f846d97ece23e8869e2626529209f96']
@@ -338,7 +338,7 @@ export function Screen14AudioFullPlayerScreen() {
               >
                 <Img
                   testID="w:6:304"
-                  accessibilityLabel="icon/clock"
+                  accessibilityLabel="Time"
                   className="absolute start-[6.4103vw] top-[0vw] overflow-hidden"
                   source={
                     assets['2cdd1403bcda915891b3d62680e190749e492266f85afe28d5e15bc14053e1ce']
@@ -374,7 +374,7 @@ export function Screen14AudioFullPlayerScreen() {
               >
                 <Img
                   testID="w:6:309"
-                  accessibilityLabel="icon/download"
+                  accessibilityLabel="Download"
                   className="absolute start-[6.4103vw] top-[0vw] overflow-hidden"
                   source={
                     assets['b35bb57e680019581133615078dcfc5ad5cb594b17483b8e6cfde0ccf39a57f1']
@@ -410,7 +410,7 @@ export function Screen14AudioFullPlayerScreen() {
               >
                 <Img
                   testID="w:6:315"
-                  accessibilityLabel="icon/heart"
+                  accessibilityLabel="Favorite"
                   className="absolute start-[6.4103vw] top-[0vw] overflow-hidden"
                   source={
                     assets['98dbf83464bf6a09fe980fbfe7b6f43c8fee21ac5a8999fd47a0f9cd02bbf929']
@@ -447,7 +447,7 @@ export function Screen14AudioFullPlayerScreen() {
             >
               <Img
                 testID="w:6:319"
-                accessibilityLabel="icon/lock"
+                accessibilityLabel="Locked"
                 className="absolute start-[0vw] top-[0vw] overflow-hidden"
                 source={assets['584cacc3b51626c2343beaef4111f473099c21e9660103155d72f9cbfe9e0a9d']}
                 resizeMode="cover"

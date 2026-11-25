@@ -86,7 +86,7 @@ export function Screen19bJournalPreviousWeekScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:67:49"
-                  accessibilityLabel="IconBtn/plus"
+                  accessibilityLabel="Add"
                   className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['e61e336763ffcbde666d7b54f9528a000157bc4ae9fe12d1d549c14dc93ab166']
@@ -852,7 +852,7 @@ export function Screen19bJournalPreviousWeekScreen() {
             >
               <Img
                 testID="w:67:118"
-                accessibilityLabel="icon/home"
+                accessibilityLabel="Home"
                 className="overflow-hidden"
                 source={assets['1d6c8a224e5f107373181cdb48dff59e4a9c78a0c00695b4bf0010747b325a91']}
                 resizeMode="cover"
@@ -883,7 +883,7 @@ export function Screen19bJournalPreviousWeekScreen() {
             >
               <Img
                 testID="w:67:123"
-                accessibilityLabel="icon/compass"
+                accessibilityLabel="Explore"
                 className="overflow-hidden"
                 source={assets['3c356bd80e1e84aae987c435f57f253ac7a950b5361d5e0be29c1b4499e9e81e']}
                 resizeMode="cover"
@@ -914,7 +914,7 @@ export function Screen19bJournalPreviousWeekScreen() {
             >
               <Img
                 testID="w:67:128"
-                accessibilityLabel="icon/headphones"
+                accessibilityLabel="Audio"
                 className="overflow-hidden"
                 source={assets['79b0836652a4e35bd72647b8e14ce8e7eb74e5cf07698de8d13d9e9f44841ad2']}
                 resizeMode="cover"
@@ -945,7 +945,7 @@ export function Screen19bJournalPreviousWeekScreen() {
             >
               <Img
                 testID="w:67:132"
-                accessibilityLabel="icon/book"
+                accessibilityLabel="Journal"
                 className="overflow-hidden"
                 source={assets['c6ac7db288c8c6d9ebf0c4ba9df27ba7950feb501c96678906a514e0b4f05a1d']}
                 resizeMode="cover"
@@ -976,7 +976,7 @@ export function Screen19bJournalPreviousWeekScreen() {
             >
               <Img
                 testID="w:67:137"
-                accessibilityLabel="icon/chart"
+                accessibilityLabel="Progress"
                 className="overflow-hidden"
                 source={assets['9334e96049b5d13e760cbcba197f9d80e76428a706a03be0aba45629d3abd135']}
                 resizeMode="cover"

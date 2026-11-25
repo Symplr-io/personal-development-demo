@@ -196,7 +196,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
             >
               <Img
                 testID="w:6:360"
-                accessibilityLabel="IconBtn/download"
+                accessibilityLabel="Download"
                 className="absolute start-[0vw] top-[1.5385vw] flex-row justify-center items-center"
                 source={assets['c9287c74aeeac480e501b62e49b056e8ea35ef0828b4f2892f1cb7733923d905']}
                 resizeMode="cover"
@@ -263,7 +263,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
             >
               <Img
                 testID="w:6:371"
-                accessibilityLabel="IconBtn/heart"
+                accessibilityLabel="Favorite"
                 className="absolute start-[0vw] top-[1.5385vw] flex-row justify-center items-center"
                 source={assets['b45339c7c8c10598af654e743f5ac0baed1d05344592c74d5c288329c410fc29']}
                 resizeMode="cover"
@@ -330,7 +330,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
             >
               <Img
                 testID="w:6:380"
-                accessibilityLabel="IconBtn/bookmark"
+                accessibilityLabel="Bookmark"
                 className="absolute start-[0vw] top-[1.5385vw] flex-row justify-center items-center"
                 source={assets['c17b7fe1055eaa051ea05dfdc0bbcd5da5a1f3b6c16100e482023a6b1603b487']}
                 resizeMode="cover"

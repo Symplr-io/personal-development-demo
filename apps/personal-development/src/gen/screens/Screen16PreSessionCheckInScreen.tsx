@@ -90,7 +90,7 @@ export function Screen16PreSessionCheckInScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:7:31"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -130,7 +130,7 @@ export function Screen16PreSessionCheckInScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:7:26"
-                  accessibilityLabel="IconBtn/x"
+                  accessibilityLabel="Close"
                   className="absolute start-[79.4872vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['08975214e1b0c82b247775730b7341b3b301176313943052cded951f8ad8f787']

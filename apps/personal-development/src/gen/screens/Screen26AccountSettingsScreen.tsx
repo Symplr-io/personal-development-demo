@@ -122,7 +122,7 @@ export function Screen26AccountSettingsScreen() {
             >
               <Img
                 testID="w:8:472"
-                accessibilityLabel="IconBtn/chevL"
+                accessibilityLabel="Back"
                 source={assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}
@@ -215,7 +215,7 @@ export function Screen26AccountSettingsScreen() {
             </Box>
             <Img
               testID="w:8:485"
-              accessibilityLabel="icon/chevR"
+              accessibilityLabel="Open"
               className="overflow-hidden"
               source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
               resizeMode="cover"
@@ -251,7 +251,7 @@ export function Screen26AccountSettingsScreen() {
               >
                 <Img
                   testID="w:8:490"
-                  accessibilityLabel="IconBtn/crown"
+                  accessibilityLabel="Premium"
                   source={
                     assets['aead96abc9430146336479285943bd12ff8889e3d21bc0fd29c4dea57c5a0161']
                   }
@@ -299,7 +299,7 @@ export function Screen26AccountSettingsScreen() {
               >
                 <Img
                   testID="w:8:497"
-                  accessibilityLabel="IconBtn/refresh"
+                  accessibilityLabel="Repeat"
                   source={
                     assets['449d41edebd73531bcf13c5121b3bc15e45bcdcd1ec0b642658bff5107ef3aa7']
                   }
@@ -323,7 +323,7 @@ export function Screen26AccountSettingsScreen() {
                 />
                 <Img
                   testID="w:8:505"
-                  accessibilityLabel="icon/chevR"
+                  accessibilityLabel="Open"
                   className="overflow-hidden"
                   source={
                     assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']
@@ -356,7 +356,7 @@ export function Screen26AccountSettingsScreen() {
             >
               <Img
                 testID="w:8:510"
-                accessibilityLabel="IconBtn/bell"
+                accessibilityLabel="Notifications"
                 source={assets['2f10fe40fdc691d5ea98c648177ba9ddaa27805708743def2f7907b0237280ba']}
                 resizeMode="cover"
                 style={{ width: s(36), height: s(36) }}
@@ -394,7 +394,7 @@ export function Screen26AccountSettingsScreen() {
             >
               <Img
                 testID="w:8:518"
-                accessibilityLabel="IconBtn/download"
+                accessibilityLabel="Download"
                 source={assets['69fcbef82fce1e2c5c2dfa2c443f02a2596a225afc675628571b8771c8327838']}
                 resizeMode="cover"
                 style={{ width: s(36), height: s(36) }}
@@ -445,7 +445,7 @@ export function Screen26AccountSettingsScreen() {
             >
               <Img
                 testID="w:8:528"
-                accessibilityLabel="IconBtn/volume"
+                accessibilityLabel="Volume"
                 source={assets['90819270cef9c09da83e0fc0c40bfd945dc7f73e430bdd3368b457846f38fed1']}
                 resizeMode="cover"
                 style={{ width: s(36), height: s(36) }}
@@ -503,7 +503,7 @@ export function Screen26AccountSettingsScreen() {
               >
                 <Img
                   testID="w:8:539"
-                  accessibilityLabel="IconBtn/shield"
+                  accessibilityLabel="Privacy"
                   source={
                     assets['b87ae7ade8783144db7b48e492b9cc74d95bd2600caea07552e8f8db28cb8881']
                   }
@@ -527,7 +527,7 @@ export function Screen26AccountSettingsScreen() {
                 />
                 <Img
                   testID="w:8:545"
-                  accessibilityLabel="icon/chevR"
+                  accessibilityLabel="Open"
                   className="overflow-hidden"
                   source={
                     assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']
@@ -550,7 +550,7 @@ export function Screen26AccountSettingsScreen() {
                 >
                   <Img
                     testID="w:8:548"
-                    accessibilityLabel="IconBtn/logout"
+                    accessibilityLabel="Log out"
                     source={
                       assets['682719fe4918de790571fe469188a9718ba8fe11c9c1a01c3ce648b1e66b367c']
                     }
@@ -574,7 +574,7 @@ export function Screen26AccountSettingsScreen() {
                   />
                   <Img
                     testID="w:8:555"
-                    accessibilityLabel="icon/chevR"
+                    accessibilityLabel="Open"
                     className="overflow-hidden"
                     source={
                       assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']
