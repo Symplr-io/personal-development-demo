@@ -20,12 +20,10 @@ Real Expo React Native source code, in strict TypeScript, running against a live
 [![Quality](https://github.com/Symplr-io/personal-development-demo/actions/workflows/quality.yml/badge.svg)](https://github.com/Symplr-io/personal-development-demo/actions/workflows/quality.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<img src="docs/screenshots/welcome.png" width="130" alt="Welcome">
 <img src="docs/screenshots/home.png" width="130" alt="Home">
 <img src="docs/screenshots/day.png" width="130" alt="A day of a journey">
 <img src="docs/screenshots/journeys.png" width="130" alt="Journeys">
 <img src="docs/screenshots/audio.png" width="130" alt="Audio library">
-<img src="docs/screenshots/journal.png" width="130" alt="Journal">
 
 </div>
 
@@ -34,31 +32,9 @@ Real Expo React Native source code, in strict TypeScript, running against a live
 Open **[symplr.io/demo/personal-development](https://symplr.io/demo/personal-development)** (Cmd/Ctrl-click for a new tab). No install and no account needed.
 
 1. The page opens on the app's Blueprint, the map of its screens in Symplr.io. Click a screen to see what is on it.
-2. Press **Run** to use the app itself.
-3. Sign in as `demo@symplr.io` with the password `Demo-oGOPNuE_gFVt`.
+2. Press **Run** to use the app itself. It opens on Home, with no sign-in.
 
-It runs on the same demo backend as the phone app below, so it shows the same journal and the same account.
 **Build your own with Symplr** gives you a copy of the app to change, once you sign up.
-
-## Try it on your phone
-
-<img src="docs/qr.svg" width="150" align="right" alt="QR code that opens the demo in Expo Go">
-
-The demo runs in **Expo Go for SDK 58**, on Android.
-
-1. Install Expo Go:
-   - from [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent), or
-   - if the Play version has moved past SDK 58, install
-     [Expo Go 58.0.5 (APK)](https://github.com/expo/expo-go-releases/releases/download/Expo-Go-58.0.5/Expo-Go-58.0.5.apk)
-     and allow installs from your browser when Android asks.
-2. Scan the QR code, or open `exp://demo-personal-development.symplr.io` in Expo Go.
-3. Sign in as `demo@symplr.io` with the password `Demo-oGOPNuE_gFVt`.
-
-Start today's session, check in before and after it, browse the journeys and the
-audio library, and read or write in the journal.
-The demo data resets every 30 minutes. Expo Go on iPhone cannot open it yet.
-
-<br clear="right">
 
 ## Made with Symplr.io
 
@@ -74,10 +50,10 @@ Symplr.io turned the Figma design into the app in [`apps/personal-development`](
 
 - **31 screens** from the Figma frames, with navigation, tabs and deep links.
 - **A typed data layer:** TanStack Query hooks, Zod-checked responses, and
-  Supabase Auth and PostgREST behind them.
+  Supabase PostgREST behind them.
 - **Design tokens** taken from Figma, with NativeWind for code you add.
-- **Quality built in:** 873 unit tests, ESLint, strict TypeScript, and the
-  CI and SonarQube Cloud setup.
+- **Quality built in:** 767 unit tests, ESLint, strict TypeScript, and a
+  SonarQube Cloud setup.
 
 A few small fixes were made by hand after generation. Each one is its own
 commit in the history.
@@ -102,7 +78,7 @@ npm start        # then scan the QR code in the terminal with Expo Go
 
 The phone and the computer need to be on the same network.
 
-The app uses the demo backend in its committed `.env`, so the demo account above works locally too.
+The app reads the demo backend in its committed `.env`, so it shows the same content locally.
 
 | Command | What it does |
 | --- | --- |
@@ -116,7 +92,7 @@ The app uses the demo backend in its committed `.env`, so the demo account above
 | --- | --- |
 | [`apps/personal-development`](apps/personal-development) | The app: generated code in `src/gen`, your own code in `src/custom` |
 | [`supabase/demo-reset.sql`](supabase/demo-reset.sql) | The app's tables and their row-level security, the sample data and the 30-minute reset |
-| [`.github/workflows`](.github/workflows) | The quality checks on every push, and a demo health check every 15 minutes |
+| [`.github/workflows`](.github/workflows) | The quality checks on every push |
 
 ## Quality
 
@@ -124,7 +100,7 @@ Every push to `main` runs these checks:
 
 | Type check | Lint | Unit tests | Coverage | SonarQube Cloud |
 | :---: | :---: | :---: | :---: | :---: |
-| 0 errors | 0 errors | 873 passing | 83% | Quality gate passed, A ratings |
+| 0 errors | 0 errors | 767 passing | 87% | Quality gate passed, A ratings |
 
 ## Credits
 
