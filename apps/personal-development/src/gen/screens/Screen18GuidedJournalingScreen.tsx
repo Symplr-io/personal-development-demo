@@ -98,7 +98,7 @@ export function Screen18GuidedJournalingScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:7:182"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -245,7 +245,7 @@ export function Screen18GuidedJournalingScreen() {
             >
               <Img
                 testID="w:7:206"
-                accessibilityLabel="IconBtn/pen"
+                accessibilityLabel="Edit"
                 className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                 source={assets['9a91c6c318bb56d4c8d9e043dbeef3808c5b8cfefaedd65cdc3498552a34c764']}
                 resizeMode="cover"

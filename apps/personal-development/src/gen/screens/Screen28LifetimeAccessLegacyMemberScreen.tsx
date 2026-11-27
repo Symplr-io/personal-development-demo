@@ -69,7 +69,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:8:617"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -115,7 +115,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
             >
               <Img
                 testID="w:8:623"
-                accessibilityLabel="IconBtn/crown"
+                accessibilityLabel="Premium"
                 className="absolute start-[5.1282vw] top-[5.1282vw] flex-row justify-center items-center"
                 source={assets['0845383a922012fdfc520b249c2c055af4c85f1d817af336d9b845ac8c2593d1']}
                 resizeMode="cover"
@@ -184,7 +184,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               >
                 <Img
                   testID="w:8:631"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['d9f02fb573a9a37448198b8fb2ed5fb6c8b3393ad96a713dada6cabd41e3ea70']
@@ -220,7 +220,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               >
                 <Img
                   testID="w:8:636"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['d9f02fb573a9a37448198b8fb2ed5fb6c8b3393ad96a713dada6cabd41e3ea70']
@@ -256,7 +256,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               >
                 <Img
                   testID="w:8:641"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['d9f02fb573a9a37448198b8fb2ed5fb6c8b3393ad96a713dada6cabd41e3ea70']

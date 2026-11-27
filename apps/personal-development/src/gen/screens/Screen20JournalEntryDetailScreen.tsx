@@ -28,7 +28,7 @@ export function Screen20JournalEntryDetailScreen() {
     if (q0.isSuccess) {
       setLastResponse('b:Vl5lTrUc', q0.data as unknown);
       if (__DEV__) {
-        const d0 = q0.data as Record<string, unknown> | null;
+        const d0 = q0.data as unknown as Record<string, unknown> | null;
         console.log(
           '[Test] read ' +
             'b:Vl5lTrUc' +
@@ -64,7 +64,7 @@ export function Screen20JournalEntryDetailScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        q0.refetch();
+        void q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -145,7 +145,7 @@ export function Screen20JournalEntryDetailScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:7:327"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -176,7 +176,7 @@ export function Screen20JournalEntryDetailScreen() {
             >
               <Img
                 testID="w:7:321"
-                accessibilityLabel="IconBtn/dots"
+                accessibilityLabel="More options"
                 className="absolute start-[79.4872vw] top-[1.0256vw] flex-row justify-center items-center"
                 source={assets['5c8e7d4c06beabe5dff0806c0967da114a630a19b00777121f4a15b762075070']}
                 resizeMode="cover"
@@ -427,7 +427,7 @@ export function Screen20JournalEntryDetailScreen() {
                 >
                   <Img
                     testID="w:7:347"
-                    accessibilityLabel="icon/pen"
+                    accessibilityLabel="Edit"
                     className="overflow-hidden"
                     source={
                       assets['4676ca6d8dbc68561357298ec7ebdcde66b6a76dd8e610b39e0fa549f2a32b98']
@@ -462,7 +462,7 @@ export function Screen20JournalEntryDetailScreen() {
                 >
                   <Img
                     testID="w:7:351"
-                    accessibilityLabel="icon/trash"
+                    accessibilityLabel="Delete"
                     className="overflow-hidden"
                     source={
                       assets['d11c05328bc3f3a26c057cdf5ce5edf5632a955df82dcc5ec75b09d61b5d7911']

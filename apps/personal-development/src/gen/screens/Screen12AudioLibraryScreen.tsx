@@ -86,7 +86,7 @@ export function Screen12AudioLibraryScreen() {
                 >
                   <Img
                     testID="w:6:54"
-                    accessibilityLabel="IconBtn/search"
+                    accessibilityLabel="Search"
                     className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                     source={
                       assets['cab464a4d1a521dbebd852f2afe3d08a1b4c19dedb4a412173e8b85c57bdb701']
@@ -696,7 +696,7 @@ export function Screen12AudioLibraryScreen() {
                 >
                   <Img
                     testID="w:6:144"
-                    accessibilityLabel="IconBtn/play"
+                    accessibilityLabel="Play"
                     className="absolute start-[76.9231vw] top-[3.5897vw] flex-row justify-center items-center"
                     source={
                       assets['083240b76aa4e7d5a14729aed972def15eabc74383c64da48bf4a06a470d54ea']

@@ -80,7 +80,7 @@ export function Screen19cJournalNextWeekScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:67:156"
-                  accessibilityLabel="IconBtn/plus"
+                  accessibilityLabel="Add"
                   className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['e61e336763ffcbde666d7b54f9528a000157bc4ae9fe12d1d549c14dc93ab166']
@@ -261,7 +261,7 @@ export function Screen19cJournalNextWeekScreen() {
             >
               <Img
                 testID="w:67:310"
-                accessibilityLabel="IconBtn/pen"
+                accessibilityLabel="Edit"
                 className="absolute start-[37.6923vw] top-[6.1538vw] flex-row justify-center items-center"
                 source={assets['a59b7b950900c4ca6da76e08c97ca0817fe7a3650bffa9c6d135d9013291f9fd']}
                 resizeMode="cover"
@@ -361,7 +361,7 @@ export function Screen19cJournalNextWeekScreen() {
                 >
                   <Img
                     testID="w:67:225"
-                    accessibilityLabel="icon/home"
+                    accessibilityLabel="Home"
                     className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
                     source={
                       assets['1d6c8a224e5f107373181cdb48dff59e4a9c78a0c00695b4bf0010747b325a91']
@@ -408,7 +408,7 @@ export function Screen19cJournalNextWeekScreen() {
                 >
                   <Img
                     testID="w:67:230"
-                    accessibilityLabel="icon/compass"
+                    accessibilityLabel="Explore"
                     className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
                     source={
                       assets['3c356bd80e1e84aae987c435f57f253ac7a950b5361d5e0be29c1b4499e9e81e']
@@ -455,7 +455,7 @@ export function Screen19cJournalNextWeekScreen() {
                 >
                   <Img
                     testID="w:67:235"
-                    accessibilityLabel="icon/headphones"
+                    accessibilityLabel="Audio"
                     className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
                     source={
                       assets['79b0836652a4e35bd72647b8e14ce8e7eb74e5cf07698de8d13d9e9f44841ad2']
@@ -502,7 +502,7 @@ export function Screen19cJournalNextWeekScreen() {
                 >
                   <Img
                     testID="w:67:239"
-                    accessibilityLabel="icon/book"
+                    accessibilityLabel="Journal"
                     className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
                     source={
                       assets['c6ac7db288c8c6d9ebf0c4ba9df27ba7950feb501c96678906a514e0b4f05a1d']
@@ -549,7 +549,7 @@ export function Screen19cJournalNextWeekScreen() {
                 >
                   <Img
                     testID="w:67:244"
-                    accessibilityLabel="icon/chart"
+                    accessibilityLabel="Progress"
                     className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
                     source={
                       assets['9334e96049b5d13e760cbcba197f9d80e76428a706a03be0aba45629d3abd135']

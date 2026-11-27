@@ -28,7 +28,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        q0.refetch();
+        void q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -85,7 +85,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:8:146"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -198,7 +198,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:159"
-                  accessibilityLabel="IconBtn/star"
+                  accessibilityLabel="Star"
                   source={
                     assets['d6b31307c056a717b01661a14b795043d186911eaea9c078381fe416d58ddb5e']
                   }
@@ -232,7 +232,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:165"
-                  accessibilityLabel="IconBtn/calendar"
+                  accessibilityLabel="Calendar"
                   source={
                     assets['dba8f24812a06ea5fe02df0e22aab5ba43d5502367b9a5a5b1a70d8bdc468cf9']
                   }
@@ -266,7 +266,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:174"
-                  accessibilityLabel="IconBtn/headphones"
+                  accessibilityLabel="Audio"
                   source={
                     assets['4eea5ef0dbffd9633d87f16f3d69e5f9622ed937fc945183daedd5dad73dddbf']
                   }
@@ -302,7 +302,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:180"
-                  accessibilityLabel="IconBtn/book"
+                  accessibilityLabel="Journal"
                   source={
                     assets['6870530a26cf6b43fbc407157981204b8047c1d1426cc5aad4f4581d0fbe14b4']
                   }
@@ -336,7 +336,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:187"
-                  accessibilityLabel="IconBtn/flame"
+                  accessibilityLabel="Streak"
                   source={
                     assets['b3142941939e111f5edafb0bac502395f9fe275b5aecfb1a600cc70fc76db847']
                   }
@@ -370,7 +370,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:193"
-                  accessibilityLabel="IconBtn/award"
+                  accessibilityLabel="Badge"
                   source={
                     assets['9975ed1044ac41cb664008b7a94e617e9837a3b606f8903189343d05336ac771']
                   }
@@ -406,7 +406,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:200"
-                  accessibilityLabel="IconBtn/chart"
+                  accessibilityLabel="Progress"
                   source={
                     assets['84e6191560d9fd98cebc353b096f0bb85b7585a5b88a8673e9b22faf054b820e']
                   }
@@ -440,7 +440,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:208"
-                  accessibilityLabel="IconBtn/moon"
+                  accessibilityLabel="Sleep"
                   source={
                     assets['9d74993e0c565ca2faddbbbb2a9462595d75d4e492abd1b5513dbfed604e2ac0']
                   }
@@ -474,7 +474,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:214"
-                  accessibilityLabel="IconBtn/target"
+                  accessibilityLabel="Goal"
                   source={
                     assets['137f3cc3b7a0f2b9a2ad430a17db580774157fec485dc59c69c61e62c966f2b5']
                   }

@@ -69,7 +69,7 @@ export function Screen27ManageSubscriptionScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:8:570"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -191,7 +191,7 @@ export function Screen27ManageSubscriptionScreen() {
               >
                 <Img
                   testID="w:8:583"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['bc6d54aa33ef7c33ab2b50da31bf79fa1446ee4d52c2d1e9c47ed23d3511a98a']
@@ -227,7 +227,7 @@ export function Screen27ManageSubscriptionScreen() {
               >
                 <Img
                   testID="w:8:588"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['bc6d54aa33ef7c33ab2b50da31bf79fa1446ee4d52c2d1e9c47ed23d3511a98a']
@@ -263,7 +263,7 @@ export function Screen27ManageSubscriptionScreen() {
               >
                 <Img
                   testID="w:8:593"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['bc6d54aa33ef7c33ab2b50da31bf79fa1446ee4d52c2d1e9c47ed23d3511a98a']

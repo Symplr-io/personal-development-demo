@@ -84,7 +84,7 @@ export function Screen17PostSessionCheckInScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:7:105"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -124,7 +124,7 @@ export function Screen17PostSessionCheckInScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:7:100"
-                  accessibilityLabel="IconBtn/x"
+                  accessibilityLabel="Close"
                   className="absolute start-[79.4872vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['08975214e1b0c82b247775730b7341b3b301176313943052cded951f8ad8f787']
@@ -403,7 +403,7 @@ export function Screen17PostSessionCheckInScreen() {
               >
                 <Img
                   testID="w:7:142"
-                  accessibilityLabel="icon/chevR"
+                  accessibilityLabel="Open"
                   className="absolute start-[25.8974vw] top-[2.0513vw] overflow-hidden"
                   source={
                     assets['1c18d3081aec0a205dac62add2010a2642d941089e5b432584367bd46fd5ecce']

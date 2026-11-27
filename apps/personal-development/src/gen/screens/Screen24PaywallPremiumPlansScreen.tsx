@@ -110,7 +110,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               >
                 <Img
                   testID="w:8:370"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['18774151c6c6c5b1f7e9598955a08570e8f7bfe68282f9f0d4f7c09bd1701a2e']
                   }
@@ -135,7 +135,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               >
                 <Img
                   testID="w:8:375"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['18774151c6c6c5b1f7e9598955a08570e8f7bfe68282f9f0d4f7c09bd1701a2e']
                   }
@@ -160,7 +160,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               >
                 <Img
                   testID="w:8:380"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['18774151c6c6c5b1f7e9598955a08570e8f7bfe68282f9f0d4f7c09bd1701a2e']
                   }

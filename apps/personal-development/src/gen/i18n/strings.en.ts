@@ -33,7 +33,7 @@ export default {
   letting_go: 'Letting go',
   healthy_habits: 'Healthy habits',
   welcome_back_api_bind_49ulgcsd_path_user_33098042:
-    'Welcome back, {api:bind:49uLGCSD|path:user.user_metadata.full_name}',
+    'Welcome back',
   we_found_your_existing_account_your_prog_62e4a40d:
     'We found your existing account. Your progress and access were carried over automatically.',
   lifetime_access: 'Lifetime Access',
@@ -48,7 +48,7 @@ export default {
   '46_check_ins_090498ce': '46 check-ins',
   continue_to_stillpoint: 'Continue to Stillpoint',
   good_morning_api_bind_49ulgcsd_path_user_bb10f154:
-    'Good morning, {api:bind:49uLGCSD|path:user.user_metadata.full_name}',
+    'Good morning',
   tuesday_17_november_4f961216: 'Tuesday, 17 November',
   y: 'Y',
   '5_day_streak_912c3987': '5-day streak',

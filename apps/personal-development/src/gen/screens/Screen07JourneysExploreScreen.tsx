@@ -185,7 +185,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:170"
-                    accessibilityLabel="icon/chevR"
+                    accessibilityLabel="Open"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -262,7 +262,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:183"
-                    accessibilityLabel="icon/chevR"
+                    accessibilityLabel="Open"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -339,7 +339,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:196"
-                    accessibilityLabel="icon/chevR"
+                    accessibilityLabel="Open"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -415,7 +415,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:211"
-                    accessibilityLabel="icon/chevR"
+                    accessibilityLabel="Open"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -492,7 +492,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:224"
-                    accessibilityLabel="icon/chevR"
+                    accessibilityLabel="Open"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']

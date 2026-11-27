@@ -207,7 +207,7 @@ export function Screen11JourneyCompleteScreen() {
             >
               <Img
                 testID="w:5:476"
-                accessibilityLabel="IconBtn/award"
+                accessibilityLabel="Badge"
                 className="absolute start-[3.5897vw] top-[3.5897vw] flex-row justify-center items-center"
                 source={assets['1f234f00440c2e4fce5dd7c8f0e9ea1b234da250ee2216e203a6ba5772995717']}
                 resizeMode="cover"

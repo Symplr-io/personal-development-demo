@@ -29,7 +29,7 @@ export function Screen08JourneyDetailScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        q0.refetch();
+        void q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -299,7 +299,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:270"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['7236641f4eef17f5e068ae980447093a3d96de8247754e3fb0959ac3b091632c']
                   }
@@ -352,7 +352,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:277"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['7236641f4eef17f5e068ae980447093a3d96de8247754e3fb0959ac3b091632c']
                   }
@@ -405,7 +405,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:284"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['7236641f4eef17f5e068ae980447093a3d96de8247754e3fb0959ac3b091632c']
                   }
@@ -458,7 +458,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:291"
-                  accessibilityLabel="IconBtn/play"
+                  accessibilityLabel="Play"
                   source={
                     assets['ce0e1803a634bb9ad36bb7650388432b0a782c746ada134eeccf1d83939f7ae3']
                   }
@@ -534,7 +534,7 @@ export function Screen08JourneyDetailScreen() {
                 ) && (
                   <Img
                     testID="w:5:300"
-                    accessibilityLabel="IconBtn/lock"
+                    accessibilityLabel="Locked"
                     source={
                       assets['d2cb6233cf3a2f34f858a49127d6048a007bbfb4e72bedb78c615c31d2789c36']
                     }

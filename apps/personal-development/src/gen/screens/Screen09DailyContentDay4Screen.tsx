@@ -71,7 +71,7 @@ export function Screen09DailyContentDay4Screen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:5:328"
-                  accessibilityLabel="IconBtn/chevL"
+                  accessibilityLabel="Back"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -100,7 +100,7 @@ export function Screen09DailyContentDay4Screen() {
             >
               <Img
                 testID="w:5:322"
-                accessibilityLabel="IconBtn/dots"
+                accessibilityLabel="More options"
                 className="absolute start-[79.4872vw] top-[1.0256vw] flex-row justify-center items-center"
                 source={assets['5c8e7d4c06beabe5dff0806c0967da114a630a19b00777121f4a15b762075070']}
                 resizeMode="cover"
@@ -197,7 +197,7 @@ export function Screen09DailyContentDay4Screen() {
                 >
                   <Img
                     testID="w:5:342"
-                    accessibilityLabel="IconBtn/play"
+                    accessibilityLabel="Play"
                     className="absolute start-[74.8718vw] top-[7.1795vw] flex-row justify-center items-center"
                     source={
                       assets['5f03911859085f7f0578d9f66c958c5c1c78fcce56bd6f0558b677be8ee574d6']
@@ -240,7 +240,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:347"
-                  accessibilityLabel="IconBtn/check"
+                  accessibilityLabel="Done"
                   source={
                     assets['d04c97daad3611bd78136fd5c3d7030989529a7718db7e945533d98cd5ce558c']
                   }
@@ -293,7 +293,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:354"
-                  accessibilityLabel="IconBtn/play"
+                  accessibilityLabel="Play"
                   source={
                     assets['a7ef8ed8b88a6989ac75d3b579405f065c78f3e56a03d457fdd5b450aaef26d4']
                   }
@@ -346,7 +346,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:361"
-                  accessibilityLabel="IconBtn/clock"
+                  accessibilityLabel="Time"
                   source={
                     assets['d67fe35fc18eb7c6a3e3e223a6474ef73df9bf9188cc47de2dbf8f6ace9d287c']
                   }
@@ -399,7 +399,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:369"
-                  accessibilityLabel="IconBtn/clock"
+                  accessibilityLabel="Time"
                   source={
                     assets['d67fe35fc18eb7c6a3e3e223a6474ef73df9bf9188cc47de2dbf8f6ace9d287c']
                   }

@@ -118,7 +118,7 @@ export function Screen21aProgressWeekScreen() {
                 >
                   <Img
                     testID="w:8:65"
-                    accessibilityLabel="IconBtn/flame"
+                    accessibilityLabel="Streak"
                     source={
                       assets['7e6951fce823d5ee6535871886c272dadd6577b94bb78b7ecf1a8e3a984a8734']
                     }
@@ -133,7 +133,7 @@ export function Screen21aProgressWeekScreen() {
                 >
                   <Img
                     testID="w:8:71"
-                    accessibilityLabel="IconBtn/headphones"
+                    accessibilityLabel="Audio"
                     source={
                       assets['43f5cefa021232dfdfb3a8bd20c2a90f268e310d68ea3964b87f397b0fb4edab']
                     }
@@ -158,7 +158,7 @@ export function Screen21aProgressWeekScreen() {
                 >
                   <Img
                     testID="w:8:77"
-                    accessibilityLabel="IconBtn/check"
+                    accessibilityLabel="Done"
                     source={
                       assets['3d8496b8176f42da9bf38546478d2f7e515c6ca193804ca2dab0d62c19b759fc']
                     }

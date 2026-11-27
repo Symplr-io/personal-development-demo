@@ -79,7 +79,7 @@ export function Screen06HomeScreen() {
                       numberOfLines={1}
                       adjustsFontSizeToFit
                       minimumFontScale={0.65}
-                    >{`Good morning, ${toStr(getPath(lastResponse('bind:49uLGCSD'), 'user.user_metadata.full_name'))}`}</Txt>
+                    >Good morning</Txt>
                   </Box>
                   <Box
                     pointerEvents="none"
@@ -108,7 +108,7 @@ export function Screen06HomeScreen() {
                   >
                     <Img
                       testID="w:5:52"
-                      accessibilityLabel="IconBtn/bell"
+                      accessibilityLabel="Notifications"
                       className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                       source={
                         assets['b29ea08816622ececf49b2eee5096e9276a9bd2a31ff14e937fdb70e4f43f462']
@@ -148,7 +148,7 @@ export function Screen06HomeScreen() {
             >
               <Img
                 testID="w:5:59"
-                accessibilityLabel="icon/flame"
+                accessibilityLabel="Streak"
                 className="absolute start-[3.0769vw] top-[2.0513vw] overflow-hidden"
                 source={assets['a040416c1f99e89abbeb94c5bf0e21058d28631a11a4560f2e8fb056f16476d4']}
                 resizeMode="cover"
@@ -280,7 +280,7 @@ export function Screen06HomeScreen() {
                     >
                       <Img
                         testID="w:5:72"
-                        accessibilityLabel="icon/play"
+                        accessibilityLabel="Play"
                         className="absolute start-[5.1282vw] top-[3.5897vw] overflow-hidden"
                         source={
                           assets['af850cc16ee9ab24b80f5b667e4e9364b36b61fc10c000b843a81b1076ce3098']
@@ -554,7 +554,7 @@ export function Screen06HomeScreen() {
                 >
                   <Img
                     testID="w:5:100"
-                    accessibilityLabel="IconBtn/play"
+                    accessibilityLabel="Play"
                     className="absolute start-[76.9231vw] top-[3.5897vw] flex-row justify-center items-center"
                     source={
                       assets['083240b76aa4e7d5a14729aed972def15eabc74383c64da48bf4a06a470d54ea']
