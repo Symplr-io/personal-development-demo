@@ -71,7 +71,7 @@ export function Screen09DailyContentDay4Screen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:5:328"
-                  accessibilityLabel="Back"
+                  accessibilityLabel="IconBtn/chevL"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -100,7 +100,7 @@ export function Screen09DailyContentDay4Screen() {
             >
               <Img
                 testID="w:5:322"
-                accessibilityLabel="More options"
+                accessibilityLabel="IconBtn/dots"
                 className="absolute start-[79.4872vw] top-[1.0256vw] flex-row justify-center items-center"
                 source={assets['5c8e7d4c06beabe5dff0806c0967da114a630a19b00777121f4a15b762075070']}
                 resizeMode="cover"
@@ -116,7 +116,6 @@ export function Screen09DailyContentDay4Screen() {
               testID="w:5:332"
               accessibilityLabel={t('param_headline_2b63203a')}
               className="absolute start-[5.1282vw] top-[17.9487vw] w-[90.7692vw] text-text-primary font-inter-700 text-[length:6.6667vw] leading-[8.2051vw] text-left"
-              numberOfLines={2}
             >{`${recallParam(route.params, 'headline')}`}</Txt>
           </Box>
           <PressableBox
@@ -198,7 +197,7 @@ export function Screen09DailyContentDay4Screen() {
                 >
                   <Img
                     testID="w:5:342"
-                    accessibilityLabel="Play"
+                    accessibilityLabel="IconBtn/play"
                     className="absolute start-[74.8718vw] top-[7.1795vw] flex-row justify-center items-center"
                     source={
                       assets['5f03911859085f7f0578d9f66c958c5c1c78fcce56bd6f0558b677be8ee574d6']
@@ -218,8 +217,8 @@ export function Screen09DailyContentDay4Screen() {
               backgroundColor: tokens.colors.surface,
               shadowColor: 'rgba(31,36,64,0.07)',
               shadowOffset: { width: 0, height: 4 },
-              shadowRadius: 8,
-              shadowOpacity: 1,
+              shadowRadius: 16,
+              shadowOpacity: 0.07,
               elevation: 8,
             }}
           >
@@ -241,7 +240,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:347"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['d04c97daad3611bd78136fd5c3d7030989529a7718db7e945533d98cd5ce558c']
                   }
@@ -294,7 +293,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:354"
-                  accessibilityLabel="Play"
+                  accessibilityLabel="IconBtn/play"
                   source={
                     assets['a7ef8ed8b88a6989ac75d3b579405f065c78f3e56a03d457fdd5b450aaef26d4']
                   }
@@ -347,7 +346,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:361"
-                  accessibilityLabel="Time"
+                  accessibilityLabel="IconBtn/clock"
                   source={
                     assets['d67fe35fc18eb7c6a3e3e223a6474ef73df9bf9188cc47de2dbf8f6ace9d287c']
                   }
@@ -400,7 +399,7 @@ export function Screen09DailyContentDay4Screen() {
               >
                 <Img
                   testID="w:5:369"
-                  accessibilityLabel="Time"
+                  accessibilityLabel="IconBtn/clock"
                   source={
                     assets['d67fe35fc18eb7c6a3e3e223a6474ef73df9bf9188cc47de2dbf8f6ace9d287c']
                   }
@@ -513,16 +512,21 @@ export function Screen09DailyContentDay4Screen() {
             });
           }}
         >
-          <Txt
-            testID="w:I5:380;3:146"
-            accessibilityLabel={t('start_guided_audio')}
-            className="text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
+          <Box
+            pointerEvents="none"
+            style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
           >
-            {t('start_guided_audio')}
-          </Txt>
+            <Txt
+              testID="w:I5:380;3:146"
+              accessibilityLabel={t('start_guided_audio')}
+              className="absolute start-[26.5385vw] top-[4.7436vw] text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+            >
+              {t('start_guided_audio')}
+            </Txt>
+          </Box>
         </PressableBox>
       </Box>
     </ScreenFrame>

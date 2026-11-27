@@ -11,8 +11,6 @@ export default {
   log_in_to_stillpoint: 'Log in to Stillpoint',
   your_progress_journal_and_purchases_stay_0c2cf028:
     'Your progress, journal and purchases stay synced across devices.',
-  sign_up: 'Sign up',
-  log_in: 'Log in',
   email: 'Email',
   password: 'Password',
   login: 'Login',
@@ -34,7 +32,7 @@ export default {
   confidence: 'Confidence',
   letting_go: 'Letting go',
   healthy_habits: 'Healthy habits',
-  welcome_back_api_bind_49ulgcsd_path_user_ac1ca36e:
+  welcome_back_api_bind_49ulgcsd_path_user_33098042:
     'Welcome back, {api:bind:49uLGCSD|path:user.user_metadata.full_name}',
   we_found_your_existing_account_your_prog_62e4a40d:
     'We found your existing account. Your progress and access were carried over automatically.',
@@ -49,7 +47,7 @@ export default {
   check_in_history_34d7528d: 'Check-in history',
   '46_check_ins_090498ce': '46 check-ins',
   continue_to_stillpoint: 'Continue to Stillpoint',
-  good_morning_api_bind_49ulgcsd_path_user_5a7d5d6c:
+  good_morning_api_bind_49ulgcsd_path_user_bb10f154:
     'Good morning, {api:bind:49uLGCSD|path:user.user_metadata.full_name}',
   tuesday_17_november_4f961216: 'Tuesday, 17 November',
   y: 'Y',
@@ -316,9 +314,6 @@ export default {
   entries_you_write_on_these_days_will_app_d4e228c7:
     'Entries you write on these days will appear here.',
   write_an_entry: 'Write an entry',
-  week: 'Week',
-  month: 'Month',
-  all_time: 'All time',
   sessions: 'Sessions',
   mood_before_vs_after_68e34638: 'Mood: before vs after',
   '5_days': '5 days',
@@ -428,6 +423,4 @@ export default {
   future_content_updates: 'Future content updates',
   your_entitlement_is_linked_to_your_accou_60365228:
     'Your entitlement is linked to your account, so it carries over if you reinstall or change device.',
-  select_language: 'Select Language',
-  confirm: 'Confirm',
 } as const;

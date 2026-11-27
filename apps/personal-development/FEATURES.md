@@ -45,11 +45,6 @@ your custom code (`src/custom/` — never overwritten). This file says which is 
 | App-switcher privacy blur | — off | Content hidden in the task switcher on both platforms (banking-style) |
 | Emulator detection | — off | Release builds refuse to run on emulators/simulators; dev builds warn |
 | SSL certificate pinning | — off | Public-key pins for your API hosts, captured at generation time — regenerate after certificate rotation |
-| Device ID on API calls | — off | Sends the phone's ID to your own APIs as X-Device-Id |
-| Developer mode detection | — off | Release builds block Android developer options and USB debugging |
-| Biometrics after a PIN confirmation | — off | Face ID confirms transactions only after one PIN confirmation |
-| Code obfuscation | — off | Release builds obfuscate your JavaScript and strip iOS symbols |
-| Block older versions | — off | Refuses a version older than one this phone has run |
 
 ### Languages (i18n)
 This app speaks: 🇺🇸 English (`src/gen/i18n/strings.en.ts`).

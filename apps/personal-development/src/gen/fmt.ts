@@ -4,22 +4,6 @@
 // '' (never NaN on screen); display formatting (decimals/grouping) leaves a
 // non-number untouched so a name is never blanked.
 
-/** How a month's short name reads: English until the app's language says otherwise (src/gen/i18n, web). */
-export const monthWords = { of: (month: string): string => month };
-
-/** Set by the `until` op whenever it shows time that is still running. */
-let untilSeen = false;
-/**
- * Was an `until` countdown drawn since the last time this was asked? The
- * screen runtime's tick asks once a second (useUntilTick) and re-renders only
- * then — this module stays free of imports so it can be loaded on its own.
- */
-export function takeUntilSeen(): boolean {
-  const seen = untilSeen;
-  untilSeen = false;
-  return seen;
-}
-
 /**
  * Digits, right to left, in groups of `size`.
  *
@@ -77,305 +61,23 @@ const ARITH: Record<string, (n: number, a: number) => string> = {
 };
 
 /**
- * The separator the before and after ops split at: "|" unless the token names one, since a {…} token cannot
- * spell a "|" as an argument. An op written with no argument arrives with a null one.
- */
-function separatorOf(arg: string | null = '|'): string {
-  return arg === null || arg === '' ? '|' : arg;
-}
-
-/**
- * The phone numbering plans the phone op knows: a country code and the groups
- * its mobile numbers are printed in. Country codes are prefix-free, so the
- * order does not matter.
- */
-const PHONE_PLANS: ReadonlyArray<readonly [string, readonly number[]]> = [
-  ['1', [3, 3, 4]],
-  ['44', [4, 6]],
-  ['60', [2, 3, 4]],
-  ['61', [3, 3, 3]],
-  ['62', [3, 4, 4]],
-  ['63', [3, 3, 4]],
-  ['65', [4, 4]],
-  ['66', [2, 3, 4]],
-  ['84', [3, 3, 3]],
-  ['91', [5, 5]],
-  ['94', [2, 3, 4]],
-  ['971', [2, 3, 4]],
-];
-
-/**
- * A phone number as people read it — "6591111315" → "+65 9111 1315": the
- * country code, then the national number in its usual groups. Only a number
- * whose code is in PHONE_PLANS and whose length fits that plan is regrouped.
- * `phone:65` names the app's own country: a number saved with no code
- * ("81234567") is read as that country's when it fits the plan. Anything else
- * comes back UNCHANGED, as chunk does.
- */
-function phoneNumber(s: string, home?: string | null): string {
-  const digits = s.replaceAll(/\D/g, '');
-  const grouped = groupedPhone(digits);
-  if (grouped !== null) return grouped;
-  if (!home || digits === '' || s.trim().startsWith('+')) return s;
-  return groupedPhone(home + digits) ?? s;
-}
-
-/** The digits as "+<code> <groups>" when a plan fits them exactly, else null. */
-function groupedPhone(digits: string): string | null {
-  for (const [code, sizes] of PHONE_PLANS) {
-    if (
-      !digits.startsWith(code) ||
-      digits.length !== code.length + sizes.reduce((a, b) => a + b, 0)
-    )
-      continue;
-    const parts: string[] = [];
-    let at = code.length;
-    for (const n of sizes) {
-      parts.push(digits.slice(at, at + n));
-      at += n;
-    }
-    return '+' + code + ' ' + parts.join(' ');
-  }
-  return null;
-}
-
-/**
- * A YYYY-MM-DD day on a clock `<±hh:mm>` ahead of UTC, as the UTC instant it starts at (or, with
- * `end`, its last millisecond); '' for anything that is not a day. A bank that keeps its days in
- * UAE time stores UTC instants and filters a day as 20:00Z the evening before to 19:59:59.999Z.
- */
-function dayInstant(s: string, offset: string, end: boolean): string {
-  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
-  if (!d) return '';
-  const z = /^([+-])(\d{2}):?(\d{2})$/.exec(offset.trim()) ?? ['', '+', '00', '00'];
-  const sign = z[1] === '-' ? -1 : 1;
-  const ahead = sign * (Number(z[2]) * 60 + Number(z[3])) * 60000;
-  const ms =
-    Date.UTC(Number(d[1]), Number(d[2]) - 1, Number(d[3])) - ahead + (end ? 86400000 - 1 : 0);
-  return new Date(ms).toISOString();
-}
-
-/**
- * `between:<field>[:<±hh:mm>]` — a range of days, `<from>..<to>` (one day alone is that day; either
- * side may be blank), as a JSON filter on <field>: `{"bookingDateTime":{"between":[…]}}`, or `gte` /
- * `lte` with one side. Each day is read on that clock. No day at all is '', so a request param built
- * this way is not sent and the list is read unfiltered.
- */
-function rangeFilter(s: string, spec = ''): string {
-  const c = spec.indexOf(':');
-  const field = (c < 0 ? spec : spec.slice(0, c)).trim();
-  const zone = c < 0 ? '' : spec.slice(c + 1);
-  const text = s.trim();
-  const [a = '', b = ''] = text.includes('..') ? text.split('..') : [text, text];
-  const from = dayInstant(a, zone, false);
-  const to = dayInstant(b, zone, true);
-  if (field === '' || (from === '' && to === '')) return '';
-  let cond: Record<string, unknown> = { lte: to };
-  if (from !== '' && to !== '') cond = { between: [from, to] };
-  else if (from !== '') cond = { gte: from };
-  return JSON.stringify({ [field]: cond });
-}
-
-/**
- * A moment's day on the phone's own calendar, YYYY-MM-DD: an ISO instant, epoch milliseconds, or a bare day (that
- * day, not midnight UTC). '' when the text is not a moment.
- */
-/** A moment as the phone reads it: a bare YYYY-MM-DD is that day here, digits are epoch milliseconds, else the text. */
-function momentOf(t: string): Date {
-  const bare = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
-  if (bare) return new Date(Number(bare[1]), Number(bare[2]) - 1, Number(bare[3]));
-  return new Date(/^\d+$/.test(t) ? Number(t) : t);
-}
-
-function phoneDay(s: string): string {
-  const t = s.trim();
-  if (t === '') return '';
-  const d = momentOf(t);
-  if (Number.isNaN(d.getTime())) return '';
-  const two = (n: number) => String(n).padStart(2, '0');
-  return d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate());
-}
-
-/**
- * A moment as a day in words, on the phone's calendar: "Today", "Yesterday", else "Sat, 14 Nov" — how a journal heads
- * its entries. Not a moment: left as it is.
- */
-function relativeDay(s: string): string {
-  const d = phoneDay(s);
-  if (d === '') return s;
-  const now = new Date();
-  if (d === phoneDay(String(now.getTime()))) return 'Today';
-  if (
-    d === phoneDay(String(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime()))
-  )
-    return 'Yesterday';
-  const [y, m, day] = d.split('-').map(Number);
-  const at = new Date(y, m - 1, day);
-  const W = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return W[at.getDay()] + ', ' + at.getDate() + ' ' + monthWords.of(M[at.getMonth()]);
-}
-
-/** A moment's time on the phone's clock — "7:42 AM". Not a moment: left as it is. */
-function clockOf(s: string): string {
-  const t = s.trim();
-  if (t === '') return s;
-  const d = momentOf(t);
-  if (Number.isNaN(d.getTime())) return s;
-  const h = d.getHours() % 12 === 0 ? 12 : d.getHours() % 12;
-  return (
-    h + ':' + String(d.getMinutes()).padStart(2, '0') + ' ' + (d.getHours() < 12 ? 'AM' : 'PM')
-  );
-}
-
-/**
- * The WEEK a day strip shows (Stillpoint's journal, QA 20/11): its Monday on the phone's calendar. A value is any day
- * of it (YYYY-MM-DD, a moment); '' is this week. The strip's cells, its range and its "This week" read the same value,
- * so the arrows that move it move all three.
- */
-function weekMonday(s: string): Date {
-  const t = s.trim();
-  const d = t === '' ? new Date() : momentOf(t);
-  const at = Number.isNaN(d.getTime()) ? new Date() : d;
-  return new Date(at.getFullYear(), at.getMonth(), at.getDate() - ((at.getDay() + 6) % 7));
-}
-
-/** The day of that week the arg counts to from its Monday (0 the Monday). */
-function weekDay(s: string, arg?: string | null): Date {
-  const m = weekMonday(s);
-  const i = Number(arg ?? 0);
-  return new Date(m.getFullYear(), m.getMonth(), m.getDate() + (Number.isFinite(i) ? i : 0));
-}
-
-function isoDay(d: Date): string {
-  return (
-    d.getFullYear() +
-    '-' +
-    String(d.getMonth() + 1).padStart(2, '0') +
-    '-' +
-    String(d.getDate()).padStart(2, '0')
-  );
-}
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
-/** "16 – 22 November"; across a month's end "30 November – 6 December". */
-function weekRange(s: string): string {
-  const a = weekMonday(s);
-  const b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 6);
-  const month = (d: Date): string => monthWords.of(MONTH_NAMES[d.getMonth()]);
-  return a.getMonth() === b.getMonth()
-    ? a.getDate() + ' – ' + b.getDate() + ' ' + month(b)
-    : a.getDate() + ' ' + month(a) + ' – ' + b.getDate() + ' ' + month(b);
-}
-
-/** "This week", "Last week", "Next week"; any other week says nothing (its range does). */
-function weekWord(s: string): string {
-  const weeks = Math.round((weekMonday(s).getTime() - weekMonday('').getTime()) / (7 * 86_400_000));
-  if (weeks === 0) return 'This week';
-  if (weeks === -1) return 'Last week';
-  return weeks === 1 ? 'Next week' : '';
-}
-
-/**
- * A value made new on every run: the phone's local day, month, hour and minute
- * after it — "Zhu Si Ying Trading" → "Zhu Si Ying Trading 0411-1032", and
- * `stamp:compact` "ZSY" → "ZSY04111032". For a demo value a backend refuses
- * twice (a company's name and registration number). An empty value stays
- * empty, so a field whose demo value is switched off starts blank.
- */
-function stamped(s: string, arg?: string | null): string {
-  if (s === '') return s;
-  const now = new Date();
-  const two = (n: number) => String(n).padStart(2, '0');
-  const day = two(now.getDate()) + two(now.getMonth() + 1);
-  const time = two(now.getHours()) + two(now.getMinutes());
-  return arg === 'compact' ? s + day + time : s + ' ' + day + '-' + time;
-}
-
-/**
  * Display + text ops, as a table rather than an if/else ladder — the ladder was
  * 32 cognitive complexity (Sonar S3776) and every new op made it worse.
  */
 const OPS: Record<string, (s: string, arg?: string) => string> = {
   last: (s, arg) => s.slice(-Number(arg)),
   first: (s, arg) => s.slice(0, Number(arg)),
-  // the two halves of a value a server joined at a separator — dev's debug sign-up answers its activation token as
-  // "<token>|<code>" (x-debug-otp): before keeps what precedes the LAST separator (all of it when there is none),
-  // after what follows it (nothing when there is none)
-  before: (s, arg) => {
-    const at = s.lastIndexOf(separatorOf(arg));
-    return at === -1 ? s : s.slice(0, at);
-  },
-  after: (s, arg) => {
-    const sep = separatorOf(arg);
-    const at = s.lastIndexOf(sep);
-    return at === -1 ? '' : s.slice(at + sep.length);
-  },
   // the Nth whitespace-separated word, from 0 — a greeting by first name when
   // the API only has the full name (reference: getProfileFirstName)
   word: (s, arg) => s.trim().split(/\s+/)[Number(arg ?? 0)] ?? '',
   upper: (s) => s.toUpperCase(),
   lower: (s) => s.toLowerCase(),
-  /**
-   * The initials of a name — "Noor Al Amin" → "NA": the first and the last
-   * word's first letters, upper-case; one word → its first letter; nothing →
-   * nothing. What a record page's avatar circle shows when the record has no
-   * photo (schema 0.4.66, the header look). The studio's preview says the same.
-   */
-  initials: (s) => {
-    const words = s
-      .trim()
-      .split(/\s+/)
-      .filter((w) => w !== '');
-    const first = words[0] ?? '';
-    // .at(-1), never [length - 1] (Sonar S7755)
-    const last = words.length > 1 ? words.at(-1) : undefined;
-    return (first.slice(0, 1) + (last ?? '').slice(0, 1)).toUpperCase();
-  },
   // left zero-pad to N characters — a card's expiry month 8 → "08"
   pad: (s, arg) => (s === '' ? s : s.padStart(Math.max(0, Number(arg ?? 0) || 0), '0')),
   trim: (s) => s.trim(),
   digits: (s) => s.replaceAll(/\D/g, ''),
-  phone: (s, arg) => phoneNumber(s, arg),
-  stamp: (s, arg) => stamped(s, arg),
   group: (s, arg) => groupNumber(s, arg ?? undefined),
   fallback: (s, arg) => (s === '' ? String(arg ?? '') : s),
-  /** fallback's opposite: the words given when the value is not empty, else '' — "2 min{…|today|ifset: · Completed}". Not
-   * named then: an object holding a then is read as a promise (Sonar S7739). */
-  ifset: (s, arg) => (s === '' ? '' : String(arg ?? '')),
-  /** How many words the text holds — a journal's live "{widget:…|wordcount} words" (schema 0.4.101). */
-  wordcount: (s) => String(s.trim() === '' ? 0 : s.trim().split(/\s+/).length),
-  /** A moment as a day in words: "Today", "Yesterday", else "Sat, 14 Nov" (see relativeDay). */
-  relday: (s) => relativeDay(s),
-  /** A moment's time on the phone's clock: "7:42 AM". */
-  clock: (s) => clockOf(s),
-  /** a day strip's week (any day of it, '' this week): wkdate:2 its third day as YYYY-MM-DD, wkday:2 that day's date, wkletter:2 its weekday's letter */
-  wkdate: (s, arg) => isoDay(weekDay(s, arg)),
-  wkday: (s, arg) => String(weekDay(s, arg).getDate()),
-  wkletter: (s, arg) => 'SMTWTFS'.charAt(weekDay(s, arg).getDay()),
-  /** the week's span — "16 – 22 November" */
-  weekrange: (s) => weekRange(s),
-  /** "This week" / "Last week" / "Next week", else '' */
-  weekword: (s) => weekWord(s),
-  /** The value when it is a moment of today on the phone, else '' — "did I already check in today?". */
-  today: (s) => {
-    const d = phoneDay(s);
-    return d !== '' && d === phoneDay(String(Date.now())) ? s : '';
-  },
   /**
    * The date N days before today on the phone, as YYYY-MM-DD — the clock
    * `{device:today|minus:N}` reads, for an N chosen at run time: a "Date
@@ -387,8 +89,6 @@ const OPS: Record<string, (s: string, arg?: string) => string> = {
     if (s.trim() === '' || !Number.isFinite(n)) return '';
     return new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
   },
-  /** A range of days as a JSON filter: between:bookingDateTime:+04:00 (see rangeFilter); no day stays empty. */
-  between: (s, arg) => rangeFilter(s, arg),
   /** Exact-value display labels: map:RECENT=Recent;ALPHABETICAL=A to Z. */
   map: (s, arg) => {
     const hit = String(arg ?? '')
@@ -451,66 +151,7 @@ const OPS: Record<string, (s: string, arg?: string) => string> = {
     const d = new Date(s);
     if (s.trim() === '' || Number.isNaN(d.getTime())) return s;
     const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${d.getDate()} ${monthWords.of(/* v8 ignore next -- getMonth() is 0..11, always a name */ M[d.getMonth()] ?? '')} ${d.getFullYear()}`;
-  },
-  /** One field of a JSON filter — jsonfield:transactionInformation writes "transactionInformation":"coffee"; empty stays empty. */
-  jsonfield: (s, arg) =>
-    s.trim() === '' ? '' : JSON.stringify(String(arg ?? '')) + ':' + JSON.stringify(s.trim()),
-  /** The time left until a moment — "02:14:09" (a beneficiary's cooling-off). Empty once it has passed. */
-  until: (s) => {
-    const at = Date.parse(s.trim());
-    if (!Number.isFinite(at)) return '';
-    const left = Math.floor((at - Date.now()) / 1000);
-    if (left <= 0) return '';
-    untilSeen = true;
-    const two = (n: number) => String(n).padStart(2, '0');
-    return (
-      two(Math.floor(left / 3600)) +
-      ':' +
-      two(Math.floor((left % 3600) / 60)) +
-      ':' +
-      two(left % 60)
-    );
-  },
-  /**
-   * A code as words — "TRADE_LICENCE" → "Trade licence", "VETO_RIGHTS" → "Veto
-   * rights". A registry's lists of types are open (one can be added on the
-   * server without the app being rebuilt), so a code is shown readable rather
-   * than raw (the corporate reference's documentTypeLabel).
-   */
-  words: (s) => {
-    const w = s
-      .toLowerCase()
-      .split(/[_\s]+/)
-      .filter(Boolean)
-      .join(' ');
-    return w === '' ? s : w.charAt(0).toUpperCase() + w.slice(1);
-  },
-  /**
-   * A figure with at most N decimals and no trailing zeros — upto:2 writes
-   * "92.5000" as "92.5" and "100.0000" as "100" (a shareholding is stored to
-   * four decimals and quoted to two). Not a number: left as it is.
-   */
-  upto: (s, arg) => {
-    const n = Number(s);
-    if (s.trim() === '' || !Number.isFinite(n)) return s;
-    return String(Number(n.toFixed(Math.max(0, Math.min(8, Number(arg ?? 2) || 0)))));
-  },
-  /** A YYYY-MM-DD date in figures — "21/10/2027" (a goal's "Ends on"). Anything else is left as it is. */
-  numdate: (s) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s.trim());
-    return m ? m[3] + '/' + m[2] + '/' + m[1] : s;
-  },
-  /** A count with its unit — unit:Month writes "1 Month", "12 Months". Not a number: left as it is. */
-  unit: (s, arg) => {
-    const n = Number(s);
-    if (s.trim() === '' || !Number.isFinite(n)) return s;
-    return s + ' ' + String(arg ?? '') + (n === 1 ? '' : 's');
-  },
-  /** The whole part of a figure — "53000.00" → "53000" (an amount drawn with small decimals). */
-  intpart: (s) => {
-    const i = s.indexOf('.');
-    return i < 0 ? s : s.slice(0, i);
+    return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}`;
   },
   /**
    * An ISO timestamp with its time — "19 Jul 2026, 8:01 AM", as the transfer
@@ -522,99 +163,8 @@ const OPS: Record<string, (s: string, arg?: string) => string> = {
     const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const h = d.getHours() % 12 === 0 ? 12 : d.getHours() % 12;
     const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${d.getDate()} ${monthWords.of(/* v8 ignore next -- getMonth() is 0..11, always a name */ M[d.getMonth()] ?? '')} ${d.getFullYear()}, ${h}:${mm} ${d.getHours() < 12 ? 'AM' : 'PM'}`;
+    return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}, ${h}:${mm} ${d.getHours() < 12 ? 'AM' : 'PM'}`;
   },
-  /**
-   * A calendar day as a statement prints it — "05 Oct 2026", read from the
-   * ISO string's own date and never moved into the phone's time zone: a
-   * booking date is the day the bank recorded, not the day it was somewhere
-   * else (the corporate reference's formatDate, en-AE, UTC).
-   */
-  day: (s) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s.trim());
-    if (!m) return s;
-    const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = M[Number(m[2]) - 1];
-    return month ? m[3] + ' ' + monthWords.of(month) + ' ' + m[1] : s;
-  },
-  /** A moment in UTC, 24-hour — "05 Oct 2026, 14:05" (the corporate reference's formatDateTime). */
-  daytime: (s) => {
-    const d = new Date(s);
-    if (s.trim() === '' || Number.isNaN(d.getTime())) return s;
-    const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const two = (n: number) => String(n).padStart(2, '0');
-    return (
-      two(d.getUTCDate()) +
-      ' ' +
-      monthWords.of(
-        /* v8 ignore next -- getUTCMonth() is 0..11, always a name */ M[d.getUTCMonth()] ?? '',
-      ) +
-      ' ' +
-      d.getUTCFullYear() +
-      ', ' +
-      two(d.getUTCHours()) +
-      ':' +
-      two(d.getUTCMinutes())
-    );
-  },
-  /**
-   * A share as the registry quotes it — at most two decimals, and "<0.01" for a
-   * holding too small to show (never "0", which says there is none). Not a
-   * number: left as it is.
-   */
-  pct: (s) => {
-    const n = Number(s);
-    if (s.trim() === '' || !Number.isFinite(n)) return s;
-    if (n !== 0 && Math.abs(n) < 0.005) return '<0.01';
-    return String(Number(n.toFixed(2)));
-  },
-  /**
-   * A share as a percentage — "91" → "91%", "0.91" → "91%": a number of 1 or more is already a percentage, a number under
-   * 1 is a fraction of the whole (a screening score the core keeps as 0–1). At most two decimals, no trailing zeros; "0"
-   * → "0%". Empty stays empty (a fallback after it says the words); not a number: left as it is. The studio's preview
-   * says the same (the Match score on a screening review).
-   */
-  percent: (s) => {
-    const n = Number(s);
-    if (s.trim() === '' || !Number.isFinite(n)) return s;
-    const whole = Math.abs(n) < 1 ? n * 100 : n;
-    return String(Number(whole.toFixed(2))) + '%';
-  },
-  /**
-   * How long ago a moment was, in two words — the schema's `ageWords` (0.4.70), restated so every renderer says the same:
-   * the largest unit that fits, rounded down — "12 min", "5 h", "2 d", "3 mo" (of thirty days, 11 at most short of a
-   * year), "1 y" (of 365); "now" under a minute, and for a moment still to come (an age is never negative). Not a time → ''
-   * (never "NaN min" in a column; a fallback after it says the words). The screening lists' Age column over screenedAt.
-   */
-  age: (s) => {
-    const at = Date.parse(s.trim());
-    if (s.trim() === '' || !Number.isFinite(at)) return '';
-    const ms = Math.max(0, Date.now() - at);
-    if (ms < 3600000) {
-      const mins = Math.floor(ms / 60000);
-      return mins < 1 ? 'now' : mins + ' min';
-    }
-    if (ms < 86400000) return Math.floor(ms / 3600000) + ' h';
-    const days = Math.floor(ms / 86400000);
-    if (days < 30) return days + ' d';
-    if (days < 365) return Math.min(11, Math.floor(days / 30)) + ' mo';
-    return Math.floor(days / 365) + ' y';
-  },
-  /** A list read as text ("a, b, c") as alternatives ("a|b|c") — the values a `rows(…)` filter accepts as one of. */
-  bars: (s) =>
-    s
-      .split(/,\s*/)
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .join('|'),
-  /** Whitespace taken out — an IBAN typed in groups of four is sent as one run. */
-  compact: (s) => s.replaceAll(/\s+/g, ''),
-  /** Led by a separator, only when there is a value — joined:· turns "Mashreq" into " · Mashreq" and
-   * leaves an unrecorded bank as nothing ("Nickname" + "{bankName|joined:·}", the reference's
-   * [nickname, bankName].filter(Boolean).join(' · ')). */
-  joined: (s, arg) => (s === '' ? s : ' ' + String(arg ?? '').trim() + ' ' + s),
-  /** A list, one entry to a line — "a, b" becomes two lines (what each of several companies was asked for). */
-  lines: (s) => s.replaceAll(', ', '\n'),
   eidyear: (s) => {
     const digits = s.replaceAll(/\D/g, '');
     if (digits.length !== 15 || !digits.startsWith('784')) return '';
@@ -625,37 +175,14 @@ const OPS: Record<string, (s: string, arg?: string) => string> = {
   },
 };
 
-/**
- * A label's pieces joined: a token's value, and the separator that stood before it in the template. An empty token drops the
- * separator before it, so "{street}, {flat}" with no flat gives "Main Street" — never a dangling comma.
- */
-export function joinPieces(
-  pieces: Array<{ v?: string | number | boolean | null; sep?: string }>,
-): string {
-  let out = '';
-  let sep = '';
-  for (const piece of pieces) {
-    if (piece.sep !== undefined) {
-      sep = out === '' ? '' : piece.sep;
-      continue;
-    }
-    if (piece.v == null || String(piece.v) === '') continue;
-    out = out + sep + String(piece.v);
-    sep = '';
-  }
-  return out;
-}
-
 export function fmt(v: string, ops: Array<[string, string?]>): string {
   let s = v;
   for (const [op, arg] of ops) {
     const arith = ARITH[op];
     if (arith) {
       const n = Number(s);
-      const a = Number(arg ?? 0);
-      // arithmetic on a non-number yields '' — never NaN on screen. So does a number to work with that is not one: a
-      // value read from a field or an answer (`mul:@widget@amount`) that is blank or not a number.
-      s = Number.isNaN(n) || Number.isNaN(a) || arg?.trim() === '' ? '' : arith(n, a);
+      // arithmetic on a non-number yields '' — never NaN on screen
+      s = Number.isNaN(n) ? '' : arith(n, Number(arg ?? 0));
       continue;
     }
     const fn = OPS[op];

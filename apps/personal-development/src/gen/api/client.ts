@@ -2,7 +2,6 @@
 import React from 'react';
 import axios, { AxiosError, type AxiosInstance } from 'axios';
 import { getAuthHeaders } from '../../custom/api-auth';
-import { wireText } from '../branch';
 import { toAppError } from '../errors';
 import { pickSessionToken, refreshSession, setSession } from '../features/session';
 
@@ -28,11 +27,6 @@ const encScalar = (v: unknown): string => {
   return '';
 };
 export const enc = (v: unknown): string => encodeURIComponent(encScalar(v));
-/** a value's text the way a URL takes it: a string as it is, a number or boolean spelled out, a list joined; nothing for an object (S6551) */
-export const scalarText = (v: unknown): string => encScalar(v);
-/** the same, with a word for a value that is not there */
-export const scalarOr = (v: unknown, fallback: string): string =>
-  v === undefined || v === null ? fallback : encScalar(v);
 
 /**
  * A field list rendered as key=value pairs — the shared half of every form body
@@ -47,7 +41,7 @@ export const scalarOr = (v: unknown, fallback: string): string =>
  * executor.
  */
 export const pairEncode = (
-  vars: Record<string, unknown>,
+  vars: Record<string, any>,
   keys: readonly string[],
   sep: string,
   encode: (v: unknown) => string = encScalar,
@@ -57,18 +51,9 @@ export const pairEncode = (
     .map((k) => k + '=' + encode(vars[k]))
     .join(sep);
 
-/**
- * pairEncode for an application/x-www-form-urlencoded body — each value through the request shapes' wire rule for a form body (0.4.83,
- * branch.ts wireText): a set of keys or a list of objects as JSON text under its key, a list of scalars comma-joined, one value as it is,
- * nothing dropped with the rest.
- */
-export const formEncode = (vars: Record<string, unknown>, keys: readonly string[]): string =>
-  pairEncode(
-    Object.fromEntries(keys.map((k) => [k, wireText(vars[k], 'body', 'form')])),
-    keys,
-    '&',
-    enc,
-  );
+/** pairEncode for an application/x-www-form-urlencoded body. */
+export const formEncode = (vars: Record<string, any>, keys: readonly string[]): string =>
+  pairEncode(vars, keys, '&', enc);
 
 /**
  * Assign a value into a nested request body by path.
@@ -92,9 +77,8 @@ function bodyPathParts(path: string): Array<string | number> {
       parts.push(seg);
       continue;
     }
-    /* v8 ignore next -- the first group always matched: the fallback satisfies the index type */
-    parts.push(m[1] ?? seg);
-    for (const idx of m[2]?.match(/\d+/g) ?? []) parts.push(Number(idx));
+    parts.push(m[1]);
+    for (const idx of m[2].match(/\d+/g) ?? []) parts.push(Number(idx));
   }
   return parts;
 }
@@ -110,18 +94,16 @@ function bodyPathParts(path: string): Array<string | number> {
  * the body as it goes is the kind that drifts.
  */
 function containerAt(
-  obj: Record<string, unknown>,
+  obj: Record<string, any>,
   parts: Array<string | number>,
   upto: number,
-): Record<string, unknown> {
-  let cur: Record<string, unknown> = obj;
+): Record<string, any> {
+  let cur: Record<string, any> = obj;
   for (let i = 0; i < upto; i++) {
     const k = parts[i];
-    /* v8 ignore next -- parts[i] is set for every i below upto: the check satisfies the index type */
-    if (k === undefined) break;
     const nextIsIndex = typeof parts[i + 1] === 'number';
     if (typeof cur[k] !== 'object' || cur[k] === null) cur[k] = nextIsIndex ? [] : {};
-    cur = cur[k] as Record<string, unknown>;
+    cur = cur[k];
   }
   return cur;
 }
@@ -135,30 +117,19 @@ export function asBodyNumber(v: unknown): unknown {
   return Number.isFinite(n) ? n : v;
 }
 
-/** "true" / "false" as the boolean it spells; anything else as is. A value that
- *  travelled as a route param or a text template is text by then (v48: a card
- *  control's new state, carried across the passcode screen). */
-export function asBodyBoolean(v: unknown): unknown {
-  if (v === 'true') return true;
-  if (v === 'false') return false;
-  return v;
-}
-
-export function setByPath(obj: Record<string, unknown>, path: string, value: unknown): void {
+export function setByPath(obj: Record<string, any>, path: string, value: unknown): void {
   if (value === undefined) return;
   const parts = bodyPathParts(path);
-  const last = parts.at(-1);
-  /* v8 ignore next -- a path has at least one part: the check satisfies the type of at() */
-  if (last === undefined) return;
+  const last = parts.at(-1)!;
   // An empty value at an array slot creates the array without the element:
   // present but empty, rather than [''] which the edge would reject.
   if (typeof last === 'number' && (value === '' || value === null)) {
     const cur = containerAt(obj, parts, parts.length - 2);
-    const arrKey = parts.at(-2);
-    if (arrKey !== undefined && !Array.isArray(cur[arrKey])) cur[arrKey] = [];
+    const arrKey = parts.at(-2)!;
+    if (!Array.isArray(cur[arrKey])) cur[arrKey] = [];
     return;
   }
-  containerAt(obj, parts, parts.length - 1)[last] = value;
+  containerAt(obj, parts, parts.length - 1)[last as string] = value;
 }
 
 /**
@@ -178,24 +149,20 @@ export function setByPath(obj: Record<string, unknown>, path: string, value: unk
  * different answers, and the edge rejects the second.
  */
 export function appendRows(
-  body: Record<string, unknown>,
+  body: Record<string, any>,
   base: string,
-  vars: Record<string, unknown>,
-  // the element(s) the spec declares under this base: each already has its setter, so none is appended again — a spec
-  // declaring remittanceInformation.unstructured[0] to [3] sent line 2 twice
-  declared: string | readonly string[],
+  vars: Record<string, any>,
+  declared: string,
 ): void {
-  // the base may be NESTED (an invoice's items: invoices[0].items), so it is
-  // read and written by path, not as a top-level key
   const whole = vars[base];
   if (Array.isArray(whole)) {
-    setByPath(body, base, whole);
+    body[base] = whole;
     return;
   }
   // every foo[n] the caller passed that the spec did not declare
   const extra: unknown[] = [];
   for (const key of Object.keys(vars)) {
-    if (typeof declared === 'string' ? key === declared : declared.includes(key)) continue;
+    if (key === declared) continue;
     // Every backslash here has to survive TWO passes — this emitter's template
     // literal and then the emitted app's own source — so each one is doubled.
     // They were not, and the app got a character class that closed at its
@@ -211,22 +178,16 @@ export function appendRows(
     else if (v !== undefined) extra.push(v);
   }
   if (extra.length === 0) return;
-  const parts = bodyPathParts(base);
-  const holder = containerAt(body, parts, parts.length - 1);
-  const key = parts.at(-1)!;
-  const cur = holder[key];
-  holder[key] = Array.isArray(cur) ? [...cur, ...extra] : extra;
+  const cur = body[base];
+  body[base] = Array.isArray(cur) ? [...cur, ...extra] : extra;
 }
 
-/** the optional members of T, each also taking an explicit undefined: a caller may hand `x: maybe` under exactOptionalPropertyTypes without `?: T | undefined` on every member (SonarQube's S4782 reads that as redundant where the option is off) */
-type OrUndefined<T> = { [K in keyof T]: undefined extends T[K] ? T[K] | undefined : T[K] };
-
-export type ApiRequest = OrUndefined<{
+export interface ApiRequest {
   method: string;
   path: string;
-  query?: Record<string, unknown>;
-  headers?: Record<string, unknown>;
-  body?: unknown;
+  query?: Record<string, any>;
+  headers?: Record<string, any>;
+  body?: any;
   /**
    * Retry-safety token for a state-changing call, sent as `Idempotency-Key`.
    *
@@ -253,7 +214,7 @@ export type ApiRequest = OrUndefined<{
    * the 401 refresh and the base URL are exactly those of every other call.
    */
   responseType?: 'arraybuffer';
-}>;
+}
 
 /**
  * A stable key for one user intent (one transfer, one signup), held across
@@ -265,43 +226,13 @@ export type ApiRequest = OrUndefined<{
  * and three debits. The server needs a way to tell "the user asked again" from
  * "the phone asked again", and only the client can tell it which.
  */
-/** the key a mutation hook put among the vars (`__idempotencyKey`), when it is one */
-export const idempotencyKeyOf = (vars: Record<string, unknown>): string | undefined =>
-  typeof vars.__idempotencyKey === 'string' ? vars.__idempotencyKey : undefined;
-
-export function useIdempotencyKey(): {
-  key: string;
-  rotate: () => void;
-  settled: (error: unknown) => void;
-} {
-  // state, minted once: a ref written during render is what the React Compiler's lint refuses
-  const [key, setKey] = React.useState(newIdempotencyKey);
+export function useIdempotencyKey(): { key: string; rotate: () => void } {
+  const ref = React.useRef<string>('');
+  if (!ref.current) ref.current = newIdempotencyKey();
   const rotate = React.useCallback(() => {
-    setKey(newIdempotencyKey());
+    ref.current = newIdempotencyKey();
   }, []);
-  // a send has settled: a new key for the next intent, unless it got no answer (keepsIdempotencyKey) — decided here, once, so
-  // no service hook carries the branch
-  const settled = React.useCallback((error: unknown) => {
-    if (!keepsIdempotencyKey(error)) setKey(newIdempotencyKey());
-  }, []);
-  return { key, rotate, settled };
-}
-
-/**
- * Does a failed send keep its idempotency key for the next press? Only when it got NO answer — the network dropped, the call
- * timed out (no status), or a gateway answered for a server it could not reach (502 / 503 / 504). Such a call may still have
- * landed: sent again under the same key, the core system answers it once (its stored answer, or "still in flight") instead of
- * doing it twice. Any other answer — a refusal, a validation error, a server error — rotates the key, as every settled call did
- * before: the server has recorded that attempt under its key, and a corrected form sent again under it would be refused as a
- * reused key (or answered with the old error). The reference keeps its key on the same rule (useOrderPhysicalCard.ts:
- * `if (!isProviderUnreachable(error)) keyRef.current = null`).
- */
-export function keepsIdempotencyKey(error: unknown): boolean {
-  if (error === null || error === undefined) return false;
-  const status = (error as { status?: unknown }).status;
-  return (
-    typeof status !== 'number' || status === 0 || status === 502 || status === 503 || status === 504
-  );
+  return { key: ref.current, rotate };
 }
 
 /** RFC-4122-shaped id. crypto.randomUUID when the runtime has it (RN 0.79+
@@ -320,9 +251,7 @@ export function newIdempotencyKey(): string {
   if (c?.randomUUID) return c.randomUUID();
   if (c?.getRandomValues) {
     const b = c.getRandomValues(new Uint8Array(16));
-    /* v8 ignore next -- a byte of a 16-byte array is never undefined: the fallback satisfies the index type */
     b[6] = ((b[6] ?? 0) & 0x0f) | 0x40;
-    /* v8 ignore next -- as above */
     b[8] = ((b[8] ?? 0) & 0x3f) | 0x80;
     const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
     return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
@@ -352,14 +281,29 @@ export function newIdempotencyKey(): string {
 type RetriableConfig = NonNullable<AxiosError['config']> & { _retried?: boolean };
 
 /**
- * Hosts allowed to receive the user's session token: every one. No service of
- * this app opted out ("Send the signed-in user's token to this service" is
- * ticked on all), so the request interceptor adds the session's headers to each
- * call. An app with an opt-out gets the other sendsSession, which keeps the
- * bases that must NOT receive the token — it belongs to whoever issued it.
+ * Hosts allowed to receive the user's session token.
+ *
+ * Emitted from the services whose sendsSession is not false. Without this the
+ * request interceptor attached Authorization: Bearer <session> to EVERY
+ * configured host, so an app talking to its own API plus an identity provider
+ * plus an analytics collector handed the user's session to all three. The
+ * token belongs to whoever issued it.
+ *
+ * An EMPTY list means no service opted out, and everything is allowed —
+ * identical to the previous behaviour. Locking down an app whose hosts are all
+ * env-configured (so no origin is known at build time) would have signed every
+ * user out, which is worse than the bug being fixed.
  */
-function sendsSession(_baseURL: string): boolean {
-  return true;
+const AUTH_ORIGINS: readonly string[] = [];
+
+function sendsSession(baseURL: string): boolean {
+  if (AUTH_ORIGINS.length === 0) return true;
+  try {
+    return AUTH_ORIGINS.includes(new URL(baseURL).origin);
+  } catch {
+    // an unparseable base (a relative proxy path) is the app's own
+    return true;
+  }
 }
 
 const instances: Record<string, AxiosInstance> = {};
@@ -370,10 +314,6 @@ function clientFor(baseURL: string): AxiosInstance {
     baseURL,
     timeout: 15000,
     headers: { 'Content-Type': 'application/json' },
-    // a LIST OF SCALARS in a query goes out as REPEATED KEYS (`code=a&code=b` — the HTTP default, style form / explode; schema 0.4.83):
-    // axios's own form would bracket the key (`code[]=a`). A set of keys never reaches here as an object: the screen wraps it as JSON text
-    // (branch.ts wireText) before the call.
-    paramsSerializer: { indexes: null },
   });
   // The RUNTIME session wins over anything baked in. A service default is a
   // build-time constant (an api key, or a placeholder someone typed into the
@@ -382,8 +322,7 @@ function clientFor(baseURL: string): AxiosInstance {
   // request sent `Authorization: <placeholder>` on every call after login and
   // the API answered 401.
   inst.interceptors.request.use(async (config) => {
-    // …but only to hosts that should receive it — see sendsSession.
-    /* v8 ignore next -- every host receives the session in this app: no service opted out */
+    // …but only to hosts that should receive it — see AUTH_ORIGINS.
     if (!sendsSession(baseURL)) return config;
     const auth = await getAuthHeaders();
     for (const k of Object.keys(auth)) config.headers.set(k, auth[k]);
@@ -449,22 +388,12 @@ function clientFor(baseURL: string): AxiosInstance {
     };
     /** The onboarding status a response carries, wherever the edge put it. */
     const statusOf = (d: unknown): string => {
-      const r = d as
-        | {
-            status?: unknown;
-            currentState?: unknown;
-            data?: { status?: unknown };
-            customer?: { status?: unknown };
-          }
-        | null
-        | undefined;
+      const r = d as Record<string, any> | null | undefined;
       const v = r?.status ?? r?.currentState ?? r?.data?.status ?? r?.customer?.status;
       return v === undefined ? '' : ` status=${brief(v)}`;
     };
     inst.interceptors.request.use((config) => {
-      /* v8 ignore next -- axios fills the method before any interceptor runs: the fallback satisfies the type */
       const m = (config.method ?? 'get').toUpperCase();
-      /* v8 ignore next -- the instance always has its base URL and apiFetch always hands a url: the fallbacks satisfy the types */
       console.log(
         `[API →] ${m} ${config.baseURL ?? ''}${config.url ?? ''} body:{${shape(config.data)}}`,
       );
@@ -472,7 +401,6 @@ function clientFor(baseURL: string): AxiosInstance {
     });
     inst.interceptors.response.use(
       (res) => {
-        /* v8 ignore next -- apiFetch always hands a url: the fallback satisfies the type */
         console.log(`[API ←] ${res.status} ${res.config.url ?? ''}${statusOf(res.data)}`);
         /**
          * What a SUCCESSFUL read actually contains, in shape only.
@@ -542,24 +470,12 @@ function clientFor(baseURL: string): AxiosInstance {
           }
           return out;
         };
-        // A form body (an OAuth token call) is key=value pairs, not JSON. Read
-        // as pairs it goes through the same key rule; printed as-is it showed
-        // a password-grant login's password and client secret in logcat.
-        const formPairs = (s: string): Record<string, string> => {
-          const pairs: Record<string, string> = {};
-          for (const pair of s.split('&')) {
-            const at = pair.indexOf('=');
-            if (at > 0) pairs[pair.slice(0, at)] = pair.slice(at + 1);
-          }
-          return pairs;
-        };
-        const raw: unknown = error.config?.data;
-        let sent: unknown = raw;
-        if (typeof raw === 'string') {
+        let sent: unknown = error.config?.data;
+        if (typeof sent === 'string') {
           try {
-            sent = JSON.parse(raw);
+            sent = JSON.parse(sent);
           } catch {
-            if (raw.includes('=') && !raw.includes(' ')) sent = formPairs(raw);
+            /* not JSON — printed as-is below */
           }
         }
         console.log('[API ✗ sent   ]', JSON.stringify(safeBody(sent) ?? null));
@@ -595,33 +511,14 @@ function clientFor(baseURL: string): AxiosInstance {
   return inst;
 }
 
-function cleaned(obj?: Record<string, unknown>): Record<string, unknown> | undefined {
+function cleaned(obj?: Record<string, any>): Record<string, any> | undefined {
   if (!obj) return undefined;
-  const out: Record<string, unknown> = {};
+  const out: Record<string, any> = {};
   for (const k of Object.keys(obj)) {
     const v = obj[k];
     if (v !== undefined && v !== null && v !== '') out[k] = v;
   }
   return out;
-}
-
-/**
- * The query params a screen passes BEYOND the document's: a list served by a bespoke handler takes params its document never named
- * (the core's GET /beneficiary/: `search`, `targetType`, `customerId` beside the map — 11 Nov 2026, the template's Beneficiary pages),
- * and a binding that maps them says so. They go on the wire with the declared ones; the path's own variables, the headers' and the
- * app's `__` keys (the idempotency key, the step-up token) stay out, and an empty one is dropped with the rest (cleaned).
- */
-export function mappedQuery(
-  query: Record<string, unknown>,
-  vars: Record<string, unknown>,
-  taken: readonly string[],
-): Record<string, unknown> {
-  const skip = new Set([...taken, ...Object.keys(query)]);
-  const extra = Object.keys(vars)
-    .filter((k) => !skip.has(k))
-    .filter((k) => !k.startsWith('__'));
-  for (const k of extra) query[k] = vars[k];
-  return query;
 }
 
 // Cross-service auth: a token minted by one service's login op, reused by
@@ -636,7 +533,7 @@ const __tokenCache: Record<string, { token: string; exp: number }> = {};
 const __tokenInFlight: Record<string, Promise<string | null>> = {};
 export async function resolveTokenRef(
   key: string,
-  login: () => Promise<unknown>,
+  login: () => Promise<any>,
   path: string,
   ttlSeconds?: number,
 ): Promise<string | null> {
@@ -655,7 +552,7 @@ export async function resolveTokenRef(
 
 async function mintTokenRef(
   key: string,
-  login: () => Promise<unknown>,
+  login: () => Promise<any>,
   path: string,
   ttlSeconds?: number,
 ): Promise<string | null> {
@@ -666,7 +563,7 @@ async function mintTokenRef(
     .split('.')
     .map((k) => k.trim())
     .filter(Boolean)
-    .reduce<unknown>((a, k) => (a == null ? a : (a as Record<string, unknown>)[k]), res);
+    .reduce<any>((a, k) => (a == null ? a : a[k]), res);
   if (typeof token === 'string' && token.length > 0) {
     __tokenCache[key] = { token, exp: ttlSeconds ? Date.now() + ttlSeconds * 1000 : Infinity };
     return token;
@@ -735,192 +632,6 @@ export function keepStatus<T>(parsed: T, original: unknown): T {
 }
 
 /**
- * A response checked against its schema, forgiving a scalar the server spells
- * differently from its spec. 101pay's /users/me sends its AML risk scores as
- * numbers where the spec promises strings, which failed the whole profile, so
- * sign-in stopped after a good login. A number or boolean where a string is
- * promised, or a numeric string where a number is, is re-spelt and the body
- * checked again; a list where one item was described is checked item by item;
- * an object or a list where a scalar was promised is kept as it came (the
- * document under-describes the field — respell); any other mismatch (a scalar
- * where an object or a list was promised) still fails.
- */
-/** A JSON body's own copy, to re-spell without touching the one the caller holds. */
-function copyJson(v: unknown): unknown {
-  if (Array.isArray(v)) return v.map(copyJson);
-  if (v && typeof v === 'object')
-    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, copyJson(x)]));
-  return v;
-}
-
-type ShapeIssue = { code: string; path: PropertyKey[]; expected?: string };
-
-/** Whether the one issue is "an object was described" at the root: a list answered where one item was described. */
-function oneDescribed(issues: ShapeIssue[]): boolean {
-  const only = issues.length === 1 ? issues[0] : undefined;
-  return only?.code === 'invalid_type' && only.path.length === 0 && only.expected === 'object';
-}
-
-/** Each item of a list checked against the shape of one (re-spelt the same way); the list handed back whole, or the first item's failure. */
-function checkItems<R extends { success: boolean }>(
-  schema: { safeParse(v: unknown): R },
-  items: unknown[],
-  op: string,
-): R {
-  const results = items.map((item) => checkShape(schema, item, op));
-  return (
-    results.find((r) => !r.success) ??
-    ({
-      success: true,
-      data: results.map((r) => (r as unknown as { data: unknown }).data),
-    } as unknown as R)
-  );
-}
-
-/** The object a path leads to inside a body, or null when there is none. */
-function holderAt(body: unknown, path: PropertyKey[]): Record<PropertyKey, unknown> | null {
-  const at = path.reduce<unknown>(
-    (o, k) => (o && typeof o === 'object' ? (o as Record<PropertyKey, unknown>)[k] : undefined),
-    body,
-  );
-  return at && typeof at === 'object' ? (at as Record<PropertyKey, unknown>) : null;
-}
-
-/** An identifier's key: 'id', or a name that ends in Id (customerId, machineId). */
-const isIdKey = (key: PropertyKey): boolean =>
-  typeof key === 'string' && (key === 'id' || key.endsWith('Id'));
-
-/**
- * One value re-spelt as the document promised: a number or boolean where a string is, a numeric string where a number is. An
- * IDENTIFIER SPELT AS A WORD where a number was promised is kept as it came ('keep'): a history row's id is a uuid on the wire
- * where the gateway's document says number — the team's own portal reads it as String(entry.id) — and every record copy's history
- * timeline said "The events could not be loaded" over it (4 Nov 2026). AN OBJECT OR A LIST WHERE A SCALAR WAS PROMISED is kept as
- * it came too: the document under-describes the field — the studio's Table › Sample learns a field's type from one answer, and a
- * field that was null in that answer is written as string — and the screens read it by its path (a column over
- * counterpartyPayload.name); the product owner's Card › Transactions said "The rows could not be loaded" over every row of a 200
- * with six rows, for two such fields (11 Nov 2026). A scalar where an object or a list was promised still fails: that is the
- * shape genuinely not what was promised. Null for any other mismatch.
- */
-function respell(
-  v: unknown,
-  expected: string | undefined,
-  key: PropertyKey,
-): { value: unknown } | 'keep' | null {
-  if (
-    (expected === 'string' || expected === 'number' || expected === 'boolean') &&
-    v !== null &&
-    typeof v === 'object'
-  )
-    return 'keep';
-  if (expected === 'string' && (typeof v === 'number' || typeof v === 'boolean'))
-    return { value: String(v) };
-  if (expected !== 'number' || typeof v !== 'string') return null;
-  if (v.trim() !== '' && Number.isFinite(Number(v))) return { value: Number(v) };
-  return isIdKey(key) ? 'keep' : null;
-}
-
-/** A field kept as it came: where it is in the body, what it holds, and the document's word for it. */
-type Kept = { path: PropertyKey[]; key: PropertyKey; value: unknown; expected: string | undefined };
-
-/** The fields taken out of the copy for the check, put back on the checked body as they came. */
-function putBack(data: unknown, kept: Kept[]): void {
-  for (const k of kept) {
-    const holder = holderAt(data, k.path);
-    if (holder) holder[k.key] = k.value;
-  }
-}
-
-/** The operation+field pairs already said (noteKept): each is said once a session, however many rows and reads carry it. */
-const __shapeNoted = new Set<string>();
-
-/**
- * The drift recorded: each field kept as it came is said ONCE per operation and field (a row's index is not part of the field) —
- * "[SHAPE] getBaseTransaction: records.counterpartyPayload kept as it came: an object where the document says string" tells the
- * person at the keyboard which line of the document to fix, where a silent keep would hide it for good. Nothing of the body is said
- * (the operation, the field, the two kinds), so it is not behind __DEV__ as the request trace is: the keep is on the data path, and
- * a build-time define is not something the data path may depend on (a test that reaches it has no define).
- */
-function noteKept(op: string, kept: Kept[]): void {
-  for (const k of kept) {
-    const at = op + ': ' + [...k.path, k.key].filter((p) => typeof p !== 'number').join('.');
-    if (__shapeNoted.has(at)) continue;
-    __shapeNoted.add(at);
-    let came = 'a word';
-    if (Array.isArray(k.value)) came = 'a list';
-    else if (typeof k.value === 'object') came = 'an object';
-    console.warn(
-      '[SHAPE] ' +
-        at +
-        ' kept as it came: ' +
-        came +
-        ' where the document says ' +
-        String(k.expected),
-    );
-  }
-}
-
-/** The body re-spelt where a scalar is spelt differently from its spec, checked again; null when an issue is not such a scalar. */
-function respelt<R extends { success: boolean }>(
-  schema: { safeParse(v: unknown): R },
-  data: object,
-  issues: ShapeIssue[],
-  op: string,
-): R | null {
-  const copy = copyJson(data) as Record<PropertyKey, unknown>;
-  const kept: Kept[] = [];
-  for (const issue of issues) {
-    const key = issue.path.at(-1);
-    if (issue.code !== 'invalid_type' || key === undefined) return null;
-    const path = issue.path.slice(0, -1);
-    const holder = holderAt(copy, path);
-    if (!holder) return null;
-    const spelt = respell(holder[key], issue.expected, key);
-    if (spelt === null) return null;
-    if (spelt === 'keep') {
-      kept.push({ path, key, value: holder[key], expected: issue.expected });
-      delete holder[key];
-    } else holder[key] = spelt.value;
-  }
-  const checked = schema.safeParse(copy);
-  if (checked.success && kept.length > 0) {
-    putBack((checked as unknown as { data: unknown }).data, kept);
-    noteKept(op, kept);
-  }
-  return checked;
-}
-
-/** A body checked against its shape (the comment above copyJson), forgiving what respell forgives; op names the operation in the drift noted. */
-export function checkShape<R extends { success: boolean }>(
-  schema: { safeParse(v: unknown): R },
-  data: unknown,
-  op = '',
-): R {
-  const first = schema.safeParse(data);
-  if (first.success || !data || typeof data !== 'object') return first;
-  const issues = (first as unknown as { error: { issues: ShapeIssue[] } }).error.issues;
-  // A LIST where ONE was described: a document that spells a history read's answer as the item's fields (no list marker) while the
-  // service answers the items as an array — every record page's history timeline in a built portal read "The events could not be
-  // loaded" (2 Nov 2026). Each item is checked against the shape described; the list is handed back whole.
-  if (Array.isArray(data) && oneDescribed(issues)) return checkItems(schema, data, op);
-  return respelt(schema, data, issues, op) ?? first;
-}
-
-/**
- * A read of a LIST that the server answers 404 has nothing to list. 101digital's
- * invoice service answers an invoice with no payments with 404 "The Payment was
- * not found", and the Payments screen showed it as a failure, over the design's
- * sample row with its edit and delete buttons. Only reads whose answer is a list
- * carry this; any other failure still throws, and rules still see the 404.
- */
-export function emptyWhenNotFound<T extends object>(empty: T): (error: unknown) => T {
-  return (error) => {
-    if ((error as { status?: number } | null)?.status !== 404) throw error;
-    stampStatus(empty, 404);
-    return empty;
-  };
-}
-
-/**
  * Stamp the real HTTP status on an object body (non-enumerable, so JSON and
  * spreads are unaffected) — response rules compare against it.
  */
@@ -979,7 +690,7 @@ function asAppError(e: unknown): unknown {
   return toAppError(e);
 }
 
-export async function apiFetch<T = unknown>(baseUrl: string, req: ApiRequest): Promise<T> {
+export async function apiFetch<T = any>(baseUrl: string, req: ApiRequest): Promise<T> {
   try {
     const base = baseUrl.replace(/\/$/, '');
     // Idempotency-Key on state-changing calls only. A GET is already safe to
@@ -996,10 +707,7 @@ export async function apiFetch<T = unknown>(baseUrl: string, req: ApiRequest): P
       method: req.method,
       params: cleaned(req.query),
       headers,
-      // A GET or HEAD carries no body. Android drops one silently; iOS refuses the
-      // whole request ("Network Error"), so an operation declared with body fields
-      // on a GET worked on one platform and read as a dead network on the other.
-      data: /^(get|head)$/i.test(req.method) ? undefined : req.body,
+      data: req.body,
       ...(req.responseType ? { responseType: req.responseType } : {}),
     });
     stampStatus(res.data, res.status);

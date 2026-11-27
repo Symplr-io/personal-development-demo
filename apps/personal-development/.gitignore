@@ -17,5 +17,3 @@ android/.gradle/
 # (No yarn.lock: one package manager, one lockfile.)
 yarn.lock
 pnpm-lock.yaml
-# the demo ships its .env: it holds only the demo Supabase's public URL and anon key, and the archive device-service runs has to carry it
-!.env

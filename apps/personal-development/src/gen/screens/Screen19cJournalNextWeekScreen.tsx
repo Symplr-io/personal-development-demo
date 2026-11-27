@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -15,8 +14,6 @@ const { s, sv } = scaleFor(390);
 export function Screen19cJournalNextWeekScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -37,11 +34,8 @@ export function Screen19cJournalNextWeekScreen() {
         className="flex-1 w-full"
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: sv(844) + Math.max(0, insets.bottom - sv(37)),
-          paddingBottom: sv(88) + Math.max(0, insets.bottom - sv(37)),
-        }}
+        contentContainerClassName="flex-col pb-[22.5641vw]"
+        contentContainerStyle={{ minHeight: sv(844) + sv(88) }}
       >
         <Box
           testID="w:67:153"
@@ -86,7 +80,7 @@ export function Screen19cJournalNextWeekScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:67:156"
-                  accessibilityLabel="Add"
+                  accessibilityLabel="IconBtn/plus"
                   className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['e61e336763ffcbde666d7b54f9528a000157bc4ae9fe12d1d549c14dc93ab166']
@@ -267,7 +261,7 @@ export function Screen19cJournalNextWeekScreen() {
             >
               <Img
                 testID="w:67:310"
-                accessibilityLabel="Edit"
+                accessibilityLabel="IconBtn/pen"
                 className="absolute start-[37.6923vw] top-[6.1538vw] flex-row justify-center items-center"
                 source={assets['a59b7b950900c4ca6da76e08c97ca0817fe7a3650bffa9c6d135d9013291f9fd']}
                 resizeMode="cover"
@@ -338,7 +332,7 @@ export function Screen19cJournalNextWeekScreen() {
           left: 0,
           right: 0,
           bottom: 0,
-          height: sv(88) + Math.max(0, insets.bottom - sv(37)),
+          height: sv(88),
           zIndex: 10,
           backgroundColor: 'rgba(255,255,255,1)',
         }}
@@ -352,30 +346,46 @@ export function Screen19cJournalNextWeekScreen() {
             onPress={() => {
               goTo(navigation, 'navigate', 'Screen06Home');
             }}
+            className="absolute top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+            style={{ insetInlineStart: s(12) }}
           >
-            <Box
-              testID="w:67:224"
-              className="w-[17.4359vw] flex-col items-center gap-[1.0256vw]"
-              pointerEvents="box-none"
-            >
-              <Img
-                testID="w:67:225"
-                accessibilityLabel="Home"
-                className="overflow-hidden"
-                source={assets['1d6c8a224e5f107373181cdb48dff59e4a9c78a0c00695b4bf0010747b325a91']}
-                resizeMode="cover"
-                style={{ width: s(24), height: s(24) }}
-              />
-              <Txt
-                testID="w:67:228"
-                accessibilityLabel={t('home')}
-                className="text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
+            <Box className="absolute top-[-2.8205vw]" style={{ insetInlineStart: s(-12) }}>
+              <Box
+                testID="w:67:224"
+                className="absolute start-[3.0769vw] top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+                pointerEvents="box-none"
               >
-                {t('home')}
-              </Txt>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Img
+                    testID="w:67:225"
+                    accessibilityLabel="icon/home"
+                    className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
+                    source={
+                      assets['1d6c8a224e5f107373181cdb48dff59e4a9c78a0c00695b4bf0010747b325a91']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(24), height: s(24) }}
+                  />
+                </Box>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Txt
+                    testID="w:67:228"
+                    accessibilityLabel={t('home')}
+                    className="absolute start-[5vw] top-[7.1795vw] text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                  >
+                    {t('home')}
+                  </Txt>
+                </Box>
+              </Box>
             </Box>
           </PressableBox>
           <PressableBox
@@ -383,30 +393,46 @@ export function Screen19cJournalNextWeekScreen() {
             onPress={() => {
               goTo(navigation, 'navigate', 'Screen07JourneysExplore');
             }}
+            className="absolute top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+            style={{ insetInlineStart: s(86.5) }}
           >
-            <Box
-              testID="w:67:229"
-              className="w-[17.4359vw] flex-col items-center gap-[1.0256vw]"
-              pointerEvents="box-none"
-            >
-              <Img
-                testID="w:67:230"
-                accessibilityLabel="Explore"
-                className="overflow-hidden"
-                source={assets['3c356bd80e1e84aae987c435f57f253ac7a950b5361d5e0be29c1b4499e9e81e']}
-                resizeMode="cover"
-                style={{ width: s(24), height: s(24) }}
-              />
-              <Txt
-                testID="w:67:233"
-                accessibilityLabel={t('journeys')}
-                className="text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
+            <Box className="absolute top-[-2.8205vw]" style={{ insetInlineStart: s(-86.5) }}>
+              <Box
+                testID="w:67:229"
+                className="absolute start-[22.1795vw] top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+                pointerEvents="box-none"
               >
-                {t('journeys')}
-              </Txt>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Img
+                    testID="w:67:230"
+                    accessibilityLabel="icon/compass"
+                    className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
+                    source={
+                      assets['3c356bd80e1e84aae987c435f57f253ac7a950b5361d5e0be29c1b4499e9e81e']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(24), height: s(24) }}
+                  />
+                </Box>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Txt
+                    testID="w:67:233"
+                    accessibilityLabel={t('journeys')}
+                    className="absolute start-[2.9487vw] top-[7.1795vw] text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                  >
+                    {t('journeys')}
+                  </Txt>
+                </Box>
+              </Box>
             </Box>
           </PressableBox>
           <PressableBox
@@ -414,30 +440,46 @@ export function Screen19cJournalNextWeekScreen() {
             onPress={() => {
               goTo(navigation, 'navigate', 'Screen12AudioLibrary');
             }}
+            className="absolute top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+            style={{ insetInlineStart: s(161) }}
           >
-            <Box
-              testID="w:67:234"
-              className="w-[17.4359vw] flex-col items-center gap-[1.0256vw]"
-              pointerEvents="box-none"
-            >
-              <Img
-                testID="w:67:235"
-                accessibilityLabel="Audio"
-                className="overflow-hidden"
-                source={assets['79b0836652a4e35bd72647b8e14ce8e7eb74e5cf07698de8d13d9e9f44841ad2']}
-                resizeMode="cover"
-                style={{ width: s(24), height: s(24) }}
-              />
-              <Txt
-                testID="w:67:237"
-                accessibilityLabel={t('audio')}
-                className="text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
+            <Box className="absolute top-[-2.8205vw]" style={{ insetInlineStart: s(-161) }}>
+              <Box
+                testID="w:67:234"
+                className="absolute start-[41.2821vw] top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+                pointerEvents="box-none"
               >
-                {t('audio')}
-              </Txt>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Img
+                    testID="w:67:235"
+                    accessibilityLabel="icon/headphones"
+                    className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
+                    source={
+                      assets['79b0836652a4e35bd72647b8e14ce8e7eb74e5cf07698de8d13d9e9f44841ad2']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(24), height: s(24) }}
+                  />
+                </Box>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Txt
+                    testID="w:67:237"
+                    accessibilityLabel={t('audio')}
+                    className="absolute start-[5.1282vw] top-[7.1795vw] text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                  >
+                    {t('audio')}
+                  </Txt>
+                </Box>
+              </Box>
             </Box>
           </PressableBox>
           <PressableBox
@@ -445,30 +487,46 @@ export function Screen19cJournalNextWeekScreen() {
             onPress={() => {
               goTo(navigation, 'navigate', 'Screen19JournalHistoryThisWeek');
             }}
+            className="absolute top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+            style={{ insetInlineStart: s(235.5) }}
           >
-            <Box
-              testID="w:67:238"
-              className="w-[17.4359vw] flex-col items-center gap-[1.0256vw]"
-              pointerEvents="box-none"
-            >
-              <Img
-                testID="w:67:239"
-                accessibilityLabel="Journal"
-                className="overflow-hidden"
-                source={assets['c6ac7db288c8c6d9ebf0c4ba9df27ba7950feb501c96678906a514e0b4f05a1d']}
-                resizeMode="cover"
-                style={{ width: s(24), height: s(24) }}
-              />
-              <Txt
-                testID="w:67:242"
-                accessibilityLabel={t('journal')}
-                className="text-teal font-inter-600 text-[length:2.5641vw] leading-[3.1026vw] text-left"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
+            <Box className="absolute top-[-2.8205vw]" style={{ insetInlineStart: s(-235.5) }}>
+              <Box
+                testID="w:67:238"
+                className="absolute start-[60.3846vw] top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+                pointerEvents="box-none"
               >
-                {t('journal')}
-              </Txt>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Img
+                    testID="w:67:239"
+                    accessibilityLabel="icon/book"
+                    className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
+                    source={
+                      assets['c6ac7db288c8c6d9ebf0c4ba9df27ba7950feb501c96678906a514e0b4f05a1d']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(24), height: s(24) }}
+                  />
+                </Box>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Txt
+                    testID="w:67:242"
+                    accessibilityLabel={t('journal')}
+                    className="absolute start-[3.9744vw] top-[7.1795vw] text-teal font-inter-600 text-[length:2.5641vw] leading-[3.1026vw] text-left"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                  >
+                    {t('journal')}
+                  </Txt>
+                </Box>
+              </Box>
             </Box>
           </PressableBox>
           <PressableBox
@@ -476,30 +534,46 @@ export function Screen19cJournalNextWeekScreen() {
             onPress={() => {
               goTo(navigation, 'navigate', 'Screen21aProgressWeek');
             }}
+            className="absolute top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+            style={{ insetInlineStart: s(310) }}
           >
-            <Box
-              testID="w:67:243"
-              className="w-[17.4359vw] flex-col items-center gap-[1.0256vw]"
-              pointerEvents="box-none"
-            >
-              <Img
-                testID="w:67:244"
-                accessibilityLabel="Progress"
-                className="overflow-hidden"
-                source={assets['9334e96049b5d13e760cbcba197f9d80e76428a706a03be0aba45629d3abd135']}
-                resizeMode="cover"
-                style={{ width: s(24), height: s(24) }}
-              />
-              <Txt
-                testID="w:67:248"
-                accessibilityLabel={t('progress')}
-                className="text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
+            <Box className="absolute top-[-2.8205vw]" style={{ insetInlineStart: s(-310) }}>
+              <Box
+                testID="w:67:243"
+                className="absolute start-[79.4872vw] top-[2.8205vw] w-[17.4359vw] h-[10.2564vw]"
+                pointerEvents="box-none"
               >
-                {t('progress')}
-              </Txt>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Img
+                    testID="w:67:244"
+                    accessibilityLabel="icon/chart"
+                    className="absolute start-[5.641vw] top-[0vw] overflow-hidden"
+                    source={
+                      assets['9334e96049b5d13e760cbcba197f9d80e76428a706a03be0aba45629d3abd135']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(24), height: s(24) }}
+                  />
+                </Box>
+                <Box
+                  pointerEvents="none"
+                  style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+                >
+                  <Txt
+                    testID="w:67:248"
+                    accessibilityLabel={t('progress')}
+                    className="absolute start-[3.2051vw] top-[7.1795vw] text-blue font-inter-500 text-[length:2.5641vw] leading-[3.1026vw] text-left"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                  >
+                    {t('progress')}
+                  </Txt>
+                </Box>
+              </Box>
             </Box>
           </PressableBox>
           <Box

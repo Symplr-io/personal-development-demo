@@ -100,32 +100,6 @@ export const toWeek1s = (d: Dto): Week1s => ({
   subtitle: d['subtitle'],
 });
 
-/** The backend names every model mapped the same way as Library reads, in one place. */
-const libraryFields = (d: Dto) => ({
-  // passthrough first: a nested or newly-added field the screens read
-  // but this model does not name stays reachable, so a mapper can
-  // never silently blank a cell. The named fields below win.
-  ...d,
-  id: d['id'],
-  createdAt: d['created_at'],
-  updatedAt: d['updated_at'],
-  imageUrl: d['image_url'],
-  name: d['name'],
-  subtitle: d['subtitle'],
-});
-
-export interface Library extends Dto {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  imageUrl: string;
-  name: string;
-  subtitle: string;
-}
-
-/** `getAllLibraries` DTO → Library. The ONE place its backend field names appear. */
-export const toLibrary = (d: Dto): Library => libraryFields(d);
-
 export interface Content extends Dto {
   id: string;
   createdAt: string;
@@ -136,31 +110,15 @@ export interface Content extends Dto {
 }
 
 /** `getAllContents` DTO → Content. The ONE place its backend field names appear. */
-export const toContent = (d: Dto): Content => libraryFields(d);
-
-export interface MyJournalEntry extends Dto {
-  id: string;
-  createdAt: string;
-  body: string;
-  prompt: string;
-  journey: string;
-  day: number;
-  dayName: string;
-  entryDate: string;
-}
-
-/** `listMyJournalEntries` DTO → MyJournalEntry. The ONE place its backend field names appear. */
-export const toMyJournalEntry = (d: Dto): MyJournalEntry => ({
+export const toContent = (d: Dto): Content => ({
   // passthrough first: a nested or newly-added field the screens read
   // but this model does not name stays reachable, so a mapper can
   // never silently blank a cell. The named fields below win.
   ...d,
   id: d['id'],
   createdAt: d['created_at'],
-  body: d['body'],
-  prompt: d['prompt'],
-  journey: d['journey'],
-  day: d['day'],
-  dayName: d['day_name'],
-  entryDate: d['entry_date'],
+  updatedAt: d['updated_at'],
+  imageUrl: d['image_url'],
+  name: d['name'],
+  subtitle: d['subtitle'],
 });

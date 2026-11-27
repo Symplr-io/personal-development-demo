@@ -7,8 +7,7 @@ type NativeScrollEvent = { nativeEvent?: { contentOffset?: { y?: number } } };
 export interface FieldRule {
   required?: boolean;
   requiredMessage?: string;
-  // every type TYPE_CHECKS judges: a rule naming a financial one ('iban') did not typecheck in the app it was written into
-  valueType?: 'email' | 'phone' | 'number' | 'amount' | 'iban' | 'account' | 'card';
+  valueType?: 'email' | 'phone' | 'number';
   typeMessage?: string;
   minLength?: number;
   maxLength?: number;
@@ -84,15 +83,9 @@ export function stateBorder(
  *
  * Also evaluates the options ONCE: the inline form named the list twice, and
  * that list can be a mapped API response.
- *
- * An unset field selects nothing. It reads as '' here, and a mapped list can
- * hold a blank entry (one of 247 countries has no dial code), so the field
- * showed that blank as chosen instead of its placeholder.
  */
 export function indexIn(options: readonly string[], value: unknown): number | null {
-  const text = scalarText(value);
-  if (text === '') return null;
-  const i = options.indexOf(text);
+  const i = options.indexOf(scalarText(value));
   return i < 0 ? null : i;
 }
 

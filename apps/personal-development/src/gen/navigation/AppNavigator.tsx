@@ -35,7 +35,6 @@ import { Screen26AccountSettingsScreen } from '../screens/Screen26AccountSetting
 import { Screen27ManageSubscriptionScreen } from '../screens/Screen27ManageSubscriptionScreen';
 import { Screen28LifetimeAccessLegacyMemberScreen } from '../screens/Screen28LifetimeAccessLegacyMemberScreen';
 import { assets } from '../assets';
-import { useI18n } from '../i18n';
 import { TAB_SCREENS } from './tabs';
 import type { RootStackParamList } from './types';
 
@@ -61,7 +60,6 @@ const tabIcon = (hash: string, ownColour = false, activeHash?: string) => {
 };
 
 function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
-  const { t } = useI18n();
   return (
     <Tab.Navigator
       initialRouteName={initialTab}
@@ -77,7 +75,7 @@ function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
         name="Screen06Home"
         component={Screen06HomeScreen}
         options={{
-          tabBarLabel: t('home'),
+          tabBarLabel: 'Home',
           tabBarIcon: tabIcon(
             '1d6c8a224e5f107373181cdb48dff59e4a9c78a0c00695b4bf0010747b325a91',
             true,
@@ -89,7 +87,7 @@ function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
         name="Screen07JourneysExplore"
         component={Screen07JourneysExploreScreen}
         options={{
-          tabBarLabel: t('journeys'),
+          tabBarLabel: 'Journeys',
           tabBarIcon: tabIcon(
             '3c356bd80e1e84aae987c435f57f253ac7a950b5361d5e0be29c1b4499e9e81e',
             true,
@@ -101,7 +99,7 @@ function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
         name="Screen12AudioLibrary"
         component={Screen12AudioLibraryScreen}
         options={{
-          tabBarLabel: t('audio'),
+          tabBarLabel: 'Audio',
           tabBarIcon: tabIcon(
             '79b0836652a4e35bd72647b8e14ce8e7eb74e5cf07698de8d13d9e9f44841ad2',
             true,
@@ -113,7 +111,7 @@ function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
         name="Screen19JournalHistoryThisWeek"
         component={Screen19JournalHistoryThisWeekScreen}
         options={{
-          tabBarLabel: t('journal'),
+          tabBarLabel: 'Journal',
           tabBarIcon: tabIcon(
             '4d395eef75bcbf750f26970f6e47fd1d42b335a0da6d0ff426fbfb06e1642686',
             true,
@@ -125,7 +123,7 @@ function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
         name="Screen21aProgressWeek"
         component={Screen21aProgressWeekScreen}
         options={{
-          tabBarLabel: t('progress'),
+          tabBarLabel: 'Progress',
           tabBarIcon: tabIcon(
             '9334e96049b5d13e760cbcba197f9d80e76428a706a03be0aba45629d3abd135',
             true,
@@ -138,7 +136,7 @@ function MainTabsNavigator({ initialTab }: Readonly<{ initialTab?: string }>) {
 }
 
 export function AppNavigator({
-  initialRouteName = 'Screen01Splash',
+  initialRouteName = 'Screen06Home',
 }: { initialRouteName?: keyof RootStackParamList } = {}) {
   // launch routes may name a tab member (session resume → Home): the stack
   // opens on the group and the group opens on that tab

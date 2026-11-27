@@ -2,7 +2,7 @@
 // Screen: Screen04PersonalizeGoals  ·  figma node 4:94
 import React from 'react';
 // prettier-ignore
-import { assets, Box, Img, pickedRowIn, PressableBox, scaleFor, ScreenFrame, ScreenStatusBar, toggledPick, Txt, useI18n, useScreenForm, useViewport } from '../screen-kit';
+import { assets, Box, Img, PressableBox, scaleFor, ScreenFrame, ScreenStatusBar, Txt, useI18n, useViewport } from '../screen-kit';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,14 +18,10 @@ export function Screen04PersonalizeGoalsScreen() {
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const form = useScreenForm();
-  const { values: formState, setField } = form;
-
   return (
     <ScreenFrame
       screen="Screen04PersonalizeGoals"
       designWidth={390}
-      form={form}
       rootClassName="flex-1 bg-background"
     >
       <ScreenStatusBar barStyle="dark-content" />
@@ -113,478 +109,184 @@ export function Screen04PersonalizeGoalsScreen() {
             }}
           >
             <Box style={{ flexDirection: 'row', columnGap: s(16) }}>
-              {pickedRowIn(
-                formState['w:4:113'],
-                [0, 2, 5],
-                0,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 0));
-                  }}
+              <Box
+                testID="w:4:114"
+                className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
+              >
+                <Box
+                  testID="w:4:115"
+                  className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
                 >
-                  <Box
-                    testID="w:4:114"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:115"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:116"
-                        accessibilityLabel="Favorite"
-                        source={
-                          assets['1324fb2625ecdf38ff3e26bd88524ebc4a87d254fbb8e5e6d372d6fb993947c1']
-                        }
-                        resizeMode="cover"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:118"
-                      accessibilityLabel={t('calm_stress_d50bc2f0')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('calm_stress_d50bc2f0')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 0));
-                  }}
+                  <Img
+                    testID="w:4:116"
+                    accessibilityLabel="icon/heart"
+                    source={
+                      assets['1324fb2625ecdf38ff3e26bd88524ebc4a87d254fbb8e5e6d372d6fb993947c1']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(20), height: s(20) }}
+                  />
+                </Box>
+                <Txt
+                  testID="w:4:118"
+                  accessibilityLabel={t('calm_stress_d50bc2f0')}
+                  className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
-                  <Box
-                    testID="w:4:114"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:115"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:116"
-                        accessibilityLabel="Favorite"
-                        source={
-                          assets['1324fb2625ecdf38ff3e26bd88524ebc4a87d254fbb8e5e6d372d6fb993947c1']
-                        }
-                        resizeMode="contain"
-                        tintColor="rgba(31,35,64,1)"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:118"
-                      accessibilityLabel={t('calm_stress_d50bc2f0')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('calm_stress_d50bc2f0')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-              )}
-              {pickedRowIn(
-                formState['w:4:113'],
-                [0, 2, 5],
-                1,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 1));
-                  }}
+                  {t('calm_stress_d50bc2f0')}
+                </Txt>
+              </Box>
+              <Box
+                testID="w:4:119"
+                className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
+              >
+                <Box
+                  testID="w:4:120"
+                  className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
                 >
-                  <Box
-                    testID="w:4:119"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:120"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:121"
-                        accessibilityLabel="Sleep"
-                        source={
-                          assets['f7faa7baf4caa0b3bd519220d8f2707bb7f60c57a8956c9eda1e9180c026eb09']
-                        }
-                        resizeMode="contain"
-                        tintColor="rgba(255,255,255,1)"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:123"
-                      accessibilityLabel={t('better_sleep')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('better_sleep')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 1));
-                  }}
+                  <Img
+                    testID="w:4:121"
+                    accessibilityLabel="icon/moon"
+                    source={
+                      assets['f7faa7baf4caa0b3bd519220d8f2707bb7f60c57a8956c9eda1e9180c026eb09']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(20), height: s(20) }}
+                  />
+                </Box>
+                <Txt
+                  testID="w:4:123"
+                  accessibilityLabel={t('better_sleep')}
+                  className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
-                  <Box
-                    testID="w:4:119"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:120"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:121"
-                        accessibilityLabel="Sleep"
-                        source={
-                          assets['f7faa7baf4caa0b3bd519220d8f2707bb7f60c57a8956c9eda1e9180c026eb09']
-                        }
-                        resizeMode="cover"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:123"
-                      accessibilityLabel={t('better_sleep')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('better_sleep')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-              )}
+                  {t('better_sleep')}
+                </Txt>
+              </Box>
             </Box>
             <Box style={{ flexDirection: 'row', columnGap: s(16) }}>
-              {pickedRowIn(
-                formState['w:4:113'],
-                [0, 2, 5],
-                2,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 2));
-                  }}
+              <Box
+                testID="w:4:124"
+                className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
+              >
+                <Box
+                  testID="w:4:125"
+                  className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
                 >
-                  <Box
-                    testID="w:4:124"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:125"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:126"
-                        accessibilityLabel="Goal"
-                        source={
-                          assets['30332c0bf4f4b1e510c29f79453b9d7fe2cb7a605419d9dc03f7584e7d37346d']
-                        }
-                        resizeMode="cover"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:130"
-                      accessibilityLabel={t('focus')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('focus')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 2));
-                  }}
+                  <Img
+                    testID="w:4:126"
+                    accessibilityLabel="icon/target"
+                    source={
+                      assets['30332c0bf4f4b1e510c29f79453b9d7fe2cb7a605419d9dc03f7584e7d37346d']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(20), height: s(20) }}
+                  />
+                </Box>
+                <Txt
+                  testID="w:4:130"
+                  accessibilityLabel={t('focus')}
+                  className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
-                  <Box
-                    testID="w:4:124"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:125"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:126"
-                        accessibilityLabel="Goal"
-                        source={
-                          assets['30332c0bf4f4b1e510c29f79453b9d7fe2cb7a605419d9dc03f7584e7d37346d']
-                        }
-                        resizeMode="contain"
-                        tintColor="rgba(31,35,64,1)"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:130"
-                      accessibilityLabel={t('focus')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('focus')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-              )}
-              {pickedRowIn(
-                formState['w:4:113'],
-                [0, 2, 5],
-                3,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 3));
-                  }}
+                  {t('focus')}
+                </Txt>
+              </Box>
+              <Box
+                testID="w:4:131"
+                className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
+              >
+                <Box
+                  testID="w:4:132"
+                  className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
                 >
-                  <Box
-                    testID="w:4:131"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:132"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:133"
-                        accessibilityLabel="Streak"
-                        source={
-                          assets['fad43caa3c50b4edc795d32fa40575f82dd965dd51936dd045902901df487f5c']
-                        }
-                        resizeMode="contain"
-                        tintColor="rgba(255,255,255,1)"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:135"
-                      accessibilityLabel={t('confidence')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('confidence')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 3));
-                  }}
+                  <Img
+                    testID="w:4:133"
+                    accessibilityLabel="icon/flame"
+                    source={
+                      assets['fad43caa3c50b4edc795d32fa40575f82dd965dd51936dd045902901df487f5c']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(20), height: s(20) }}
+                  />
+                </Box>
+                <Txt
+                  testID="w:4:135"
+                  accessibilityLabel={t('confidence')}
+                  className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
-                  <Box
-                    testID="w:4:131"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:132"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:133"
-                        accessibilityLabel="Streak"
-                        source={
-                          assets['fad43caa3c50b4edc795d32fa40575f82dd965dd51936dd045902901df487f5c']
-                        }
-                        resizeMode="cover"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:135"
-                      accessibilityLabel={t('confidence')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('confidence')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-              )}
+                  {t('confidence')}
+                </Txt>
+              </Box>
             </Box>
             <Box style={{ flexDirection: 'row', columnGap: s(16) }}>
-              {pickedRowIn(
-                formState['w:4:113'],
-                [0, 2, 5],
-                4,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 4));
-                  }}
+              <Box
+                testID="w:4:136"
+                className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
+              >
+                <Box
+                  testID="w:4:137"
+                  className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
                 >
-                  <Box
-                    testID="w:4:136"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:137"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:138"
-                        accessibilityLabel="Repeat"
-                        source={
-                          assets['ac26f46d21730566b7719bf2fd8d9b909e1882c197537a87c5479ef852b2097c']
-                        }
-                        resizeMode="contain"
-                        tintColor="rgba(255,255,255,1)"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:143"
-                      accessibilityLabel={t('letting_go')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('letting_go')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 4));
-                  }}
+                  <Img
+                    testID="w:4:138"
+                    accessibilityLabel="icon/refresh"
+                    source={
+                      assets['ac26f46d21730566b7719bf2fd8d9b909e1882c197537a87c5479ef852b2097c']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(20), height: s(20) }}
+                  />
+                </Box>
+                <Txt
+                  testID="w:4:143"
+                  accessibilityLabel={t('letting_go')}
+                  className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
-                  <Box
-                    testID="w:4:136"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:137"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:138"
-                        accessibilityLabel="Repeat"
-                        source={
-                          assets['ac26f46d21730566b7719bf2fd8d9b909e1882c197537a87c5479ef852b2097c']
-                        }
-                        resizeMode="cover"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:143"
-                      accessibilityLabel={t('letting_go')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('letting_go')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-              )}
-              {pickedRowIn(
-                formState['w:4:113'],
-                [0, 2, 5],
-                5,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 5));
-                  }}
+                  {t('letting_go')}
+                </Txt>
+              </Box>
+              <Box
+                testID="w:4:144"
+                className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
+              >
+                <Box
+                  testID="w:4:145"
+                  className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
                 >
-                  <Box
-                    testID="w:4:144"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-green border-teal border-[2px] border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:145"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-teal rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:146"
-                        accessibilityLabel="Done"
-                        source={
-                          assets['3ade105201c04e2a939a65d7d8a5a44cbfacb828f0de12ee8b8ab51df4c7657f']
-                        }
-                        resizeMode="cover"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:148"
-                      accessibilityLabel={t('healthy_habits')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('healthy_habits')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-                <PressableBox
-                  accessible={false}
-                  onPress={() => {
-                    setField('w:4:113', toggledPick(formState['w:4:113'], [0, 2, 5], 5));
-                  }}
+                  <Img
+                    testID="w:4:146"
+                    accessibilityLabel="icon/check"
+                    source={
+                      assets['3ade105201c04e2a939a65d7d8a5a44cbfacb828f0de12ee8b8ab51df4c7657f']
+                    }
+                    resizeMode="cover"
+                    style={{ width: s(20), height: s(20) }}
+                  />
+                </Box>
+                <Txt
+                  testID="w:4:148"
+                  accessibilityLabel={t('healthy_habits')}
+                  className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
                 >
-                  <Box
-                    testID="w:4:144"
-                    className="w-[42.8205vw] h-[28.7179vw] bg-surface border-orange border border-solid rounded-[5.1282vw] flex-col items-start gap-[3.0769vw] p-[4.1026vw]"
-                  >
-                    <Box
-                      testID="w:4:145"
-                      className="w-[10.2564vw] h-[10.2564vw] bg-[rgba(241,227,211,1)] rounded-[5.1282vw] flex-row justify-center items-center"
-                    >
-                      <Img
-                        testID="w:4:146"
-                        accessibilityLabel="Done"
-                        source={
-                          assets['3ade105201c04e2a939a65d7d8a5a44cbfacb828f0de12ee8b8ab51df4c7657f']
-                        }
-                        resizeMode="contain"
-                        tintColor="rgba(31,35,64,1)"
-                        style={{ width: s(20), height: s(20) }}
-                      />
-                    </Box>
-                    <Txt
-                      testID="w:4:148"
-                      accessibilityLabel={t('healthy_habits')}
-                      className="text-text-primary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
-                    >
-                      {t('healthy_habits')}
-                    </Txt>
-                  </Box>
-                </PressableBox>,
-              )}
+                  {t('healthy_habits')}
+                </Txt>
+              </Box>
             </Box>
           </Box>
           <Box
@@ -613,16 +315,21 @@ export function Screen04PersonalizeGoalsScreen() {
             goTo(navigation, 'navigate', 'Screen06Home');
           }}
         >
-          <Txt
-            testID="w:I4:150;3:146"
-            accessibilityLabel={t('continue')}
-            className="text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
+          <Box
+            pointerEvents="none"
+            style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
           >
-            {t('continue')}
-          </Txt>
+            <Txt
+              testID="w:I4:150;3:146"
+              accessibilityLabel={t('continue')}
+              className="absolute start-[35.7692vw] top-[4.7436vw] text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+            >
+              {t('continue')}
+            </Txt>
+          </Box>
         </PressableBox>
       </Box>
     </ScreenFrame>

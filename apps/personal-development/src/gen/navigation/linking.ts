@@ -73,7 +73,7 @@ export function resolveDeepLink(
 ): { name: string; params?: Record<string, unknown> } | null {
   if (validateDeepLink(screen)) return { name: screen, params };
   if (AUTH_REQUIRED.has(screen) && ALLOWED.has(screen)) {
-    return { name: 'Screen01Splash', params: { next: screen, nextParams: params } };
+    return { name: 'Screen06Home', params: { next: screen, nextParams: params } };
   }
   return null;
 }
@@ -166,7 +166,7 @@ export const linking: LinkingOptions<any> = {
     const { getStateFromPath } = require('@react-navigation/native');
     if (AUTH_REQUIRED.has(match) && !isSignedIn()) {
       // park the intent at the sign-in screen; the link resolves after login
-      return getStateFromPath('screen01splash', options);
+      return getStateFromPath('screen06home', options);
     }
     return getStateFromPath(path, options);
   },

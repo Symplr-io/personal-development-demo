@@ -146,16 +146,21 @@ export function Screen02Welcome1Of3Screen() {
             goTo(navigation, 'navigate', 'Screen031LogIn');
           }}
         >
-          <Txt
-            testID="w:I4:48;3:146"
-            accessibilityLabel={t('continue')}
-            className="text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
+          <Box
+            pointerEvents="none"
+            style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
           >
-            {t('continue')}
-          </Txt>
+            <Txt
+              testID="w:I4:48;3:146"
+              accessibilityLabel={t('continue')}
+              className="absolute start-[35.7692vw] top-[4.7436vw] text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+            >
+              {t('continue')}
+            </Txt>
+          </Box>
         </PressableBox>
       </Box>
     </ScreenFrame>

@@ -7,16 +7,13 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
-const { s, sv } = scaleFor(390);
+const { s } = scaleFor(390);
 
 export function Screen23ProgressJourneyHistoryScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -37,11 +34,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
         className="flex-1 w-full"
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: sv(844) + Math.max(0, insets.bottom - sv(122)),
-          paddingBottom: Math.max(0, insets.bottom - sv(122)),
-        }}
+        contentContainerClassName="min-h-[216.4103vw] flex-col"
       >
         <Box
           testID="w:8:232"
@@ -75,7 +68,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
             >
               <Img
                 testID="w:8:234"
-                accessibilityLabel="Back"
+                accessibilityLabel="IconBtn/chevL"
                 source={assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']}
                 resizeMode="cover"
                 style={{ width: s(40), height: s(40) }}
@@ -109,15 +102,6 @@ export function Screen23ProgressJourneyHistoryScreen() {
             headerFontSize={16}
             selectedDay={17}
             initialDate="2026-11-01"
-            monthFit={{
-              cell: s(46),
-              dayFont: s(12),
-              disc: s(34),
-              pickWeight: 700,
-              headFont: s(16),
-              headInset: s(0),
-              headWeight: 600,
-            }}
             style={{
               alignSelf: 'stretch',
               height: s(281),
@@ -125,8 +109,8 @@ export function Screen23ProgressJourneyHistoryScreen() {
               borderRadius: s(20),
               shadowColor: 'rgba(31,36,64,0.07)',
               shadowOffset: { width: 0, height: 4 },
-              shadowRadius: 8,
-              shadowOpacity: 1,
+              shadowRadius: 16,
+              shadowOpacity: 0.07,
               elevation: 8,
               padding: s(16),
             }}
@@ -202,7 +186,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
               </Box>
               <Img
                 testID="w:8:323"
-                accessibilityLabel="Open"
+                accessibilityLabel="icon/chevR"
                 className="overflow-hidden"
                 source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
                 resizeMode="cover"
@@ -265,7 +249,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
               </Box>
               <Img
                 testID="w:8:334"
-                accessibilityLabel="Open"
+                accessibilityLabel="icon/chevR"
                 className="overflow-hidden"
                 source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
                 resizeMode="cover"
@@ -328,7 +312,7 @@ export function Screen23ProgressJourneyHistoryScreen() {
               </Box>
               <Img
                 testID="w:8:345"
-                accessibilityLabel="Open"
+                accessibilityLabel="icon/chevR"
                 className="overflow-hidden"
                 source={assets['3600adae52c30709782e859ed7cb7e08d4737a21b47ce32a9c1023e3e276f12e']}
                 resizeMode="cover"

@@ -11,12 +11,6 @@ import { CodeInput } from '../../src/gen/components/code-input';
 import { ErrorBoundary } from '../../src/gen/components/ErrorBoundary';
 import { Toaster, showToast, getToasts, dismissToast, subscribeToasts } from '../../src/gen/components/toast';
 
-// The app renders Toaster inside App.tsx's SafeAreaProvider; these cases mount it alone.
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual('react-native-safe-area-context'),
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-}));
-
 const T = (s: string) => <Text>{s}</Text>;
 /** CodeInput's box geometry is required, and it comes from the design. */
 const BOX = { boxWidth: 40, boxHeight: 48, boxRadius: 8, gap: 8, boxColor: '#fff', boxBorderColor: '#ccc', textColor: '#000', fontSize: 18 };

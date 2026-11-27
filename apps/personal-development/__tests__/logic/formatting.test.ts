@@ -112,11 +112,6 @@ describe('money and option helpers', () => {
     expect(indexIn(['a', 'b'], 'z')).toBeNull();
     expect(indexIn(['a', 'b'], undefined)).toBeNull();
   });
-  it('indexIn never picks a blank option for an unset field', () => {
-    expect(indexIn(['+93', '', '+94'], undefined)).toBeNull();
-    expect(indexIn(['+93', '', '+94'], '')).toBeNull();
-    expect(indexIn(['+93', '', '+94'], '+94')).toBe(2);
-  });
 });
 
 describe('setValidationTranslator', () => {

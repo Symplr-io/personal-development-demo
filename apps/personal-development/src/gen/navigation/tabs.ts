@@ -12,7 +12,7 @@ type NavLike = {
   navigate: (name: string, params?: unknown) => void;
   replace?: (name: string, params?: unknown) => void;
   reset?: (state: unknown) => void;
-  popTo?: (name: string, params?: unknown, options?: { merge?: boolean }) => void;
+  popTo?: (name: string, params?: unknown) => void;
   getState?: () => { index?: number; routes?: Array<{ name: string }> } | undefined;
   getParent?: () => NavLike | undefined;
 };
@@ -59,10 +59,7 @@ function popToExisting(nav: NavLike, route: string, params: unknown): boolean {
     const at = routes.findIndex((r) => r.name === route);
     if (at >= 0) {
       if (at === routes.length - 1 || typeof owner.popTo !== 'function') return false;
-      // no params: going back keeps the screen's own. popTo REPLACES a route's params,
-      // so Cancel and a delete's success reopened Payment List with no invoiceId and it
-      // read the payments of nothing.
-      owner.popTo(route, params, params === undefined ? { merge: true } : undefined);
+      owner.popTo(route, params);
       return true;
     }
     owner = owner.getParent?.();

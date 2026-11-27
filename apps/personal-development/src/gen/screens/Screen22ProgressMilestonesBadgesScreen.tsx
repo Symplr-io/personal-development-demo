@@ -2,12 +2,11 @@
 // Screen: Screen22ProgressMilestonesBadges  ·  figma node 8:133
 import React from 'react';
 // prettier-ignore
-import { assets, Box, errorMessage, figureText, Img, LinearGradient, PressableBox, rowsAt, scaleFor, ScreenFrame, ScreenStatusBar, showToast, SpinnerOverlay, Txt, useI18n, useListMyCheckIns, useViewport } from '../screen-kit';
+import { assets, Box, errorMessage, Img, LinearGradient, PressableBox, scaleFor, ScreenFrame, ScreenStatusBar, showToast, SpinnerOverlay, Txt, useI18n, useListMyCheckIns, useViewport } from '../screen-kit';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -16,22 +15,20 @@ export function Screen22ProgressMilestonesBadgesScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
 
-  const insets = useSafeAreaInsets();
-
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const q0 = useListMyCheckIns({});
   React.useEffect(() => {
     if (q0.isError) showToast(errorMessage(q0.error));
-  }, [q0.isError, q0.error, q0.errorUpdatedAt]);
+  }, [q0.isError, q0.errorUpdatedAt]);
   const focusedOnce = React.useRef(false);
   React.useEffect(() => {
     const unsub = (
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        void q0.refetch();
+        q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -50,11 +47,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
         className="flex-1 w-full"
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: sv(844) + Math.max(0, insets.bottom - sv(195)),
-          paddingBottom: Math.max(0, insets.bottom - sv(195)),
-        }}
+        contentContainerClassName="min-h-[216.4103vw] flex-col"
       >
         <Box
           testID="w:8:144"
@@ -92,7 +85,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:8:146"
-                  accessibilityLabel="Back"
+                  accessibilityLabel="IconBtn/chevL"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -159,16 +152,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
                 adjustsFontSizeToFit
                 minimumFontScale={0.65}
               >
-                {q0.isSuccess
-                  ? figureText(
-                      rowsAt(q0.data as unknown),
-                      'streak',
-                      'created_at',
-                      '',
-                      '-day streak',
-                      2,
-                    )
-                  : t('7_day_streak_ee22b5c5')}
+                {t('7_day_streak_ee22b5c5')}
               </Txt>
             </Box>
             <Box
@@ -214,7 +198,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:159"
-                  accessibilityLabel="Star"
+                  accessibilityLabel="IconBtn/star"
                   source={
                     assets['d6b31307c056a717b01661a14b795043d186911eaea9c078381fe416d58ddb5e']
                   }
@@ -248,7 +232,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:165"
-                  accessibilityLabel="Calendar"
+                  accessibilityLabel="IconBtn/calendar"
                   source={
                     assets['dba8f24812a06ea5fe02df0e22aab5ba43d5502367b9a5a5b1a70d8bdc468cf9']
                   }
@@ -282,7 +266,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:174"
-                  accessibilityLabel="Audio"
+                  accessibilityLabel="IconBtn/headphones"
                   source={
                     assets['4eea5ef0dbffd9633d87f16f3d69e5f9622ed937fc945183daedd5dad73dddbf']
                   }
@@ -318,7 +302,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:180"
-                  accessibilityLabel="Journal"
+                  accessibilityLabel="IconBtn/book"
                   source={
                     assets['6870530a26cf6b43fbc407157981204b8047c1d1426cc5aad4f4581d0fbe14b4']
                   }
@@ -352,7 +336,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:187"
-                  accessibilityLabel="Streak"
+                  accessibilityLabel="IconBtn/flame"
                   source={
                     assets['b3142941939e111f5edafb0bac502395f9fe275b5aecfb1a600cc70fc76db847']
                   }
@@ -386,7 +370,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:193"
-                  accessibilityLabel="Badge"
+                  accessibilityLabel="IconBtn/award"
                   source={
                     assets['9975ed1044ac41cb664008b7a94e617e9837a3b606f8903189343d05336ac771']
                   }
@@ -422,7 +406,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:200"
-                  accessibilityLabel="Progress"
+                  accessibilityLabel="IconBtn/chart"
                   source={
                     assets['84e6191560d9fd98cebc353b096f0bb85b7585a5b88a8673e9b22faf054b820e']
                   }
@@ -456,7 +440,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:208"
-                  accessibilityLabel="Sleep"
+                  accessibilityLabel="IconBtn/moon"
                   source={
                     assets['9d74993e0c565ca2faddbbbb2a9462595d75d4e492abd1b5513dbfed604e2ac0']
                   }
@@ -490,7 +474,7 @@ export function Screen22ProgressMilestonesBadgesScreen() {
               >
                 <Img
                   testID="w:8:214"
-                  accessibilityLabel="Goal"
+                  accessibilityLabel="IconBtn/target"
                   source={
                     assets['137f3cc3b7a0f2b9a2ad430a17db580774157fec485dc59c69c61e62c966f2b5']
                   }

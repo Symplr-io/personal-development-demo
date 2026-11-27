@@ -18,9 +18,9 @@ export class AppError extends Error {
     super(message);
     this.name = 'AppError';
     this.kind = kind;
-    if (opts.status !== undefined) this.status = opts.status;
+    this.status = opts.status;
     this.cause = opts.cause;
-    if (opts.apiMessage !== undefined) this.apiMessage = opts.apiMessage;
+    this.apiMessage = opts.apiMessage;
   }
 }
 
@@ -53,8 +53,7 @@ const MESSAGE_NESTS = ['error', 'errors', 'data', 'fault', 'response', 'result']
 /** A JSON-looking string body is parsed once, then read as an object. */
 function messageFromString(value: string, depth: number): string | undefined {
   const s = value.trim();
-  // a bare code ({ error: 'upstream_unreachable' } read through its nest) is no message for a person
-  if (!s || /^[a-z][a-z0-9]*(_[a-z0-9]+)+$/.test(s)) return undefined;
+  if (!s) return undefined;
   if (depth === 0 && /^[[{]/.test(s)) {
     try {
       return pickMessage(JSON.parse(s), 1);
@@ -86,10 +85,7 @@ export function pickMessage(value: unknown, depth = 0): string | undefined {
   const rec = value as Record<string, unknown>;
   for (const key of MESSAGE_KEYS) {
     const v = rec[key];
-    // a bare code (the app's own proxy says { error: 'upstream_unreachable' }) is no message for a person: the kind of
-    // failure says it instead ("Something went wrong on our side…") — it read as raw words under the v38 Dashboard
-    if (typeof v === 'string' && v.trim() && !/^[a-z][a-z0-9]*(_[a-z0-9]+)+$/.test(v.trim()))
-      return v.trim().slice(0, 300);
+    if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 300);
   }
   for (const key of MESSAGE_NESTS) {
     if (!(key in rec)) continue;
@@ -105,12 +101,7 @@ export function toAppError(e: unknown): AppError {
   const status = (e as { status?: number })?.status;
   // ApiError carries the raw response body; that is where the reason lives
   const apiMessage = pickMessage((e as { body?: unknown })?.body);
-  // an absent status or message is left out, not handed as undefined
-  const opts = {
-    cause: e,
-    ...(status === undefined ? {} : { status }),
-    ...(apiMessage === undefined ? {} : { apiMessage }),
-  };
+  const opts = { status, cause: e, apiMessage };
   if (status === 401 || status === 403) return new AppError('auth', 'Not authorized', opts);
   if (status === 404) return new AppError('notFound', 'Not found', opts);
   if (status && status >= 500) return new AppError('server', 'Server error', opts);

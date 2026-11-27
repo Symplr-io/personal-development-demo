@@ -5,14 +5,10 @@ import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import {
   Chart,
-  barCaptions,
   barPath,
   barRects,
   donutArcs,
-  groupedBarRects,
-  narrowBars,
   resolveChartProps,
-  spokenWords,
 } from '../../src/gen/components/chart';
 
 /**
@@ -46,14 +42,6 @@ describe('the spec read from props', () => {
     expect(resolveChartProps({ chartType: 'line', values: [1, 2] }).series).toHaveLength(1);
     expect(resolveChartProps({ chartType: 'line', values: [1, 2], series: [{ values: 'x' }] }).series).toHaveLength(1);
   });
-  it('defaults that follow the chart kind', () => {
-    const pie = resolveChartProps({ chartType: 'pie', values: [1], innerRadius: 0.5 });
-    expect(pie.innerRadius).toBe(0);
-    expect(resolveChartProps({ chartType: 'donut', values: [1], innerRadius: 2 }).innerRadius).toBe(0.95);
-    expect(resolveChartProps({ chartType: 'area', values: [1] }).fillOpacity).toBe(0.18);
-    expect(resolveChartProps({ chartType: 'nonsense', values: [1] }).type).toBe('bar');
-    expect(resolveChartProps({ values: [1], groupSize: 2.6 }).groupSize).toBe(3);
-  });
   it('the legend sits right when there are labels, unless the design placed it', () => {
     expect(resolveChartProps({ chartType: 'donut', values: [1], labels: ['a'] }).legend).toBe('right');
     expect(resolveChartProps({ chartType: 'donut', values: [1] }).legend).toBe('none');
@@ -73,35 +61,6 @@ describe('the spec read from props', () => {
 });
 
 describe('bar geometry', () => {
-  it('pairs sit together, groups keep the single-bar spacing, heights share one scale', () => {
-    const bars = groupedBarRects([10, 5, 20, 0], 100, 50, 10, 2);
-    expect(bars).toHaveLength(4);
-    expect(bars[1]!.x - (bars[0]!.x + bars[0]!.w)).toBeLessThan(5);
-    expect(bars[2]!.x - (bars[1]!.x + bars[1]!.w)).toBeGreaterThanOrEqual(10);
-    expect(bars.map((b) => b.h)).toEqual([25, 12.5, 50, 0]);
-  });
-  it('one caption per group, under its middle, whether labels name bars or groups', () => {
-    const bars = groupedBarRects([1, 1, 1, 1], 100, 50, 10, 2);
-    expect(barCaptions(['May', 'May', 'Jun', 'Jun'], bars, 2).map((c) => c.text)).toEqual(['May', 'Jun']);
-    expect(barCaptions(['May', 'Jun'], bars, 2).map((c) => c.text)).toEqual(['May', 'Jun']);
-    expect(barCaptions(['May'], bars, 2).map((c) => c.text)).toEqual(['May']);
-    expect(barCaptions(['a', 'b'], barRects([1, 2, 3], 90, 30, 6), 1).map((c) => c.text)).toEqual(['a', 'b']);
-  });
-  it('props.barWidth narrows wide bars about their middle, a pair keeping its gap; unset leaves them', () => {
-    const wide = groupedBarRects([10, 5, 20, 8], 400, 50, 10, 2);
-    expect(narrowBars(wide, 16, 2).map((b) => b.w)).toEqual([16, 16, 16, 16]);
-    expect(narrowBars(barRects([1, 2], 400, 50, 10), 16, 1).map((b) => b.w)).toEqual([16, 16]);
-    expect(narrowBars(wide, 0, 2)).toBe(wide);
-    expect(narrowBars(wide, 999, 2)).toEqual(wide);
-  });
-  it('nothing to draw draws nothing; no positive value draws flat bars', () => {
-    expect(barRects([], 100, 50, 8)).toEqual([]);
-    expect(barRects([1], 0, 50, 8)).toEqual([]);
-    expect(groupedBarRects([], 100, 50, 8, 2)).toEqual([]);
-    expect(barRects([0, -3, Number.NaN], 90, 30, 6).map((b) => b.h)).toEqual([0, 0, 0]);
-    expect(groupedBarRects([0, 0], 100, 50, 8, 2).map((b) => b.h)).toEqual([0, 0]);
-    expect(barRects([4], 90, 30, 6)[0]).toMatchObject({ x: 0, w: 90, h: 30 });
-  });
   it('a bar path rounds its top corners, never past half its width', () => {
     expect(barPath(0, 0, 0, 10, 4)).toBe('');
     expect(barPath(0, 0, 10, 20, 0)).toContain(' Z');
@@ -149,34 +108,7 @@ describe('every chart kind, drawn', () => {
     }
     expect(draw(<Chart {...sizes} chartType="line" values={[5]} />)).not.toBe('null');
   });
-  it('bars, single and grouped, captioned per bar or per group', () => {
-    expect(draw(<Chart {...sizes} chartType="bar" values={[3, 1, 4, 1]} labels={['Q1', 'Q2', 'Q3', 'Q4']} barRadius={6} trackColor="#eee" gap={10} />)).toContain('Q4');
-    expect(draw(<Chart {...sizes} chartType="bar" values={[3, 1, 4, 1]} groupSize={2} labels={['May', 'Jun']} />)).toContain('Jun');
-    expect(draw(<Chart {...sizes} chartType="bar" values={[2]} labels={['Only']} />)).toContain('Only');
-  });
   it('no room is no chart', () => {
     expect(draw(<Chart width={0} height={100} values={[1]} />)).toBe('null');
-  });
-});
-
-describe("the names a kind's props may go by, and the words a screen reader hears", () => {
-  it('lineColor, fillColor, holeRatio and showLegend read as the stroke, the area fill, the hole and the legend', () => {
-    const line = resolveChartProps({ chartType: 'line', values: [1, 2], lineColor: '#123456', fillColor: '#abcdef' });
-    expect(line.strokeColor).toBe('#123456');
-    expect(line.fillColor).toBe('#abcdef');
-    expect(line.fillOpacity).toBe(0.18);
-    expect(resolveChartProps({ chartType: 'line', values: [1] }).fillOpacity).toBe(0);
-    expect(resolveChartProps({ chartType: 'line', values: [1], strokeColor: '#000', lineColor: '#fff' }).strokeColor).toBe('#000');
-    expect(resolveChartProps({ chartType: 'donut', values: [1], holeRatio: 0.4 }).innerRadius).toBe(0.4);
-    expect(resolveChartProps({ chartType: 'donut', values: [1], labels: ['a'], showLegend: false }).legend).toBe('none');
-    expect(resolveChartProps({ chartType: 'pie', values: [1], showLegend: true }).legend).toBe('right');
-    expect(resolveChartProps({ chartType: 'pie', values: [1], showLegend: true, legend: 'bottom' }).legend).toBe('bottom');
-  });
-  it('says the values in words, an area as a line, twelve at most', () => {
-    expect(spokenWords(resolveChartProps({ chartType: 'bar', values: [12, 3], labels: ['Active', 'Closed'] }))).toBe('Bar chart: Active 12, Closed 3.');
-    expect(spokenWords(resolveChartProps({ chartType: 'area', values: [1], labels: ['Jan'] }))).toBe('Line chart: Jan 1.');
-    expect(spokenWords(resolveChartProps({ chartType: 'pie', values: [] }))).toBe('Pie chart: no values.');
-    expect(spokenWords(resolveChartProps({ chartType: 'donut', values: Array.from({ length: 15 }, (_, i) => i) }))).toContain(', and 3 more.');
-    expect(draw(<Chart width={320} height={180} chartType="bar" values={[1]} labels={['One']} />)).toContain('Bar chart: One 1.');
   });
 });

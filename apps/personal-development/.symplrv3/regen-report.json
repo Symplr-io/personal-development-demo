@@ -1,6 +1,6 @@
 {
   "appName": "PersonalDevelopmentAppMobileUIUX",
-  "outDir": "/tmp/gen-SkjcKN/out/PersonalDevelopmentAppMobileUIUX",
+  "outDir": "/tmp/gen-AcngAP/out/PersonalDevelopmentAppMobileUIUX",
   "files": [
     ".env.dev",
     ".env.example",
@@ -123,13 +123,11 @@
     "src/gen/features/ForceUpdateGate.tsx",
     "src/gen/features/appState.ts",
     "src/gen/features/crash-handlers.ts",
-    "src/gen/features/drafts.ts",
     "src/gen/features/formStore.ts",
     "src/gen/features/passcode.ts",
     "src/gen/features/permissions.ts",
     "src/gen/features/session.ts",
     "src/gen/features/socialauth.ts",
-    "src/gen/figures.ts",
     "src/gen/fmt.ts",
     "src/gen/i18n/LanguageSheet.tsx",
     "src/gen/i18n/index.tsx",
@@ -188,12 +186,15 @@
   ],
   "copiedAssets": 116,
   "warnings": [
-    "58 declared API operations are not bound to anything and were not emitted (2 of 2 services kept). Bind an operation in the designer to have its client generated.",
-    "1 screen(s) sign in with grant_type=password (resource-owner password credentials): s:4:50. ROPC is removed in OAuth 2.1 and prohibited under FAPI — the app handles the raw password, must ship a client secret to authenticate itself, and has nowhere to put a second factor. Configure the service for authorization-code + PKCE instead; the generator then emits the system-browser flow and the app stops seeing the password at all.",
+    "59 declared API operations are not bound to anything and were not emitted (2 of 2 services kept). Bind an operation in the designer to have its client generated.",
     "no screen is marked \"requires authentication\", so all 31 screens are reachable by deep link and push payload without a session — including anything behind the login or PIN gate. Mark the authenticated screens in the designer; linking.ts and guard.tsx both enforce it from there.",
-    "15 of 31 screens have no API binding and render the design's own placeholder content: Screen01Splash, Screen02Welcome1Of3, Screen04PersonalizeGoals, Screen07JourneysExplore, Screen09DailyContentDay4, Screen11JourneyComplete, Screen13AudioCollection, Screen15AudioPlaybackOptions, Screen19bJournalPreviousWeek, Screen19cJournalNextWeek, Screen21aProgressWeek, Screen23ProgressJourneyHistory, …. Wire them, or treat them as out of scope for release — either is fine, being unaware is not."
+    "20 of 31 screens have no API binding and render the design's own placeholder content: Screen01Splash, Screen02Welcome1Of3, Screen031LogIn, Screen03SignUpLogIn, Screen04PersonalizeGoals, Screen06Home, Screen07JourneysExplore, Screen09DailyContentDay4, Screen11JourneyComplete, Screen12AudioLibrary, Screen13AudioCollection, Screen15AudioPlaybackOptions, …. Wire them, or treat them as out of scope for release — either is fine, being unaware is not.",
+    "route param \"id\" reads the tapped item's \"id\" outside a list item template — sent as ''",
+    "route param \"id\" reads the tapped item's \"id\" outside a list item template — sent as ''",
+    "route param \"id\" reads the tapped item's \"id\" outside a list item template — sent as ''",
+    "route param \"id\" reads the tapped item's \"id\" outside a list item template — sent as ''"
   ],
-  "formatMs": 2922,
-  "writeMs": 217,
-  "writeCount": 183
+  "formatMs": 2402,
+  "writeMs": 213,
+  "writeCount": 181
 }

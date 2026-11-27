@@ -2,12 +2,11 @@
 // Screen: Screen03SignUpLogIn  ·  figma node 21:22
 import React from 'react';
 // prettier-ignore
-import { assets, Box, BusySpinner, errorMessage, FieldError, focusFirstError, Img, opacityWhen, PressableBox, pressUnless, pxUnless, scaleFor, ScreenFrame, ScreenStatusBar, SegmentedControl, showToast, stateBorder, toStr, Txt, useI18n, useKeyboardBehavior, useScreenForm, useSignUpEmail, useViewport, validateFields } from '../screen-kit';
+import { assets, Box, FieldError, focusFirstError, Img, opacityWhen, PressableBox, pxUnless, scaleFor, ScreenFrame, ScreenStatusBar, SegmentedControl, stateBorder, toStr, Txt, useI18n, useKeyboardBehavior, useScreenForm, useViewport, validateFields, withErrors } from '../screen-kit';
 import { KeyboardAvoidingView, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -16,7 +15,6 @@ export function Screen03SignUpLogInScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
   const kavBehavior = useKeyboardBehavior();
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -30,15 +28,6 @@ export function Screen03SignUpLogInScreen() {
     setField,
   } = form;
 
-  const m0 = useSignUpEmail();
-  const m0Opts: Parameters<typeof m0.mutate>[1] = {
-    onSuccess: () => {
-      goTo(navigation, 'navigate', 'Screen04PersonalizeGoals');
-    },
-    onError: (err) => {
-      showToast(errorMessage(err));
-    },
-  };
   const formReady0 =
     toStr(formState['w:21:45']).trim() !== '' &&
     toStr(formState['w:21:48']).trim() !== '' &&
@@ -65,9 +54,7 @@ export function Screen03SignUpLogInScreen() {
               sv(895) +
               -pxUnless(formErrors['w:21:48'] || formErrors['w:21:51'], sv(17)) +
               -pxUnless(formErrors['w:21:45'] || formErrors['w:21:48'], sv(17)) +
-              -pxUnless(formErrors['w:21:51'] || formErrors['w:21:45'], sv(17)) +
-              Math.max(0, insets.bottom - sv(24)),
-            paddingBottom: Math.max(0, insets.bottom - sv(24)),
+              -pxUnless(formErrors['w:21:51'] || formErrors['w:21:45'], sv(17)),
           }}
         >
           <Box
@@ -215,10 +202,7 @@ export function Screen03SignUpLogInScreen() {
               testID="w:21:48:error"
               msg={formErrors['w:21:48']}
               className="text-[#ff6b6b] text-[length:3.0769vw] absolute top-[96.4103vw] w-[89.7436vw] z-[20]"
-              style={{
-                insetInlineStart: s(20),
-                transform: [{ translateY: -pxUnless(formErrors['w:21:45'], sv(17)) }],
-              }}
+              style={{ insetInlineStart: s(20) }}
             />
             <TextInput
               testID="w:21:51"
@@ -249,25 +233,14 @@ export function Screen03SignUpLogInScreen() {
               testID="w:21:51:error"
               msg={formErrors['w:21:51']}
               className="text-[#ff6b6b] text-[length:3.0769vw] absolute top-[119.2308vw] w-[89.7436vw] z-[20]"
-              style={{
-                insetInlineStart: s(20),
-                transform: [
-                  {
-                    translateY: -(
-                      pxUnless(formErrors['w:21:48'], sv(17)) +
-                      pxUnless(formErrors['w:21:45'], sv(17))
-                    ),
-                  },
-                ],
-              }}
+              style={{ insetInlineStart: s(20) }}
             />
             <PressableBox
               testID="w:21:54"
               accessibilityLabel={t('create_account')}
               className="absolute start-[5.1282vw] top-[126.6667vw] w-[89.7436vw] h-[14.359vw] bg-teal rounded-[7.1795vw]"
               accessibilityState={{ disabled: !formReady0 }}
-              needsOffscreenAlphaCompositing
-              onPress={pressUnless(m0.isPending, () => {
+              onPress={() => {
                 const errs = validateFields([
                   { id: 'w:21:45', value: formState['w:21:45'], rule: { required: true } },
                   {
@@ -277,29 +250,13 @@ export function Screen03SignUpLogInScreen() {
                   },
                   { id: 'w:21:51', value: formState['w:21:51'], rule: { required: true } },
                 ]);
-                setFormErrors((e) => ({ ...e, ...errs }));
+                if (Object.keys(errs).length > 0) setFormErrors(withErrors(errs));
                 if (Object.keys(errs).length > 0) {
                   focusFirstError(['w:21:45', 'w:21:48', 'w:21:51'], errs);
                   return;
                 }
-                if (__DEV__)
-                  console.log(
-                    '[SEND] bind:0Y-LqaTM signUpEmail',
-                    JSON.stringify({
-                      'data.full_name': formState['w:21:45'],
-                      email: formState['w:21:48'],
-                      password: '[redacted]',
-                    }),
-                  );
-                m0.mutate(
-                  {
-                    'data.full_name': formState['w:21:45'],
-                    email: formState['w:21:48'],
-                    password: formState['w:21:51'],
-                  },
-                  m0Opts,
-                );
-              })}
+                goTo(navigation, 'navigate', 'Screen04PersonalizeGoals');
+              }}
               style={{
                 transform: [
                   {
@@ -328,12 +285,6 @@ export function Screen03SignUpLogInScreen() {
                   {t('create_account')}
                 </Txt>
               </Box>
-              <BusySpinner
-                visible={m0.isPending}
-                backgroundColor={'rgba(79,124,116,1)'}
-                borderRadius={s(28)}
-                color={'rgba(255,255,255,1)'}
-              />
             </PressableBox>
             <Box
               testID="w:21:55"
@@ -363,9 +314,6 @@ export function Screen03SignUpLogInScreen() {
                   testID="w:21:57"
                   accessibilityLabel={t('or')}
                   className="absolute start-[43.2051vw] top-[0vw] w-[3.3333vw] text-blue font-inter-400 text-[length:3.3333vw] leading-[4.0333vw] text-left"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
                 >
                   {t('or')}
                 </Txt>
@@ -398,7 +346,7 @@ export function Screen03SignUpLogInScreen() {
                 <Txt
                   testID="w:I21:59;3:148"
                   accessibilityLabel={t('continue_with_apple')}
-                  className="absolute start-[24.2308vw] top-[4.359vw] w-[40.5128vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+                  className="absolute start-[24.6154vw] top-[4.7436vw] w-[40.5128vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.65}
@@ -430,7 +378,7 @@ export function Screen03SignUpLogInScreen() {
                 <Txt
                   testID="w:I21:60;3:148"
                   accessibilityLabel={t('continue_with_google')}
-                  className="absolute start-[22.9487vw] top-[4.359vw] w-[43.0769vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+                  className="absolute start-[23.3333vw] top-[4.7436vw] w-[43.0769vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.65}

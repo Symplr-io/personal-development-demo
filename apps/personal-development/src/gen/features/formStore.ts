@@ -4,10 +4,7 @@
 import { create } from 'zustand';
 
 export interface FormStore {
-  // the values a design's fields hold are untyped until the fields are: a widget reads one straight into a typed prop
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a form's values are the design's, untyped
   values: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the same values, updated
   setValues: (updater: (values: Record<string, any>) => Record<string, any>) => void;
   reset: () => void;
   clearKeys: (keys: string[]) => void;

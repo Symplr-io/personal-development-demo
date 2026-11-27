@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { I18nManager, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { fireAndForget } from '../errors';
-import { isRTLLocale, t, useI18n, type Locale } from './index';
+import { isRTLLocale, useI18n, type Locale } from './index';
 
 // generated from the app's configured language set (default first)
 const LANGS: Array<{ code: Locale; flag: string; native: string; other: string }> = [
@@ -65,8 +65,8 @@ export function LanguageSheet({
             marginBottom: 18,
           }}
         />
-        <Text style={{ color: '#fff', fontSize: 18, marginBottom: 14, fontWeight: '700' }}>
-          {t('select_language')}
+        <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 14 }}>
+          Select Language
         </Text>
         <ScrollView style={{ maxHeight: 400 }} bounces={false}>
           {LANGS.map((l) => {
@@ -144,7 +144,7 @@ export function LanguageSheet({
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: '#101826', fontSize: 16, fontWeight: '700' }}>{t('confirm')}</Text>
+          <Text style={{ color: '#101826', fontSize: 16, fontWeight: '700' }}>Confirm</Text>
         </Pressable>
       </View>
     </Modal>

@@ -4,14 +4,10 @@ import React, { forwardRef, useState } from 'react';
 // ScreenFrame renders the screen ROOT, which may be a gradient — the
 // className-registered wrapper, never the raw package (see linear-gradient.tsx).
 import { LinearGradient } from './linear-gradient';
-import { cssInterop } from 'nativewind';
 import {
   Image,
-  PixelRatio,
-  Platform,
   Pressable,
   StatusBar,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -55,45 +51,10 @@ export const Box = forwardRef<React.ComponentRef<typeof View>, ViewProps>(functi
  * The cap is a symptom of absolute positioning, not a preference. When screens
  * emit flex layouts and can reflow, raise or remove it. A caller passing its
  * own maxFontSizeMultiplier still wins.
- *
- * …and on Android, at the size the design asks for. React Native's Android text
- * rounds every font size UP to a whole pixel (Math.ceil in TextAttributes), so a
- * 14pt body on a 2.625x phone is drawn at 41px instead of 40.32 — every line
- * 1.7% wider than Figma, iOS and the browser draw it, and a paragraph the design
- * fills to its edge grew a line (QuickPrep's dish description: 8 lines where the
- * design has 7, the stats card pushed down). Handing Android a size just under
- * the NEAREST pixel makes its ceiling land there. A pixel is still a pixel, so
- * a line may break a word away from Figma's; the drift no longer only ever
- * widens. Registered with NativeWind so the className arrives here as a style.
  */
-function onWholePixels(
-  style: TextProps['style'],
-  maxMul: number,
-  scales: boolean,
-): TextProps['style'] {
-  const size = StyleSheet.flatten(style)?.fontSize;
-  if (typeof size !== 'number' || Number.isNaN(size) || size <= 0) return style;
-  const fontCap = maxMul >= 1 ? maxMul : Infinity;
-  const k = PixelRatio.get() * (scales ? Math.min(PixelRatio.getFontScale(), fontCap) : 1);
-  const px = size * k;
-  const want = Math.max(1, Math.round(px));
-  if (Math.ceil(px) === want) return style;
-  return [style, { fontSize: (want - 0.01) / k }];
+export function Txt(props: Readonly<TextProps>) {
+  return <Text maxFontSizeMultiplier={1.4} {...props} />;
 }
-
-function TxtBase(props: Readonly<TextProps>) {
-  const style =
-    Platform.OS === 'android'
-      ? onWholePixels(
-          props.style,
-          props.maxFontSizeMultiplier ?? 1.4,
-          props.allowFontScaling !== false,
-        )
-      : props.style;
-  return <Text maxFontSizeMultiplier={1.4} {...props} style={style} />;
-}
-
-export const Txt = cssInterop(TxtBase, { className: 'style' });
 
 /**
  * Per-screen status bar: barStyle chosen at generate time from the screen's
@@ -109,17 +70,13 @@ export const Txt = cssInterop(TxtBase, { className: 'style' });
 export function ScreenStatusBar({
   barStyle,
   plate,
-  lift,
-}: Readonly<{ barStyle: 'light-content' | 'dark-content'; plate?: string; lift?: number }>) {
+}: Readonly<{ barStyle: 'light-content' | 'dark-content'; plate?: string }>) {
   const focused = useIsFocused();
   const insets = useSafeAreaInsets();
   if (!focused) return null;
   // plate: the screen's own background behind the status bar, on a screen
   // that scrolls, so content never slides under the clock (the generator
-  // emits it only where the design's top band is plain background).
-  // lift: how far a short band moved the screen's layer down, which this
-  // renders inside — the plate rises by as much, so it stays over the
-  // window's status-bar strip instead of covering the top of the header
+  // emits it only where the design's top band is plain background)
   return (
     <>
       <StatusBar barStyle={barStyle} />
@@ -128,7 +85,7 @@ export function ScreenStatusBar({
           pointerEvents="none"
           style={{
             position: 'absolute',
-            top: -(lift ?? 0),
+            top: 0,
             left: 0,
             right: 0,
             height: insets.top,
@@ -195,7 +152,6 @@ export function ScreenFrame({
   rootImage,
   form,
   overlay,
-  renderPage,
   children,
 }: Readonly<{
   screen: string;
@@ -242,15 +198,6 @@ export function ScreenFrame({
    * edge. Out here it covers the whole viewport, like the old native Modal.
    */
   overlay?: React.ReactNode;
-  /**
-   * Wraps the page layer, and only it: a frosted dialog's blur target
-   * (components/frost) must hold the page and must NOT hold the dialog, which
-   * travels in the overlay, beside it.
-   *
-   * A render… prop on purpose: Sonar (S6478) reads any other prop given a
-   * function that returns JSX as a component defined inside the screen.
-   */
-  renderPage?: (page: React.ReactElement) => React.ReactElement;
   children?: React.ReactNode;
 }>) {
   // r32 tablet clamp: past MAX_SCALE the surplus width becomes symmetric
@@ -301,14 +248,13 @@ export function ScreenFrame({
    * no validation message, no scroll-to-error. The provider describes THIS
    * SCREEN's form, so everything the screen renders should see it.
    */
-  const page = renderPage ? renderPage(inner) : inner;
   const layered = overlay ? (
     <>
-      {page}
+      {inner}
       {overlay}
     </>
   ) : (
-    page
+    inner
   );
   const framed = form ? <ScreenFormProvider form={form}>{layered}</ScreenFormProvider> : layered;
   /**

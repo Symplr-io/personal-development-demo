@@ -6,8 +6,7 @@ import { Keyboard, PixelRatio, Platform, Text } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import { listRows, mapList } from '../../src/gen/acl';
 import { PressableBox, Txt } from '../../src/gen/components/primitives';
-import { fmt } from '../../src/gen/fmt';
-import { useKeyboardBehavior, useSettled, useUntilTick } from '../../src/gen/screen-runtime';
+import { useKeyboardBehavior } from '../../src/gen/screen-runtime';
 
 /**
  * The runtime every screen sits on, at the edges a screen rarely reaches: list
@@ -56,20 +55,10 @@ describe('Android text on whole pixels', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
-  it('hands Android a size just under the nearest pixel, so its ceiling lands there', () => {
-    const style = styleOf(<Txt style={{ fontSize: 14 }}>x</Txt>);
-    expect(Array.isArray(style)).toBe(true);
-    expect(style[1].fontSize).toBeCloseTo((40 - 0.01) / 2.88, 6);
-  });
   it('leaves a size that already lands on a pixel, or none at all, as it is', () => {
     expect(styleOf(<Txt style={{ fontSize: 12.5 }}>x</Txt>)).toEqual({ fontSize: 12.5 });
     expect(styleOf(<Txt style={{ color: 'red' }}>x</Txt>)).toEqual({ color: 'red' });
     expect(styleOf(<Txt style={{ fontSize: 0 }}>x</Txt>)).toEqual({ fontSize: 0 });
-  });
-  it('reads the font scale only when the text scales, capped by its multiplier', () => {
-    jest.spyOn(PixelRatio, 'getFontScale').mockReturnValue(3);
-    expect(Array.isArray(styleOf(<Txt style={{ fontSize: 14 }} allowFontScaling={false}>x</Txt>))).toBe(true);
-    expect(styleOf(<Txt style={{ fontSize: 14 }} maxFontSizeMultiplier={0.5}>x</Txt>)).toBeDefined();
   });
 });
 
@@ -125,43 +114,6 @@ describe('screen hooks', () => {
     };
     const tree = mount(<Probe />);
     expect(seen).toBe('padding');
-    act(() => tree.unmount());
-  });
-  it('re-renders once a second while a countdown is drawn, and stops when none is', () => {
-    jest.useFakeTimers({ now: new Date('2026-10-20T00:00:00Z') });
-    let renders = 0;
-    const Probe = () => {
-      useUntilTick();
-      renders += 1;
-      return null;
-    };
-    const tree = mount(<Probe />);
-    const before = renders;
-    fmt('2026-10-20T01:00:00Z', [['until']]);
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(renders).toBe(before + 1);
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(renders).toBe(before + 1);
-    act(() => tree.unmount());
-  });
-  it('hands on a value once it has stopped changing', () => {
-    jest.useFakeTimers();
-    let seen = '';
-    const Probe = ({ v }: { v: string }) => {
-      seen = useSettled(v, 300);
-      return null;
-    };
-    const tree = mount(<Probe v="a" />);
-    act(() => tree.update(<Probe v="ab" />));
-    expect(seen).toBe('a');
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
-    expect(seen).toBe('ab');
     act(() => tree.unmount());
   });
 });

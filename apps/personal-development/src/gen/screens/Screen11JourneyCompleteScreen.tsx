@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -15,8 +14,6 @@ const { s, sv } = scaleFor(390);
 export function Screen11JourneyCompleteScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -39,10 +36,7 @@ export function Screen11JourneyCompleteScreen() {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: Math.max(sv(844), sv(764) + s(56)) + Math.max(0, insets.bottom - sv(24)),
-          paddingBottom: Math.max(0, insets.bottom - sv(24)),
-        }}
+        contentContainerStyle={{ minHeight: Math.max(sv(844), sv(764) + s(56)) }}
       >
         <Box
           testID="w:5:450"
@@ -139,9 +133,6 @@ export function Screen11JourneyCompleteScreen() {
                     testID="w:5:467"
                     accessibilityLabel={t('21')}
                     className="text-surface font-inter-700 text-[length:5.1282vw] leading-[6.2051vw] text-left"
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.65}
                   >
                     {t('21')}
                   </Txt>
@@ -189,9 +180,6 @@ export function Screen11JourneyCompleteScreen() {
                     testID="w:5:473"
                     accessibilityLabel={t('18')}
                     className="text-surface font-inter-700 text-[length:5.1282vw] leading-[6.2051vw] text-left"
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.65}
                   >
                     {t('18')}
                   </Txt>
@@ -219,7 +207,7 @@ export function Screen11JourneyCompleteScreen() {
             >
               <Img
                 testID="w:5:476"
-                accessibilityLabel="Badge"
+                accessibilityLabel="IconBtn/award"
                 className="absolute start-[3.5897vw] top-[3.5897vw] flex-row justify-center items-center"
                 source={assets['1f234f00440c2e4fce5dd7c8f0e9ea1b234da250ee2216e203a6ba5772995717']}
                 resizeMode="cover"

@@ -7,8 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useQueryClient } from '@tanstack/react-query';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -17,22 +15,20 @@ export function Screen20JournalEntryDetailScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
 
-  const insets = useSafeAreaInsets();
-
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   rememberParams(route.params);
 
   const q0 = useGetJournalEntriesById(
-    { id: recallParam(route.params, 'id') },
+    { id: (route.params as any)?.['id'] },
     { enabled: recallParam(route.params, 'id') !== '' },
   );
   React.useEffect(() => {
     if (q0.isSuccess) {
-      setLastResponse('b:Vl5lTrUc', q0.data);
+      setLastResponse('b:Vl5lTrUc', q0.data as unknown);
       if (__DEV__) {
-        const d0 = q0.data as unknown as Record<string, unknown> | null;
+        const d0 = q0.data as Record<string, unknown> | null;
         console.log(
           '[Test] read ' +
             'b:Vl5lTrUc' +
@@ -52,14 +48,10 @@ export function Screen20JournalEntryDetailScreen() {
   }, [q0.isSuccess, q0.dataUpdatedAt]);
   React.useEffect(() => {
     if (q0.isError) showToast(errorMessage(q0.error));
-  }, [q0.isError, q0.error, q0.errorUpdatedAt]);
-  const qc = useQueryClient();
+  }, [q0.isError, q0.errorUpdatedAt]);
   const m1 = useDeleteJournalEntries();
   const m1Opts: Parameters<typeof m1.mutate>[1] = {
-    onSuccess: (data) => {
-      void qc.invalidateQueries({ queryKey: ['getAllJournal_entries'], refetchType: 'none' });
-      void qc.invalidateQueries({ queryKey: ['getJournal_entriesById'], refetchType: 'none' });
-      void qc.invalidateQueries({ queryKey: ['listMyJournalEntries'], refetchType: 'none' });
+    onSuccess: () => {
       goTo(navigation, 'navigate', 'Screen19JournalHistoryThisWeek');
     },
     onError: (err) => {
@@ -72,7 +64,7 @@ export function Screen20JournalEntryDetailScreen() {
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        void q0.refetch();
+        q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -96,11 +88,13 @@ export function Screen20JournalEntryDetailScreen() {
           minHeight:
             sv(844) +
             pxUnless(
-              matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never),
+              matchOp(
+                getPath(q0.data as unknown, '[0].journey'),
+                'exists' as never,
+                undefined as never,
+              ),
               -sv(27),
-            ) +
-            Math.max(0, insets.bottom - sv(264)),
-          paddingBottom: Math.max(0, insets.bottom - sv(264)),
+            ),
         }}
       >
         <Box
@@ -111,7 +105,11 @@ export function Screen20JournalEntryDetailScreen() {
             height:
               sv(797) +
               pxUnless(
-                matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never),
+                matchOp(
+                  getPath(q0.data as unknown, '[0].journey'),
+                  'exists' as never,
+                  undefined as never,
+                ),
                 -sv(27),
               ),
           }}
@@ -147,7 +145,7 @@ export function Screen20JournalEntryDetailScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:7:327"
-                  accessibilityLabel="Back"
+                  accessibilityLabel="IconBtn/chevL"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -178,7 +176,7 @@ export function Screen20JournalEntryDetailScreen() {
             >
               <Img
                 testID="w:7:321"
-                accessibilityLabel="More options"
+                accessibilityLabel="IconBtn/dots"
                 className="absolute start-[79.4872vw] top-[1.0256vw] flex-row justify-center items-center"
                 source={assets['5c8e7d4c06beabe5dff0806c0967da114a630a19b00777121f4a15b762075070']}
                 resizeMode="cover"
@@ -194,7 +192,11 @@ export function Screen20JournalEntryDetailScreen() {
               height:
                 sv(19) +
                 pxUnless(
-                  matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never),
+                  matchOp(
+                    getPath(q0.data as unknown, '[0].journey'),
+                    'exists' as never,
+                    undefined as never,
+                  ),
                   -sv(27),
                 ),
             }}
@@ -210,9 +212,13 @@ export function Screen20JournalEntryDetailScreen() {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.65}
-              >{`${fmt(toStr(getPath(q0.data, '[0].created_at')), [['relday', null]] as never)} · ${fmt(toStr(getPath(q0.data, '[0].created_at')), [['clock', null]] as never)}`}</Txt>
+              >{`${fmt(toStr(getPath(q0.data as unknown, '[0].created_at')), [['relday', null]] as never)} · ${fmt(toStr(getPath(q0.data as unknown, '[0].created_at')), [['clock', null]] as never)}`}</Txt>
             </Box>
-            {matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never) && (
+            {matchOp(
+              getPath(q0.data as unknown, '[0].journey'),
+              'exists' as never,
+              undefined as never,
+            ) && (
               <Box
                 testID="w:7:333"
                 className="absolute start-[36.4103vw] top-[0vw] w-[37.9487vw] h-[4.8718vw] bg-green rounded-[2.0513vw]"
@@ -228,7 +234,7 @@ export function Screen20JournalEntryDetailScreen() {
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.65}
-                  >{`${fmt(toStr(getPath(q0.data, '[0].journey')), [['upper', null]] as never)} · DAY ${toStr(getPath(q0.data, '[0].day'))}`}</Txt>
+                  >{`${fmt(toStr(getPath(q0.data as unknown, '[0].journey')), [['upper', null]] as never)} · DAY ${toStr(getPath(q0.data as unknown, '[0].day'))}`}</Txt>
                 </Box>
               </Box>
             )}
@@ -241,13 +247,12 @@ export function Screen20JournalEntryDetailScreen() {
               testID="w:7:335"
               accessibilityLabel={t('api_b_vl5ltruc_path_0_prompt_0f931c27')}
               className="absolute start-[5.1282vw] top-[26.4103vw] w-[90.7692vw] text-text-primary font-inter-700 text-[length:5.641vw] leading-[7.1795vw] text-left"
-              numberOfLines={2}
               style={{
                 transform: [
                   {
                     translateY: pxUnless(
                       matchOp(
-                        getPath(q0.data, '[0].journey'),
+                        getPath(q0.data as unknown, '[0].journey'),
                         'exists' as never,
                         undefined as never,
                       ),
@@ -256,7 +261,7 @@ export function Screen20JournalEntryDetailScreen() {
                   },
                 ],
               }}
-            >{`${toStr(getPath(q0.data, '[0].prompt'))}`}</Txt>
+            >{`${toStr(getPath(q0.data as unknown, '[0].prompt'))}`}</Txt>
           </Box>
           <Box
             testID="w:7:336"
@@ -264,13 +269,17 @@ export function Screen20JournalEntryDetailScreen() {
             style={{
               shadowColor: 'rgba(31,36,64,0.07)',
               shadowOffset: { width: 0, height: 4 },
-              shadowRadius: 8,
-              shadowOpacity: 1,
+              shadowRadius: 16,
+              shadowOpacity: 0.07,
               elevation: 8,
               transform: [
                 {
                   translateY: pxUnless(
-                    matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never),
+                    matchOp(
+                      getPath(q0.data as unknown, '[0].journey'),
+                      'exists' as never,
+                      undefined as never,
+                    ),
                     -sv(27),
                   ),
                 },
@@ -285,8 +294,7 @@ export function Screen20JournalEntryDetailScreen() {
                 testID="w:7:337"
                 accessibilityLabel={t('api_b_vl5ltruc_path_0_body_1ac57731')}
                 className="absolute start-[4.6154vw] top-[4.6154vw] w-[81.5385vw] text-text-primary font-inter-400 text-[length:3.8462vw] leading-[5.8974vw] text-left"
-                numberOfLines={8}
-              >{`${toStr(getPath(q0.data, '[0].body'))}`}</Txt>
+              >{`${toStr(getPath(q0.data as unknown, '[0].body'))}`}</Txt>
             </Box>
           </Box>
           <Box
@@ -297,7 +305,11 @@ export function Screen20JournalEntryDetailScreen() {
               transform: [
                 {
                   translateY: pxUnless(
-                    matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never),
+                    matchOp(
+                      getPath(q0.data as unknown, '[0].journey'),
+                      'exists' as never,
+                      undefined as never,
+                    ),
                     -sv(27),
                   ),
                 },
@@ -378,7 +390,11 @@ export function Screen20JournalEntryDetailScreen() {
               transform: [
                 {
                   translateY: pxUnless(
-                    matchOp(getPath(q0.data, '[0].journey'), 'exists' as never, undefined as never),
+                    matchOp(
+                      getPath(q0.data as unknown, '[0].journey'),
+                      'exists' as never,
+                      undefined as never,
+                    ),
                     -sv(27),
                   ),
                 },
@@ -411,7 +427,7 @@ export function Screen20JournalEntryDetailScreen() {
                 >
                   <Img
                     testID="w:7:347"
-                    accessibilityLabel="Edit"
+                    accessibilityLabel="icon/pen"
                     className="overflow-hidden"
                     source={
                       assets['4676ca6d8dbc68561357298ec7ebdcde66b6a76dd8e610b39e0fa549f2a32b98']
@@ -435,6 +451,7 @@ export function Screen20JournalEntryDetailScreen() {
                   accessibilityLabel={t('delete')}
                   className="w-[43.5897vw] h-[12.3077vw] bg-surface border-orange border border-solid rounded-[6.1538vw] flex-row justify-center items-center gap-[2.0513vw]"
                   onPress={pressUnless(m1.isPending, () => {
+                    if (m1.isPending) return;
                     if (__DEV__)
                       console.log(
                         '[SEND] b:Knin12FE deleteJournal_entries',
@@ -445,7 +462,7 @@ export function Screen20JournalEntryDetailScreen() {
                 >
                   <Img
                     testID="w:7:351"
-                    accessibilityLabel="Delete"
+                    accessibilityLabel="icon/trash"
                     className="overflow-hidden"
                     source={
                       assets['d11c05328bc3f3a26c057cdf5ce5edf5632a955df82dcc5ec75b09d61b5d7911']

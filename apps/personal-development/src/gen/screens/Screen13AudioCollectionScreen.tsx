@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -15,8 +14,6 @@ const { s, sv } = scaleFor(390);
 export function Screen13AudioCollectionScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -35,12 +32,7 @@ export function Screen13AudioCollectionScreen() {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight:
-            Math.max(sv(844), sv(741) + s(68), sv(751) + s(48)) +
-            Math.max(0, insets.bottom - sv(35)),
-          paddingBottom: Math.max(0, insets.bottom - sv(35)),
-        }}
+        contentContainerStyle={{ minHeight: Math.max(sv(844), sv(741) + s(68), sv(751) + s(48)) }}
       >
         <Box
           testID="w:6:158"
@@ -90,12 +82,7 @@ export function Screen13AudioCollectionScreen() {
                   accessibilityLabel={t('sleep_stories')}
                   className="absolute start-[0vw] top-[0vw] w-[46.6667vw] text-surface font-inter-700 text-[length:7.1795vw] leading-[8.6897vw] text-left"
                   numberOfLines={1}
-                  adjustsFontSizeToFit={
-                    toStr(
-                      (route.params as Record<string, string> | undefined)?.['itemName'] ??
-                        t('sleep_stories'),
-                    ).length <= 13
-                  }
+                  adjustsFontSizeToFit
                   minimumFontScale={0.65}
                 >
                   {toStr(
@@ -159,7 +146,7 @@ export function Screen13AudioCollectionScreen() {
                     >
                       <Img
                         testID="w:6:175"
-                        accessibilityLabel="Play"
+                        accessibilityLabel="icon/play"
                         className="overflow-hidden"
                         source={
                           assets['58aa51586da61700d36f0bf304553add2f4767b1f88ff435532d3b2d808ec186']
@@ -188,7 +175,7 @@ export function Screen13AudioCollectionScreen() {
                     >
                       <Img
                         testID="w:6:179"
-                        accessibilityLabel="Download"
+                        accessibilityLabel="icon/download"
                         className="overflow-hidden"
                         source={
                           assets['7966e53ee73a2579ce5ab5ffe6bebe2af24c7ab91a6ec48e6794ed7d6dfc07e9']
@@ -260,7 +247,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:191"
-                  accessibilityLabel="Play"
+                  accessibilityLabel="icon/play"
                   className="overflow-hidden"
                   source={
                     assets['01c2f1b5645bd56294200d2badc36c5b6c9b8c18bde6cdbc65124efefcb060b3']
@@ -319,7 +306,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:200"
-                  accessibilityLabel="Play"
+                  accessibilityLabel="icon/play"
                   className="overflow-hidden"
                   source={
                     assets['01c2f1b5645bd56294200d2badc36c5b6c9b8c18bde6cdbc65124efefcb060b3']
@@ -378,7 +365,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:209"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="icon/check"
                   className="overflow-hidden"
                   source={
                     assets['9851b96c99bf9405e31510d5dd71721e7b73e0fccc8b37c8896ddc3b7f1ff23e']
@@ -437,7 +424,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:218"
-                  accessibilityLabel="Locked"
+                  accessibilityLabel="IconBtn/lock"
                   source={
                     assets['58e17001801a3747a7a3e68f563cb62156c6be9adbb30e302af8acb0e88e880f']
                   }
@@ -495,7 +482,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:229"
-                  accessibilityLabel="Locked"
+                  accessibilityLabel="IconBtn/lock"
                   source={
                     assets['58e17001801a3747a7a3e68f563cb62156c6be9adbb30e302af8acb0e88e880f']
                   }
@@ -553,7 +540,7 @@ export function Screen13AudioCollectionScreen() {
                 </Box>
                 <Img
                   testID="w:6:240"
-                  accessibilityLabel="Locked"
+                  accessibilityLabel="IconBtn/lock"
                   source={
                     assets['58e17001801a3747a7a3e68f563cb62156c6be9adbb30e302af8acb0e88e880f']
                   }

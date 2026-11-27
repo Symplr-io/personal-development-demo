@@ -8,8 +8,8 @@ import { setLastResponse, clearResponses } from '../../src/gen/state/responses';
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import { CodeInput } from '../../src/gen/components/code-input';
-import { ruleReset, ruleNav, ruleHandled, amountOf, fmtTotal, answerRows, asTyped, compactList, dropEmpty, keptRow, shownOr, wireText, hopChain, startChain } from '../../src/gen/branch';
-import { rowsOf, ridOf, addRow, removeRow, tintWhen, colorWhen, opacityWhen, pressWhen, pressUnless, useChainBudget } from '../../src/gen/screen-runtime';
+import { ruleReset, ruleNav, ruleHandled, amountOf, fmtTotal } from '../../src/gen/branch';
+import { rowsOf, ridOf, addRow, removeRow, tintWhen, colorWhen, opacityWhen, pressWhen, pressUnless } from '../../src/gen/screen-runtime';
 
 describe('summary totals', () => {
   it('amountOf reads a price field however it is stored', () => {
@@ -40,49 +40,6 @@ describe('fmt.chunk', () => {
   it('returns the input untouched when the digits do not fit the sizes', () => {
     expect(fmt('12345', [['chunk', '3-4-7-1']])).toBe('12345');
     expect(fmt('12345', [['chunk', '']])).toBe('12345');
-  });
-});
-
-describe('fmt.phone', () => {
-  it('prints a number with its country code in the groups people read', () => {
-    expect(fmt('6591111315', [['phone']])).toBe('+65 9111 1315');
-    expect(fmt('94756921275', [['phone']])).toBe('+94 75 692 1275');
-    expect(fmt('+12816273800', [['phone']])).toBe('+1 281 627 3800');
-  });
-  it('regroups a number already printed with separators', () => {
-    expect(fmt('+65 9111-1315', [['phone']])).toBe('+65 9111 1315');
-  });
-  it('returns the input untouched when no plan fits it', () => {
-    // a local number with no code: 91 is India's code, but an Indian number has 10 digits
-    expect(fmt('91111315', [['phone']])).toBe('91111315');
-    expect(fmt('', [['phone']])).toBe('');
-  });
-  it('reads a number with no code as the home country\'s when one is named', () => {
-    expect(fmt('81234567', [['phone', '65']])).toBe('+65 8123 4567');
-    // a number that already has a code keeps it
-    expect(fmt('94756921275', [['phone', '65']])).toBe('+94 75 692 1275');
-    // a Sri Lankan local number is no Singapore number either
-    expect(fmt('771234500', [['phone', '65']])).toBe('771234500');
-    expect(fmt('', [['phone', '65']])).toBe('');
-  });
-});
-
-describe('fmt.stamp', () => {
-  beforeAll(() => {
-    jest.useFakeTimers({ now: new Date(2026, 10, 4, 10, 32) });
-  });
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-  it('puts the local day, month, hour and minute after the value', () => {
-    expect(fmt('Zhu Si Ying Trading', [['stamp']])).toBe('Zhu Si Ying Trading 0411-1032');
-  });
-  it('runs them together when compact, for a registration number', () => {
-    expect(fmt('ZSY', [['stamp', 'compact']])).toBe('ZSY04111032');
-  });
-  it('leaves an empty value empty, so a switched-off demo value stays blank', () => {
-    expect(fmt('', [['stamp']])).toBe('');
-    expect(fmt('', [['stamp', 'compact']])).toBe('');
   });
 });
 
@@ -582,69 +539,6 @@ describe('CodeInput', () => {
   });
 });
 
-describe('a request value with a shape (schema 0.4.83)', () => {
-  const KEYS = { customerId: 'c-1', status: [104, 105] };
-  const ROWS = [{ type: 'ATM', amount: 100 }, { type: 'POS', amount: 50 }];
-  it('a set of keys and a list drop what resolved to nothing; none left is nothing', () => {
-    expect(dropEmpty({ customerId: 'c-1', search: undefined, blank: '', gone: null, zero: 0 })).toEqual({ customerId: 'c-1', zero: 0 });
-    expect(dropEmpty({ customerId: '' })).toBeUndefined();
-    expect(compactList(['TERMS', undefined, '', null, 'PRIVACY'])).toEqual(['TERMS', 'PRIVACY']);
-    expect(compactList([''])).toBeUndefined();
-  });
-  it('the rows of an answer, a row kept beyond its constants, an item shown', () => {
-    expect(answerRows(ROWS)).toEqual(ROWS);
-    expect(answerRows({ count: 2, records: ROWS })).toEqual(ROWS);
-    expect(answerRows({ total: 1, products: ROWS })).toEqual(ROWS);
-    expect(answerRows(undefined)).toEqual([]);
-    expect(answerRows({ records: 'no' })).toEqual([]);
-    expect(keptRow({ currency: 'AED' }, 1)).toBeUndefined();
-    expect(keptRow({ type: 'ATM', currency: 'AED' }, 1)).toEqual({ type: 'ATM', currency: 'AED' });
-    expect(keptRow('x', 1)).toBe('x');
-    expect(shownOr(true, 'x')).toBe('x');
-    expect(shownOr(false, 'x')).toBeUndefined();
-  });
-  it('a leaf typed by `as` reads by the table map’s rule', () => {
-    expect(asTyped('104', 'number')).toBe(104);
-    expect(asTyped('104,105', 'number')).toEqual([104, 105]);
-    expect(asTyped('abc', 'number')).toBeUndefined();
-    expect(asTyped('TRUE', 'boolean')).toBe(true);
-    expect(asTyped('false', 'boolean')).toBe(false);
-    expect(asTyped('maybe', 'boolean')).toBeUndefined();
-    expect(asTyped('a, b', 'list')).toEqual(['a', 'b']);
-    expect(asTyped(' x ', 'text')).toBe('x');
-    expect(asTyped('2026-01-01..', 'dateRange')).toEqual({ gte: '2026-01-01T00:00:00.000Z' });
-    expect(asTyped('..2026-01-31', 'dateRange')).toEqual({ lte: '2026-01-31T23:59:59.999Z' });
-    expect(asTyped('2026-01-31', 'dateRange')).toEqual({ between: ['2026-01-31T00:00:00.000Z', '2026-01-31T23:59:59.999Z'] });
-    expect(asTyped('2026-02-30', 'dateRange')).toBeUndefined();
-    expect(asTyped('2026-02-01..2026-01-01', 'dateRange')).toBeUndefined();
-    expect(asTyped('a..b..c', 'dateRange')).toBeUndefined();
-    expect(asTyped('..', 'dateRange')).toBeUndefined();
-    expect(asTyped('x')).toBe('x');
-    expect(asTyped(null, 'text')).toBeUndefined();
-    expect(asTyped(1, 'text')).toBe('1');
-    expect(asTyped([1, 2], 'list')).toEqual(['1', '2']);
-    expect(asTyped({ a: 1 }, 'number')).toEqual({ a: 1 });
-    expect(asTyped([{ a: 1 }], 'list')).toEqual([{ a: 1 }]);
-  });
-  it('what goes on the wire, by location: JSON text for a set of keys in a query, the list for scalars, comma-joined in a header, as it is in a body, refused on a path', () => {
-    expect(wireText(KEYS, 'query')).toBe('{"customerId":"c-1","status":[104,105]}');
-    expect(wireText(['a', 'b'], 'query')).toEqual(['a', 'b']);
-    expect(wireText(ROWS, 'query')).toBe(JSON.stringify(ROWS));
-    expect(wireText(['a', 'b'], 'header')).toBe('a,b');
-    expect(wireText(KEYS, 'cookie')).toBe(JSON.stringify(KEYS));
-    expect(wireText(KEYS, 'body')).toEqual(KEYS);
-    expect(wireText(KEYS, 'body', 'form')).toBe(JSON.stringify(KEYS));
-    expect(wireText(['a', 'b'], 'body', 'form')).toBe('a,b');
-    expect(wireText(KEYS, 'path')).toBeUndefined();
-    expect(wireText('abc', 'path')).toBe('abc');
-    expect(wireText({ customerId: '' }, 'query')).toBeUndefined();
-    expect(wireText(['', 'x'], 'query')).toEqual(['x']);
-    expect(wireText('', 'body')).toBeUndefined();
-    expect(wireText(0, 'query')).toBe(0);
-    expect(wireText({ a: BigInt(5) }, 'query')).toBe('{"a":"5"}');
-  });
-});
-
 describe('the state-tint helpers', () => {
   it('carries a colour only while the state holds', () => {
     expect(tintWhen(true, '#f00')).toEqual({ color: '#f00' });
@@ -662,38 +556,5 @@ describe('the state-tint helpers', () => {
     expect(pressWhen(false, h)).toBeUndefined();
     expect(pressUnless(false, h)).toBe(h);
     expect(pressUnless(true, h)).toBeUndefined();
-  });
-});
-
-describe('the chain budget', () => {
-  it('is one box a mount, started again by a fresh user action and counted by every hop', () => {
-    const boxes: Array<{ current: number }> = [];
-    function Budget() {
-      boxes.push(useChainBudget());
-      return null;
-    }
-    let tree: renderer.ReactTestRenderer | undefined;
-    act(() => {
-      tree = renderer.create(<Budget />);
-    });
-    act(() => {
-      tree?.update(<Budget />);
-    });
-    expect(boxes).toHaveLength(2);
-    expect(boxes[0]).toBe(boxes[1]);
-    const box = boxes[0]!;
-    expect(box.current).toBe(0);
-    const run = jest.fn();
-    hopChain(box, run);
-    expect(run).toHaveBeenCalledTimes(1);
-    expect(box.current).toBe(1);
-    box.current = 12;
-    hopChain(box, run);
-    expect(run).toHaveBeenCalledTimes(1);
-    startChain(box);
-    expect(box.current).toBe(0);
-    act(() => {
-      tree?.unmount();
-    });
   });
 });

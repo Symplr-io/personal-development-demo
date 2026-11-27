@@ -12,10 +12,8 @@ import {
   PanResponder,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
   type ImageSourcePropType,
   type TextStyle,
@@ -26,9 +24,6 @@ import {
 // screen imports every widget from this one module, so they are re-exported
 // here rather than given a second import line in every generated screen.
 export { Chart } from './chart';
-
-/** the optional members of T, each also taking an explicit undefined: a caller may hand `x={maybe}` under exactOptionalPropertyTypes without `?: T | undefined` on every member (SonarQube's S4782 reads that as redundant where the option is off) */
-type OrUndefined<T> = { [K in keyof T]: undefined extends T[K] ? T[K] | undefined : T[K] };
 
 /** Inline-styled label run (design links etc.) — see importer textSegments. */
 export interface LabelSegment {
@@ -88,35 +83,6 @@ function rnWeightOf(w: number): RNFontWeight | undefined {
   return RN_WEIGHTS[Math.min(8, Math.max(0, Math.round(w / 100) - 1))];
 }
 
-/**
- * A list key per option: its label, with an ordinal only where the same label
- * comes round again ("Other", "Other|1") — never the map's index (S6479). A
- * bound list can repeat a word, and a weekday row is drawn S M T W T F S.
- */
-function optionKeys(labels: readonly string[]): string[] {
-  const seen = new Map<string, number>();
-  return labels.map((label) => {
-    const n = seen.get(label) ?? 0;
-    seen.set(label, n + 1);
-    return n === 0 ? label : label + '|' + n;
-  });
-}
-
-/**
- * A value made on the first render and kept for the component's life — the
- * PanResponders below, whose handlers read the latest props through refs.
- * useReducer's lazy initialiser, with a reducer that keeps what it was given:
- * useState's would do the same, but a state with no setter is
- * react/hook-use-state, and making it lazily off a ref in the render is
- * react-hooks/refs.
- */
-function useOnce<T>(make: () => T): T {
-  /* v8 ignore next -- a reducer that is never dispatched: it only keeps what it was given */
-  const keep = (kept: T): T => kept;
-  const [made] = React.useReducer(keep, undefined, make);
-  return made;
-}
-
 /* ---------------- ModalShell: single scrim + center/sheet container ------ */
 
 export function ModalShell({
@@ -130,15 +96,13 @@ export function ModalShell({
   // black puts the backdrop at ~28% luminance, inside the design's 25-35%.
   backdropColor = 'rgba(0,0,0,0.72)',
   children,
-}: Readonly<
-  OrUndefined<{
-    visible: boolean;
-    onClose: () => void;
-    variant?: 'center' | 'sheet';
-    backdropColor?: string;
-    children: React.ReactNode;
-  }>
->) {
+}: Readonly<{
+  visible: boolean;
+  onClose: () => void;
+  variant?: 'center' | 'sheet';
+  backdropColor?: string;
+  children: React.ReactNode;
+}>) {
   const sheet = variant === 'sheet';
   return (
     <Modal
@@ -205,135 +169,6 @@ export function ModalShell({
  * the row's box. Those modals are never designed-open, so the
  * accessibility-tree concern above does not apply.
  */
-/**
- * A hover menu's close, put off for a moment: leaving a tab or its card closes the menu unless the pointer lands on the
- * other one first (a tab and its card are two boxes with a seam between them). One timer for the app: one menu is open.
- */
-let hoverMenuTimer: ReturnType<typeof setTimeout> | null = null;
-export function hoverMenuStay(): void {
-  if (hoverMenuTimer !== null) {
-    clearTimeout(hoverMenuTimer);
-    hoverMenuTimer = null;
-  }
-}
-/**
- * Where a hover menu opens: under its trigger as the page draws it (the trigger's box when the pointer arrived), not where
- * the design measured it — a menu drawn a few pixels over its tab took the pointer off the tab and closed itself.
- */
-const hoverAnchors = new Map<string, { left: number; top: number }>();
-export function hoverMenuAt(id: string, triggerTestId: string): void {
-  const doc = (
-    globalThis as {
-      document?: {
-        querySelector?: (
-          q: string,
-        ) => { getBoundingClientRect?: () => { left: number; bottom: number } } | null;
-      };
-    }
-  ).document;
-  // JSON quotes and escapes the id the way a CSS string wants it, with no backslash written here (S7780)
-  const el = doc?.querySelector?.('[data-testid=' + JSON.stringify(triggerTestId) + ']');
-  const r = el?.getBoundingClientRect?.();
-  if (r) hoverAnchors.set(id, { left: r.left, top: r.bottom });
-}
-export function hoverMenuLeave(close: () => void): void {
-  hoverMenuStay();
-  hoverMenuTimer = setTimeout(() => {
-    hoverMenuTimer = null;
-    close();
-  }, 160);
-}
-
-/**
- * A panel's entrance on the web: it rises a little as it fades in (`@keyframes rn-panel-in` in globals.css), and the
- * backdrop fades in under it. The web runtime (platform/rn-style.ts) hands a style's `animation` to CSS as it is; the
- * react-native-web `animationKeyframes` form this once used is not read by it, so no popup animated. None on a device.
- */
-const PANEL_IN: ViewStyle | null = null;
-const BACKDROP_IN: ViewStyle | null = null;
-/**
- * A hover menu only fades in: it opens right under its trigger and is kept open only while the pointer goes straight from
- * the trigger into it (hoverMenuLeave, 160 ms). A panel that rises into place leaves a gap there while it moves, the
- * pointer crosses empty page, and the menu closed itself before it could be reached.
- */
-const MENU_IN: ViewStyle | null = null;
-/**
- * A side drawer on the web (a details panel at the window's right edge, full height): it holds the window's height and
- * edge whatever the design's frame said (900 on a 1440 × 900 drawing — on a taller window it stopped short), and slides in
- * from the right. None on a device.
- */
-const SIDE_RIGHT: ViewStyle | null = null;
-/** a centred popup of a set width sits in the middle of the window on the web, not at its left edge (the overlay is a column) */
-const PANEL_CENTRE = null as unknown;
-
-/**
- * The panel of an AppModal. A hover menu's is pressable — the pointer leaving it, any way, closes it — and opens under
- * its trigger as the page draws it (hoverMenuAt); any other panel is a plain view. Kept out of AppModal so its branches
- * do not add to the modal's (S3776).
- */
-function ModalPanel({
-  hover,
-  testID,
-  passThrough,
-  onClose,
-  at,
-  side,
-  native,
-  style,
-  children,
-}: Readonly<
-  OrUndefined<{
-    hover: boolean;
-    /** a side drawer: held against the window's right edge, its full height (SIDE_RIGHT) */
-    side?: 'right';
-    testID?: string;
-    passThrough: boolean;
-    onClose: () => void;
-    /** the design frame's left / top, when the panel is placed at it */
-    at?: { left: number; top: number };
-    native: boolean;
-    style?: ViewStyle;
-    children?: React.ReactNode;
-  }>
->) {
-  const pointerEvents = passThrough ? 'box-none' : undefined;
-  // placed by the overlay (no design frame, not a hover menu) and saying how wide it is: in the middle
-  const centred =
-    !at && !hover && (StyleSheet.flatten(style) as ViewStyle | undefined)?.width !== undefined;
-  const entrance = hover ? MENU_IN : PANEL_IN;
-  const drawer = side === 'right' && !native ? SIDE_RIGHT : null;
-  const panelStyle = [
-    at && !drawer ? { position: 'absolute' as const, ...at } : null,
-    centred ? (PANEL_CENTRE as ViewStyle) : null,
-    native || drawer ? null : entrance,
-    style,
-    drawer,
-  ];
-  if (!hover) {
-    return (
-      <View testID={testID} pointerEvents={pointerEvents} style={panelStyle}>
-        {children}
-      </View>
-    );
-  }
-  const anchor = testID ? hoverAnchors.get(testID) : undefined;
-  const anchored = anchor
-    ? ({ position: 'fixed', left: anchor.left, top: anchor.top } as unknown as ViewStyle)
-    : null;
-  return (
-    <Pressable
-      testID={testID}
-      accessible={false}
-      pointerEvents={pointerEvents}
-      onHoverIn={hoverMenuStay}
-      onHoverOut={() => hoverMenuLeave(onClose)}
-      style={[...panelStyle, anchored]}
-    >
-      {children}
-    </Pressable>
-  );
-}
-
 export function AppModal({
   visible,
   onClose,
@@ -342,44 +177,30 @@ export function AppModal({
   native = false,
   panelLeft,
   panelTop,
-  side,
   passThrough = false,
-  backdropUnder,
-  hover = false,
   style,
   testID,
   children,
-}: Readonly<
-  OrUndefined<{
-    visible: boolean;
-    onClose: () => void;
-    variant?: 'center' | 'sheet';
-    backdropColor?: string;
-    native?: boolean;
-    /** The panel is a TRANSPARENT full-screen frame with the sheet drawn inside
-     *  it: it must not swallow taps meant for the dimmed backdrop above the
-     *  sheet, or a sheet with no X cannot be dismissed at all (Beacon's
-     *  beneficiary "More" sheet). Painted content inside still takes touches. */
-    passThrough?: boolean;
-    /** a FULL-WIDTH designed sheet renders at its designed frame instead of
-     *  float-centered — the 24px centering pad pushed it off the left edge and
-     *  clipped its right (CKF filter modals). Emit passes these together. */
-    panelLeft?: number;
-    panelTop?: number;
-    /** a side drawer at the window's right edge (ModalPanel side) */
-    side?: 'right';
-    /** drawn UNDER the scrim's tint: a frosted backdrop's blur (components/frost). */
-    backdropUnder?: React.ReactNode;
-    /** a MENU that opens when the pointer rests on its trigger (props.opensOnHover, web): nothing above the panel's top
-     *  edge is covered (no backdrop at all) — the row of triggers stays live, so moving to another one opens its menu — the
-     *  panel opens under its trigger as drawn (hoverMenuAt), and the pointer leaving the panel, any way, closes it
-     *  (hoverMenuLeave). A tap still opens it (touch has no hover). */
-    hover?: boolean;
-    style?: ViewStyle;
-    testID?: string;
-    children?: React.ReactNode;
-  }>
->) {
+}: Readonly<{
+  visible: boolean;
+  onClose: () => void;
+  variant?: 'center' | 'sheet';
+  backdropColor?: string;
+  native?: boolean;
+  /** The panel is a TRANSPARENT full-screen frame with the sheet drawn inside
+   *  it: it must not swallow taps meant for the dimmed backdrop above the
+   *  sheet, or a sheet with no X cannot be dismissed at all (Beacon's
+   *  beneficiary "More" sheet). Painted content inside still takes touches. */
+  passThrough?: boolean;
+  /** a FULL-WIDTH designed sheet renders at its designed frame instead of
+   *  float-centered — the 24px centering pad pushed it off the left edge and
+   *  clipped its right (CKF filter modals). Emit passes these together. */
+  panelLeft?: number;
+  panelTop?: number;
+  style?: ViewStyle;
+  testID?: string;
+  children?: React.ReactNode;
+}>) {
   React.useEffect(() => {
     // native Modal owns hardware back via onRequestClose
     if (!visible || native) return undefined;
@@ -391,44 +212,31 @@ export function AppModal({
   }, [visible, native, onClose]);
   const sheet = variant === 'sheet';
   const hasPanel = panelLeft !== undefined || panelTop !== undefined;
-  // a panel placed at its design frame stays inside the window: on a phone
-  // shorter than the design it rides up instead of running off the bottom
-  const { height: windowH } = useWindowDimensions();
-  const panelH = Number((StyleSheet.flatten(style) as ViewStyle | undefined)?.height) || 0;
-  const top = panelTop === undefined ? 0 : Math.max(0, Math.min(panelTop, windowH - panelH));
-  // a hover menu has no backdrop: nothing may lie over its trigger, and leaving the panel (not entering a scrim) closes it
   const body = (
     <>
-      {backdropUnder}
-      {hover ? null : (
-        <Pressable
-          testID="modal-backdrop"
-          style={[
-            {
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: backdropColor,
-            },
-            BACKDROP_IN,
-          ]}
-          onPress={onClose}
-        />
-      )}
-      <ModalPanel
-        hover={hover}
+      <Pressable
+        testID="modal-backdrop"
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: backdropColor,
+        }}
+        onPress={onClose}
+      />
+      <View
         testID={testID}
-        passThrough={passThrough}
-        onClose={onClose}
-        at={hasPanel ? { left: panelLeft ?? 0, top } : undefined}
-        side={side}
-        native={native}
-        style={style}
+        pointerEvents={passThrough ? 'box-none' : undefined}
+        style={
+          hasPanel
+            ? [{ position: 'absolute' as const, left: panelLeft ?? 0, top: panelTop ?? 0 }, style]
+            : style
+        }
       >
         {children}
-      </ModalPanel>
+      </View>
     </>
   );
   if (native) {
@@ -454,7 +262,6 @@ export function AppModal({
   if (!visible) return null;
   return (
     <View
-      pointerEvents={hover ? 'box-none' : undefined}
       style={{
         position: 'absolute',
         left: 0,
@@ -483,43 +290,35 @@ function LabelSegments({
   linkTargets,
   onLinkPress,
   lineHeight,
-}: Readonly<
-  OrUndefined<{
-    segments: LabelSegment[];
-    linkTargets?: string[];
-    onLinkPress?: (target: string) => void;
-    /** the paragraph's leading, inherited by a sized segment (see below). */
-    lineHeight?: number;
-  }>
->) {
-  // a segment's identity is where it STARTS in the paragraph — stable across
-  // re-renders, and unique even when two segments share text (S6479). The
-  // offsets and the link ordinals are summed in a plain loop before the JSX:
-  // a variable reassigned inside a render's map is react-hooks/immutability.
+}: Readonly<{
+  segments: LabelSegment[];
+  linkTargets?: string[];
+  onLinkPress?: (target: string) => void;
+  /** the paragraph's leading, inherited by a sized segment (see below). */
+  lineHeight?: number;
+}>) {
   let linkIdx = -1;
+  // a segment's identity is where it STARTS in the paragraph — stable across
+  // re-renders, and unique even when two segments share text (S6479)
   let at = 0;
-  const runs: Array<{ seg: LabelSegment; key: string; target: string | undefined }> = [];
-  for (const seg of segments) {
-    const isLink = Boolean(seg.href) || seg.underline === true;
-    if (isLink) linkIdx += 1;
-    runs.push({
-      seg,
-      key: 'seg@' + at,
-      target: isLink ? segmentTarget(linkIdx, linkTargets) : undefined,
-    });
-    at += (seg.text ?? '').length;
-  }
   return (
     <>
-      {runs.map(({ seg, key, target }) => (
-        <Text
-          key={key}
-          onPress={segmentPress(seg, target, onLinkPress)}
-          style={segmentStyle(seg, lineHeight)}
-        >
-          {seg.text}
-        </Text>
-      ))}
+      {segments.map((seg) => {
+        const segKey = 'seg@' + at;
+        at += (seg.text ?? '').length;
+        const isLink = Boolean(seg.href) || seg.underline === true;
+        if (isLink) linkIdx += 1;
+        const target = isLink ? segmentTarget(linkIdx, linkTargets) : undefined;
+        return (
+          <Text
+            key={segKey}
+            onPress={segmentPress(seg, target, onLinkPress)}
+            style={segmentStyle(seg, lineHeight)}
+          >
+            {seg.text}
+          </Text>
+        );
+      })}
     </>
   );
 }
@@ -557,7 +356,6 @@ function segmentPress(
  */
 function segmentLeading(seg: LabelSegment, lineHeight?: number): { lineHeight?: number } {
   if (seg.lineHeight) return { lineHeight: s(seg.lineHeight) };
-  /* v8 ignore if -- neither label hands the paragraph's leading in yet; wiring it changes what Android draws */
   if (seg.fontSize && lineHeight !== undefined) return { lineHeight };
   return {};
 }
@@ -615,22 +413,18 @@ function CheckboxBox({
   boxBorderWidth,
   boxRadius,
   checkShape,
-  checkGlyph,
   checkGlyphColor,
-}: Readonly<
-  OrUndefined<{
-    value: boolean;
-    size: number;
-    error?: boolean;
-    checkedColor: string;
-    boxBorderColor: string;
-    boxBorderWidth: number;
-    boxRadius?: number;
-    checkShape: 'square' | 'circle';
-    checkGlyph: 'tick' | 'dot';
-    checkGlyphColor: string;
-  }>
->) {
+}: Readonly<{
+  value: boolean;
+  size: number;
+  error?: boolean;
+  checkedColor: string;
+  boxBorderColor: string;
+  boxBorderWidth: number;
+  boxRadius?: number;
+  checkShape: 'square' | 'circle';
+  checkGlyphColor: string;
+}>) {
   // a zero-size box (design shows no square, e.g. a greeting row that only
   // carries checkbox semantics) must render NOTHING — a fontSize-0 glyph
   // crashes Android's text measurer
@@ -657,28 +451,15 @@ function CheckboxBox({
         justifyContent: 'center',
       }}
     >
-      {value ? <CheckGlyph glyph={checkGlyph} size={size} color={checkGlyphColor} /> : null}
+      {value ? (
+        <Text
+          style={{ color: checkGlyphColor, fontSize: Math.round(size * 0.55), fontWeight: '700' }}
+        >
+          ✓
+        </Text>
+      ) : null}
     </View>
   );
-}
-
-/**
- * What a ticked box draws: a radio's inner DOT, or a tick. The design states
- * which (the studio preview draws the same); a dot is three-eighths of the
- * mark, as QuickPrep's 6pt dot sits in its 16pt ring.
- */
-function CheckGlyph({
-  glyph,
-  size,
-  color,
-}: Readonly<{ glyph: 'tick' | 'dot'; size: number; color: string }>) {
-  if (glyph === 'dot') {
-    const dot = Math.round(size * 0.375);
-    return (
-      <View style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: color }} />
-    );
-  }
-  return <Text style={{ color, fontSize: Math.round(size * 0.55), fontWeight: '700' }}>✓</Text>;
 }
 
 /**
@@ -688,52 +469,45 @@ function CheckGlyph({
  * component's cognitive complexity (S3776).
  */
 /** CheckboxLabel's props, shared with the badged form it hands off to. */
-type CheckboxLabelProps = Readonly<
-  OrUndefined<{
-    label?: string;
-    labelSegments?: LabelSegment[];
-    linkTargets?: string[];
-    onLinkPress?: (target: string) => void;
-    color: string;
-    fontSize: number;
-    /** The design's leading. Without it a wrapped consent paragraph uses the
-     * font's own ~1.15x and renders shorter than Figma measured. */
-    lineHeight?: number;
-    // RN's own type, not `string`: TextStyle.fontWeight is a literal union, so a
-    // plain string is not assignable to it and every generated app failed
-    // `tsc --noEmit` on the two <Text style={{ …, fontWeight }}> below.
-    fontWeight: TextStyle['fontWeight'];
-    /** the design's face, already resolved to the loaded cut (font()). A named
-     * face carries its own weight, so fontWeight is dropped beside it — Android
-     * would synthesise the weight over the face and set it wider. */
-    fontFamily?: string;
-    wrapLabel?: boolean;
-    /** the design's own line count for an absorbed label (emit/style.ts
-     *  labelLineClamp): a folded row lost the box Figma truncated it in, so
-     *  without this its street address wraps where the design ellipsised. */
-    labelLines?: number;
-    badgeText?: string;
-    badgeColor?: string;
-    badgeBackground?: string;
-    badgeRadius?: number;
-    badgeFontSize?: number;
-  }>
->;
+type CheckboxLabelProps = Readonly<{
+  label?: string;
+  labelSegments?: LabelSegment[];
+  linkTargets?: string[];
+  onLinkPress?: (target: string) => void;
+  color: string;
+  fontSize: number;
+  /** The design's leading. Without it a wrapped consent paragraph uses the
+   * font's own ~1.15x and renders shorter than Figma measured. */
+  lineHeight?: number;
+  // RN's own type, not `string`: TextStyle.fontWeight is a literal union, so a
+  // plain string is not assignable to it and every generated app failed
+  // `tsc --noEmit` on the two <Text style={{ …, fontWeight }}> below.
+  fontWeight: TextStyle['fontWeight'];
+  wrapLabel?: boolean;
+  /** the design's own line count for an absorbed label (emit/style.ts
+   *  labelLineClamp): a folded row lost the box Figma truncated it in, so
+   *  without this its street address wraps where the design ellipsised. */
+  labelLines?: number;
+  badgeText?: string;
+  badgeColor?: string;
+  badgeBackground?: string;
+  badgeRadius?: number;
+  badgeFontSize?: number;
+}>;
 
 /** A badged label's runs split at the first line break: what shares the
  * title's line beside the chip, and what goes on the line below. */
 function splitAtBreak(runs: LabelSegment[]): { head: LabelSegment[]; tail: LabelSegment[] } {
   const i = runs.findIndex((r) => (r.text ?? '').includes('\n'));
-  const run = runs[i];
-  if (i < 0 || run === undefined) return { head: runs, tail: [] };
-  const text = run.text;
+  if (i < 0) return { head: runs, tail: [] };
+  const text = runs[i].text ?? '';
   const at = text.indexOf('\n');
   return {
-    head: [...runs.slice(0, i), ...(at > 0 ? [{ ...run, text: text.slice(0, at) }] : [])],
+    head: [...runs.slice(0, i), ...(at > 0 ? [{ ...runs[i], text: text.slice(0, at) }] : [])],
     // the column IS the line break, so the break the tail starts with would
     // be an EMPTY first line of its own — which numberOfLines then truncates,
     // leaving a lone ellipsis where the street address should be
-    tail: [{ ...run, text: text.slice(at).replace(/^\r?\n/, '') }, ...runs.slice(i + 1)],
+    tail: [{ ...runs[i], text: text.slice(at).replace(/^\r?\n/, '') }, ...runs.slice(i + 1)],
   };
 }
 
@@ -753,7 +527,6 @@ function BadgedLabel({
   fontSize,
   lineHeight,
   fontWeight,
-  fontFamily,
   labelLines,
   badgeText,
   badgeColor,
@@ -761,7 +534,6 @@ function BadgedLabel({
   badgeRadius,
   badgeFontSize,
 }: CheckboxLabelProps) {
-  const face = fontFamily ? { fontFamily } : { fontWeight };
   const runs: LabelSegment[] =
     labelSegments && labelSegments.length > 0 ? labelSegments : [{ text: label ?? '' }];
   const { head, tail } = splitAtBreak(runs);
@@ -772,7 +544,7 @@ function BadgedLabel({
         <Text
           numberOfLines={1}
           ellipsizeMode="tail"
-          style={{ flexShrink: 1, color, fontSize, lineHeight, ...face }}
+          style={{ flexShrink: 1, color, fontSize, lineHeight, fontWeight }}
         >
           <LabelSegments segments={head} linkTargets={linkTargets} onLinkPress={onLinkPress} />
         </Text>
@@ -794,7 +566,7 @@ function BadgedLabel({
         <Text
           numberOfLines={tailLines}
           ellipsizeMode="tail"
-          style={{ color, fontSize, lineHeight, ...face }}
+          style={{ color, fontSize, lineHeight, fontWeight }}
         >
           <LabelSegments segments={tail} linkTargets={linkTargets} onLinkPress={onLinkPress} />
         </Text>
@@ -813,32 +585,19 @@ function CheckboxLabel(props: CheckboxLabelProps) {
     fontSize,
     lineHeight,
     fontWeight,
-    fontFamily,
     wrapLabel,
     labelLines,
     badgeText,
   } = props;
   if (badgeText) return <BadgedLabel {...props} />;
-  const face = fontFamily ? { fontFamily } : { fontWeight };
   if (labelSegments && labelSegments.length > 0) {
     // A segmented label is a consent PARAGRAPH — it must wrap, so it takes
-    // the remaining row width. Unless the design drew it on ONE line
-    // (labelLines 1): then it keeps its natural width like a plain label, and
-    // the row grows round it — Android sets text a pixel larger than Figma,
-    // and held to the row's design width Sportify's consent line lost its
-    // last letters (Privacy Poli...).
-    const oneLineRun = labelLines === 1;
+    // the remaining row width.
     return (
       <Text
         numberOfLines={labelLines}
         ellipsizeMode="tail"
-        style={{
-          ...(oneLineRun ? { flexShrink: 0 } : { flex: 1 }),
-          color,
-          fontSize,
-          lineHeight,
-          ...face,
-        }}
+        style={{ flex: 1, color, fontSize, lineHeight, fontWeight }}
       >
         <LabelSegments
           segments={labelSegments}
@@ -858,26 +617,13 @@ function CheckboxLabel(props: CheckboxLabelProps) {
   // still a plain label, and holding it at its natural width ran a
   // 250-character sentence straight off the side of its card. It takes
   // the remaining row width and wraps.
-  //
-  // A label the design drew on ONE line stays on one (the studio's run
-  // preview holds it with nowrap): the clamp, and its shrink-to-fit partner,
-  // which only acts when the words would not fit. Its leading is dropped:
-  // one line has no use for it, and on Android a lineHeight on a named face
-  // measured the label a hair narrower than it draws, so the last word fell
-  // onto a second line the row hides ("Apple" for QuickPrep's "Apple Pay").
-  const oneLine = wrapLabel ? undefined : 1;
-  const leading = wrapLabel ? lineHeight : undefined;
   return (
     <Text
-      numberOfLines={oneLine}
-      adjustsFontSizeToFit={!wrapLabel}
-      minimumFontScale={0.65}
       style={{
         ...(wrapLabel ? { flex: 1 } : { flexShrink: 0 }),
         color,
         fontSize,
-        lineHeight: leading,
-        ...face,
+        fontWeight,
       }}
     >
       {label}
@@ -925,19 +671,9 @@ type CheckboxProps = {
   /** design spacing between the box and the label. */
   gap?: number;
   checkSize?: number;
-  /** the frame the design reserves around the drawn mark, when wider than it
-   *  (QuickPrep's Radio Button: a 16pt ring in a 20pt frame) */
-  checkSlot?: number;
   checkShape?: 'square' | 'circle';
-  /** what a ticked box draws: a tick, or a radio's inner dot */
-  checkGlyph?: 'tick' | 'dot';
   checkSide?: 'left' | 'right';
-  /** the design pushed the mark to the row's END, far from the words (a
-   *  picker row: QuickPrep's payment methods) — the studio's checkMarkAtEnd */
-  checkAtEnd?: boolean;
   checkGlyphColor?: string;
-  /** the label's own face, resolved by font() to the loaded cut */
-  fontFamily?: string;
   iconSource?: ImageSourcePropType;
   iconSize?: number;
   /** the mark's own HEIGHT where it is not square — a 37x12 VISA wordmark
@@ -950,141 +686,111 @@ type CheckboxProps = {
   accessibilityLabel?: string;
 };
 
-export const Checkbox = forwardRef<
-  React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<CheckboxProps>>
->(function Checkbox(
-  {
-    label,
-    labelSegments,
-    linkTargets,
-    onLinkPress,
-    error,
-    value,
-    onChange,
-    checkedColor = '#4c8bf5',
-    boxBorderColor = 'rgba(255,255,255,0.4)',
-    boxBorderWidth = s(2),
-    boxRadius,
-    labelColor = '#fff',
-    labelWeight = '400',
-    labelLineHeight,
-    fontSize = s(14),
-    wrapLabel,
-    labelLines,
-    badgeText,
-    badgeColor,
-    badgeBackground = 'rgba(0,0,0,0.08)',
-    badgeRadius = s(6),
-    badgeFontSize = s(10),
-    gap = s(10),
-    checkSize,
-    checkSlot,
-    checkShape = 'square',
-    checkGlyph = 'tick',
-    checkSide = 'left',
-    checkAtEnd,
-    checkGlyphColor = '#fff',
-    fontFamily,
-    iconSource,
-    iconSize = s(24),
-    iconHeight,
-    style,
-    className,
-    testID,
-    accessibilityLabel,
-  },
-  ref,
-) {
-  const size = checkSize ?? fontSize + s(6);
-  const effLabelColor = error && !value ? ERROR_RED : labelColor;
-  // one element, rendered on whichever side the design put the box on
-  const mark = (
-    <CheckboxBox
-      value={value}
-      size={size}
-      error={error}
-      checkedColor={checkedColor}
-      boxBorderColor={boxBorderColor}
-      boxBorderWidth={boxBorderWidth}
-      boxRadius={boxRadius}
-      checkShape={checkShape}
-      checkGlyph={checkGlyph}
-      checkGlyphColor={checkGlyphColor}
-    />
-  );
-  // the design's slot around the mark: the mark centred in it, so the label
-  // sits where the design measured it rather than the slot's width closer
-  const box =
-    checkSlot !== undefined && checkSlot > size ? (
-      <View
-        style={{
-          width: checkSlot,
-          height: checkSlot,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {mark}
-      </View>
-    ) : (
-      mark
-    );
-  const endBox = checkAtEnd ? <View style={{ marginStart: 'auto' }}>{box}</View> : box;
-  return (
-    <Pressable
-      ref={ref}
-      testID={testID}
-      className={className}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: value }}
-      accessibilityLabel={accessibilityLabel ?? label}
-      onPress={() => onChange(!value)}
-      // NO built-in padding: the design's own layout padding arrives via
-      // `style`, and an invented 16pt inset both offset the row and squeezed
-      // the label into wrapping inside its measured design width.
-      style={[{ flexDirection: 'row', alignItems: 'center', gap }, style]}
-    >
-      {checkSide === 'left' ? box : null}
-      {iconSource ? (
-        <Image
-          source={iconSource}
-          // decoration beside the label, which says it all: no alt text, and
-          // hidden from the reader (an alt alone makes the image a stop)
-          alt=""
-          aria-hidden
-          // a MARK keeps its own box and its whole artwork: the circle crop is
-          // for a round thumbnail, and it eats a wordmark
-          style={
-            iconHeight === undefined
-              ? { width: iconSize, height: iconSize, borderRadius: iconSize / 2 }
-              : { width: iconSize, height: iconHeight }
-          }
-          resizeMode={iconHeight === undefined ? 'cover' : 'contain'}
-        />
-      ) : null}
-      <CheckboxLabel
-        label={label}
-        labelSegments={labelSegments}
-        linkTargets={linkTargets}
-        onLinkPress={onLinkPress}
-        color={effLabelColor}
-        fontSize={fontSize}
-        lineHeight={labelLineHeight}
-        fontWeight={labelWeight}
-        fontFamily={fontFamily}
-        wrapLabel={wrapLabel}
-        labelLines={labelLines}
-        badgeText={badgeText}
-        badgeColor={badgeColor}
-        badgeBackground={badgeBackground}
-        badgeRadius={badgeRadius}
-        badgeFontSize={badgeFontSize}
+export const Checkbox = forwardRef<React.ComponentRef<typeof View>, Readonly<CheckboxProps>>(
+  function Checkbox(
+    {
+      label,
+      labelSegments,
+      linkTargets,
+      onLinkPress,
+      error,
+      value,
+      onChange,
+      checkedColor = '#4c8bf5',
+      boxBorderColor = 'rgba(255,255,255,0.4)',
+      boxBorderWidth = s(2),
+      boxRadius,
+      labelColor = '#fff',
+      labelWeight = '400',
+      labelLineHeight,
+      fontSize = s(14),
+      wrapLabel,
+      labelLines,
+      badgeText,
+      badgeColor,
+      badgeBackground = 'rgba(0,0,0,0.08)',
+      badgeRadius = s(6),
+      badgeFontSize = s(10),
+      gap = s(10),
+      checkSize,
+      checkShape = 'square',
+      checkSide = 'left',
+      checkGlyphColor = '#fff',
+      iconSource,
+      iconSize = s(24),
+      iconHeight,
+      style,
+      className,
+      testID,
+      accessibilityLabel,
+    },
+    ref,
+  ) {
+    const size = checkSize ?? fontSize + s(6);
+    const effLabelColor = error && !value ? ERROR_RED : labelColor;
+    // one element, rendered on whichever side the design put the box on
+    const box = (
+      <CheckboxBox
+        value={value}
+        size={size}
+        error={error}
+        checkedColor={checkedColor}
+        boxBorderColor={boxBorderColor}
+        boxBorderWidth={boxBorderWidth}
+        boxRadius={boxRadius}
+        checkShape={checkShape}
+        checkGlyphColor={checkGlyphColor}
       />
-      {checkSide === 'right' ? endBox : null}
-    </Pressable>
-  );
-});
+    );
+    return (
+      <Pressable
+        ref={ref}
+        testID={testID}
+        className={className}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: value }}
+        accessibilityLabel={accessibilityLabel ?? label}
+        onPress={() => onChange(!value)}
+        // NO built-in padding: the design's own layout padding arrives via
+        // `style`, and an invented 16pt inset both offset the row and squeezed
+        // the label into wrapping inside its measured design width.
+        style={[{ flexDirection: 'row', alignItems: 'center', gap }, style]}
+      >
+        {checkSide === 'left' ? box : null}
+        {iconSource ? (
+          <Image
+            source={iconSource}
+            // a MARK keeps its own box and its whole artwork: the circle crop is
+            // for a round thumbnail, and it eats a wordmark
+            style={
+              iconHeight === undefined
+                ? { width: iconSize, height: iconSize, borderRadius: iconSize / 2 }
+                : { width: iconSize, height: iconHeight }
+            }
+            resizeMode={iconHeight === undefined ? 'cover' : 'contain'}
+          />
+        ) : null}
+        <CheckboxLabel
+          label={label}
+          labelSegments={labelSegments}
+          linkTargets={linkTargets}
+          onLinkPress={onLinkPress}
+          color={effLabelColor}
+          fontSize={fontSize}
+          fontWeight={labelWeight}
+          wrapLabel={wrapLabel}
+          labelLines={labelLines}
+          badgeText={badgeText}
+          badgeColor={badgeColor}
+          badgeBackground={badgeBackground}
+          badgeRadius={badgeRadius}
+          badgeFontSize={badgeFontSize}
+        />
+        {checkSide === 'right' ? box : null}
+      </Pressable>
+    );
+  },
+);
 
 /* ---------------- RadioGroup ----------------------------------------------
    Pills, not circle+label.
@@ -1157,27 +863,25 @@ function RadioOption({
   itemHeight,
   itemRadius,
   itemColor,
-}: Readonly<
-  OrUndefined<{
-    label: string;
-    on: boolean;
-    /** multi-select: draw a pill rather than a ring + label */
-    chips: boolean;
-    onPress: () => void;
-    testID?: string;
-    selectedColor: string;
-    selectedBg: string;
-    labelColor: string;
-    mutedColor: string;
-    fontSize: number;
-    fontWeight: TextStyle['fontWeight'];
-    itemHeight?: number;
-    itemRadius: number;
-    /** the design's own row fill — a single-select row becomes the design's
-     *  pill (bg + radius + inner padding) instead of a bare ring + label */
-    itemColor?: string;
-  }>
->) {
+}: Readonly<{
+  label: string;
+  on: boolean;
+  /** multi-select: draw a pill rather than a ring + label */
+  chips: boolean;
+  onPress: () => void;
+  testID?: string;
+  selectedColor: string;
+  selectedBg: string;
+  labelColor: string;
+  mutedColor: string;
+  fontSize: number;
+  fontWeight: TextStyle['fontWeight'];
+  itemHeight?: number;
+  itemRadius: number;
+  /** the design's own row fill — a single-select row becomes the design's
+   *  pill (bg + radius + inner padding) instead of a bare ring + label */
+  itemColor?: string;
+}>) {
   const d = fontSize + 6;
   // its own statement rather than a ternary inside the style ternary (S3358):
   // a design row height wins, otherwise the pill is sized off the type
@@ -1267,75 +971,73 @@ type RadioGroupProps = {
   testID?: string;
 };
 
-export const RadioGroup = forwardRef<
-  React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<RadioGroupProps>>
->(function RadioGroup(
-  {
-    options,
-    selectedIndex,
-    selectedIndices,
-    onChange,
-    selectedColor = '#4c8bf5',
-    selectedBg = 'transparent',
-    labelColor = '#14181d',
-    mutedColor = 'rgba(0,0,0,0.42)',
-    fontSize = s(13),
-    fontWeight = '400',
-    itemHeight,
-    itemRadius = 999,
-    itemColor,
-    gap = s(10),
-    direction = 'row',
-    style,
-    className,
-    testID,
-  },
-  ref,
-) {
-  // MULTI-select is a chip row: pills. SINGLE-select is a radio row: a ring
-  // beside its label, which is what the design actually draws — isRadioGroup
-  // only classifies a group whose every row LEADS with a circle. Drawing pills
-  // for both made a 20pt-tall Yes/No row 40pt and it overlapped its divider.
-  const chips = !!selectedIndices;
-  // Chips flow as a wrapping row. A single-select radio follows the DESIGN's
-  // direction and never wraps — a horizontal "Yes | No" stays on one line
-  // instead of collapsing to a column when its box is a touch narrow.
-  const outer: ViewStyle = chips
-    ? { flexDirection: 'row', flexWrap: 'wrap', gap, alignContent: 'flex-start' }
-    : {
-        flexDirection: direction,
-        flexWrap: 'nowrap',
-        gap,
-        alignItems: direction === 'row' ? 'center' : 'flex-start',
-      };
-  const keys = optionKeys(options);
-  return (
-    <View ref={ref} testID={testID} className={className} style={[outer, style]}>
-      {/* chips is derived from selectedIndices, so TS narrows it in this
+export const RadioGroup = forwardRef<React.ComponentRef<typeof View>, Readonly<RadioGroupProps>>(
+  function RadioGroup(
+    {
+      options,
+      selectedIndex,
+      selectedIndices,
+      onChange,
+      selectedColor = '#4c8bf5',
+      selectedBg = 'transparent',
+      labelColor = '#14181d',
+      mutedColor = 'rgba(0,0,0,0.42)',
+      fontSize = s(13),
+      fontWeight = '400',
+      itemHeight,
+      itemRadius = 999,
+      itemColor,
+      gap = s(10),
+      direction = 'row',
+      style,
+      className,
+      testID,
+    },
+    ref,
+  ) {
+    // MULTI-select is a chip row: pills. SINGLE-select is a radio row: a ring
+    // beside its label, which is what the design actually draws — isRadioGroup
+    // only classifies a group whose every row LEADS with a circle. Drawing pills
+    // for both made a 20pt-tall Yes/No row 40pt and it overlapped its divider.
+    const chips = !!selectedIndices;
+    // Chips flow as a wrapping row. A single-select radio follows the DESIGN's
+    // direction and never wraps — a horizontal "Yes | No" stays on one line
+    // instead of collapsing to a column when its box is a touch narrow.
+    const outer: ViewStyle = chips
+      ? { flexDirection: 'row', flexWrap: 'wrap', gap, alignContent: 'flex-start' }
+      : {
+          flexDirection: direction,
+          flexWrap: 'nowrap',
+          gap,
+          alignItems: direction === 'row' ? 'center' : 'flex-start',
+        };
+    return (
+      <View ref={ref} testID={testID} className={className} style={[outer, style]}>
+        {/* chips is derived from selectedIndices, so TS narrows it in this
           callback without a non-null assertion (Sonar S4325) */}
-      {options.map((opt, i) => (
-        <RadioOption
-          key={keys[i]}
-          label={opt}
-          on={chips ? selectedIndices.includes(i) : i === selectedIndex}
-          chips={chips}
-          onPress={() => onChange(i)}
-          testID={subTestID(testID, String(i))}
-          selectedColor={selectedColor}
-          selectedBg={selectedBg}
-          labelColor={labelColor}
-          mutedColor={mutedColor}
-          fontSize={fontSize}
-          fontWeight={fontWeight}
-          itemHeight={itemHeight}
-          itemRadius={itemRadius}
-          itemColor={itemColor}
-        />
-      ))}
-    </View>
-  );
-});
+        {options.map((opt, i) => (
+          <RadioOption
+            key={`${opt}|${i}`}
+            label={opt}
+            on={chips ? selectedIndices.includes(i) : i === selectedIndex}
+            chips={chips}
+            onPress={() => onChange(i)}
+            testID={subTestID(testID, String(i))}
+            selectedColor={selectedColor}
+            selectedBg={selectedBg}
+            labelColor={labelColor}
+            mutedColor={mutedColor}
+            fontSize={fontSize}
+            fontWeight={fontWeight}
+            itemHeight={itemHeight}
+            itemRadius={itemRadius}
+            itemColor={itemColor}
+          />
+        ))}
+      </View>
+    );
+  },
+);
 
 /* ---------------- SegmentedControl ----------------------------------------
    A row of 2-5 equal text tabs, one active. The importer absorbs the tab
@@ -1355,17 +1057,12 @@ export const RadioGroup = forwardRef<
  * is what clipped a long label beside a short one — while a PILL row keeps the
  * even split its drawn boxes describe.
  */
-function tabSizing(width: number | undefined, indicator: string, wrap: boolean): ViewStyle {
-  // a wrapping strip (a page laid out as rows and columns): each tab as wide as its label, packed from the start, the rest on the next line
-  if (wrap) return { flexBasis: 'auto', flexGrow: 0, flexShrink: 0 };
+function tabSizing(width: number | undefined, indicator: string): ViewStyle {
   if (width !== undefined) return { flexBasis: width, flexGrow: 1, flexShrink: 1, minWidth: 0 };
   if (indicator === 'underline')
     return { flexBasis: 'auto', flexGrow: 1, flexShrink: 1, minWidth: 0 };
   return { flex: 1 };
 }
-
-/** the strip wraps its tabs onto more rows where the row has no room for them (a page laid out as rows and columns) */
-const WRAPPING_STRIP: ViewStyle = { flexWrap: 'wrap', rowGap: 4 };
 
 function SegmentedTab({
   label,
@@ -1381,29 +1078,24 @@ function SegmentedTab({
   labelFontWeight,
   itemRadius,
   width,
-  wrap,
-}: Readonly<
-  OrUndefined<{
-    label: string;
-    on: boolean;
-    onPress: () => void;
-    testID?: string;
-    indicator: 'pill' | 'underline';
-    activeColor: string;
-    activeTextColor: string;
-    labelColor: string;
-    fontSize: number;
-    fontWeight: RNFontWeight;
-    /** the resting label's weight — the design's own; 400 otherwise */
-    labelFontWeight?: RNFontWeight;
-    itemRadius: number;
-    /** the design's own tab width, kept as a shrinkable flex BASIS; undefined
-     *  falls back to an even split of the row */
-    width?: number;
-    /** the strip wraps: the tab is as wide as its label */
-    wrap: boolean;
-  }>
->) {
+}: Readonly<{
+  label: string;
+  on: boolean;
+  onPress: () => void;
+  testID?: string;
+  indicator: 'pill' | 'underline';
+  activeColor: string;
+  activeTextColor: string;
+  labelColor: string;
+  fontSize: number;
+  fontWeight: RNFontWeight;
+  /** the resting label's weight — the design's own; 400 otherwise */
+  labelFontWeight?: RNFontWeight;
+  itemRadius: number;
+  /** the design's own tab width, kept as a shrinkable flex BASIS; undefined
+   *  falls back to an even split of the row */
+  width?: number;
+}>) {
   const pillStyle: ViewStyle =
     on && indicator === 'pill' ? { backgroundColor: activeColor, borderRadius: itemRadius } : {};
   const underlineStyle: ViewStyle =
@@ -1423,7 +1115,7 @@ function SegmentedTab({
         // spends ~10pt on the ellipsis, so a 3pt shortfall eats three
         // characters. Growing keeps the design's proportions and can only ever
         // make a tab wider than it was drawn.
-        ...tabSizing(width, indicator, wrap),
+        ...tabSizing(width, indicator),
         alignItems: 'center',
         justifyContent: 'center',
         alignSelf: 'stretch',
@@ -1482,41 +1174,39 @@ function Chip({
   glyph,
   icon,
   iconSize,
-}: Readonly<
-  OrUndefined<{
-    label: string;
-    on: boolean;
-    onPress: () => void;
-    testID?: string;
-    activeColor: string;
-    activeTextColor: string;
-    itemColor: string;
-    itemTextColor: string;
-    itemBorderColor: string;
-    itemBorderWidth: number;
-    itemHeight?: number;
-    itemRadius: number;
-    fontSize: number;
-    fontWeight: RNFontWeight;
-    /** the RESTING chip's weight — the design's own; the active weight otherwise */
-    itemFontWeight?: RNFontWeight;
-    /** the design face for the active / resting label — a single-weight file,
-     *  so it replaces fontWeight (Android pairs the two into a Roboto fallback) */
-    fontFamily?: string;
-    itemFontFamily?: string;
-    /** the pill's own horizontal inset — the design's; 14 otherwise */
-    itemPaddingX?: number;
-    /** the width every chip was drawn at, when the design drew them alike — a
-     *  floor, so a longer label still grows its chip */
-    itemMinWidth?: number;
-    /** the emoji run the design typed beside this label */
-    glyph?: string;
-    /** the design's icon ARTWORK beside the label (Beacon's Current/Savings
-     *  bags), tinted with the label's colour so it follows the selection */
-    icon?: ImageSourcePropType;
-    iconSize?: number;
-  }>
->) {
+}: Readonly<{
+  label: string;
+  on: boolean;
+  onPress: () => void;
+  testID?: string;
+  activeColor: string;
+  activeTextColor: string;
+  itemColor: string;
+  itemTextColor: string;
+  itemBorderColor: string;
+  itemBorderWidth: number;
+  itemHeight?: number;
+  itemRadius: number;
+  fontSize: number;
+  fontWeight: RNFontWeight;
+  /** the RESTING chip's weight — the design's own; the active weight otherwise */
+  itemFontWeight?: RNFontWeight;
+  /** the design face for the active / resting label — a single-weight file,
+   *  so it replaces fontWeight (Android pairs the two into a Roboto fallback) */
+  fontFamily?: string;
+  itemFontFamily?: string;
+  /** the pill's own horizontal inset — the design's; 14 otherwise */
+  itemPaddingX?: number;
+  /** the width every chip was drawn at, when the design drew them alike — a
+   *  floor, so a longer label still grows its chip */
+  itemMinWidth?: number;
+  /** the emoji run the design typed beside this label */
+  glyph?: string;
+  /** the design's icon ARTWORK beside the label (Beacon's Current/Savings
+   *  bags), tinted with the label's colour so it follows the selection */
+  icon?: ImageSourcePropType;
+  iconSize?: number;
+}>) {
   // design row height wins; otherwise size the pill off its type (RadioOption)
   const minHeight = itemHeight ? undefined : fontSize + 16;
   // named rather than nested in the label's style — a ternary inside another
@@ -1554,9 +1244,6 @@ function Chip({
       {icon ? (
         <Image
           source={icon}
-          // decoration beside the label: no alt text, hidden from the reader
-          alt=""
-          aria-hidden
           resizeMode="contain"
           style={{
             width: iconSize ?? fontSize,
@@ -1581,7 +1268,6 @@ function Chip({
 export function ChipGroup({
   items,
   activeIndex,
-  activeIndices,
   onChange,
   activeColor = '#4c8bf5',
   activeTextColor = '#ffffff',
@@ -1605,75 +1291,68 @@ export function ChipGroup({
   swatches = false,
   style,
   testID,
-}: Readonly<
-  OrUndefined<{
-    items: string[];
-    activeIndex: number;
-    /** a group that takes SEVERAL answers: every chip in it is drawn chosen, and activeIndex is not read */
-    activeIndices?: number[];
-    onChange: (i: number) => void;
-    /** the RESTING chips' weight — the design's own (Kopi Kap: selected 600,
-     *  the rest 400); the active weight when the design draws them alike */
-    itemFontWeight?: RNFontWeight;
-    /** the design face per state (see Chip) — without one the label is the system font */
-    fontFamily?: string;
-    itemFontFamily?: string;
-    /** the pill's own horizontal inset, from the design's auto-layout padding */
-    itemPaddingX?: number;
-    /** the width every chip was drawn at (lyft's 84pt tip amounts), a floor */
-    itemMinWidth?: number;
-    /** the design drew the pills on more than one LINE — see the importer's
-     *  synthesizeChipGroups. A scrolling row would lose those line breaks, and
-     *  on a filter sheet the block is the height the sheet was drawn around. */
-    wrap?: boolean;
-    /** how many pills the DESIGN put on each line, when it drew the lines
-     *  itself. `wrap` alone only says there is more than one line, and
-     *  flexWrap then re-derives the breaks from measured text widths — which is
-     *  not where the designer put them. HealthPal draws four rows of three time
-     *  slots and this rendered 3-3-4-2 ("four buttons in the third row").
-     *  Absent, or not covering every item, falls back to flexWrap — which shows
-     *  every pill, where chunking on a bad count would drop some. */
-    rowCounts?: number[];
-    /** each item is a COLOUR to fill rather than a label to print (a palette —
-     *  the importer's synthesizeSwatchGroups). The chosen one wears the ring the
-     *  design drew around it, and every swatch reserves the ring's room so the
-     *  row does not jump when the selection moves. */
-    swatches?: boolean;
-    /** the emoji the design typed beside each label, positionally — one entry
-     *  per item, or undefined for a plain word row. Kept OUT of the items array,
-     *  which stays a string[] because an API can replace it wholesale. */
-    itemIcons?: ({ glyph?: string; icon?: ImageSourcePropType; iconSize?: number } | null)[];
-    activeColor?: string;
-    activeTextColor?: string;
-    itemColor?: string;
-    itemTextColor?: string;
-    itemBorderColor?: string;
-    itemBorderWidth?: number;
-    /** the design's own pill height — pills are drawn to it, not to padding */
-    itemHeight?: number;
-    /** the design's own pill corner radius; a full pill only when it gave none */
-    itemRadius?: number;
-    fontSize?: number;
-    /** literal union, same reasoning as RadioGroup's: TextStyle is not among
-     *  the emitted module's imports */
-    fontWeight?: RNFontWeight;
-    gap?: number;
-    style?: ViewStyle;
-    testID?: string;
-  }>
->) {
+}: Readonly<{
+  items: string[];
+  activeIndex: number;
+  onChange: (i: number) => void;
+  /** the RESTING chips' weight — the design's own (Kopi Kap: selected 600,
+   *  the rest 400); the active weight when the design draws them alike */
+  itemFontWeight?: RNFontWeight;
+  /** the design face per state (see Chip) — without one the label is the system font */
+  fontFamily?: string;
+  itemFontFamily?: string;
+  /** the pill's own horizontal inset, from the design's auto-layout padding */
+  itemPaddingX?: number;
+  /** the width every chip was drawn at (lyft's 84pt tip amounts), a floor */
+  itemMinWidth?: number;
+  /** the design drew the pills on more than one LINE — see the importer's
+   *  synthesizeChipGroups. A scrolling row would lose those line breaks, and
+   *  on a filter sheet the block is the height the sheet was drawn around. */
+  wrap?: boolean;
+  /** how many pills the DESIGN put on each line, when it drew the lines
+   *  itself. `wrap` alone only says there is more than one line, and
+   *  flexWrap then re-derives the breaks from measured text widths — which is
+   *  not where the designer put them. HealthPal draws four rows of three time
+   *  slots and this rendered 3-3-4-2 ("four buttons in the third row").
+   *  Absent, or not covering every item, falls back to flexWrap — which shows
+   *  every pill, where chunking on a bad count would drop some. */
+  rowCounts?: number[];
+  /** each item is a COLOUR to fill rather than a label to print (a palette —
+   *  the importer's synthesizeSwatchGroups). The chosen one wears the ring the
+   *  design drew around it, and every swatch reserves the ring's room so the
+   *  row does not jump when the selection moves. */
+  swatches?: boolean;
+  /** the emoji the design typed beside each label, positionally — one entry
+   *  per item, or undefined for a plain word row. Kept OUT of the items array,
+   *  which stays a string[] because an API can replace it wholesale. */
+  itemIcons?: ({ glyph?: string; icon?: ImageSourcePropType; iconSize?: number } | null)[];
+  activeColor?: string;
+  activeTextColor?: string;
+  itemColor?: string;
+  itemTextColor?: string;
+  itemBorderColor?: string;
+  itemBorderWidth?: number;
+  /** the design's own pill height — pills are drawn to it, not to padding */
+  itemHeight?: number;
+  /** the design's own pill corner radius; a full pill only when it gave none */
+  itemRadius?: number;
+  fontSize?: number;
+  /** literal union, same reasoning as RadioGroup's: TextStyle is not among
+   *  the emitted module's imports */
+  fontWeight?: RNFontWeight;
+  gap?: number;
+  style?: ViewStyle;
+  testID?: string;
+}>) {
   const dot = itemHeight ?? s(28);
   const ring = dot + s(8);
-  const keys = optionKeys(items);
-  const isOn = (i: number): boolean =>
-    activeIndices ? activeIndices.includes(i) : i === activeIndex;
   const pills = swatches
     ? items.map((color, i) => (
         <Pressable
-          key={keys[i]}
+          key={color + '|' + i}
           testID={subTestID(testID, String(i))}
           accessibilityRole="radio"
-          accessibilityState={{ selected: isOn(i) }}
+          accessibilityState={{ selected: i === activeIndex }}
           onPress={() => onChange(i)}
           style={{
             width: ring,
@@ -1681,7 +1360,7 @@ export function ChipGroup({
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 999,
-            borderWidth: isOn(i) ? s(1.5) : 0,
+            borderWidth: i === activeIndex ? s(1.5) : 0,
             borderColor: activeColor,
           }}
         >
@@ -1690,9 +1369,9 @@ export function ChipGroup({
       ))
     : items.map((label, i) => (
         <Chip
-          key={keys[i]}
+          key={`${label}|${i}`}
           label={label}
-          on={isOn(i)}
+          on={i === activeIndex}
           onPress={() => onChange(i)}
           testID={subTestID(testID, String(i))}
           activeColor={activeColor}
@@ -1801,28 +1480,26 @@ export function RatingStars({
   gap = s(8),
   style,
   testID,
-}: Readonly<
-  OrUndefined<{
-    max: number;
-    value: number;
-    onChange?: (n: number) => void;
-    editable?: boolean;
-    filledAsset?: ImageSourcePropType;
-    emptyAsset?: ImageSourcePropType;
-    filledColor?: string;
-    emptyColor?: string;
-    /** layer dim the design puts on un-filled stars (Bazar greys at 0.5) */
-    emptyOpacity?: number;
-    /** the square tile each star sits in — the design's own instance box */
-    starSize?: number;
-    /** the star art's drawn box inside its tile; defaults to the tile */
-    iconWidth?: number;
-    iconHeight?: number;
-    gap?: number;
-    style?: ViewStyle;
-    testID?: string;
-  }>
->) {
+}: Readonly<{
+  max: number;
+  value: number;
+  onChange?: (n: number) => void;
+  editable?: boolean;
+  filledAsset?: ImageSourcePropType;
+  emptyAsset?: ImageSourcePropType;
+  filledColor?: string;
+  emptyColor?: string;
+  /** layer dim the design puts on un-filled stars (Bazar greys at 0.5) */
+  emptyOpacity?: number;
+  /** the square tile each star sits in — the design's own instance box */
+  starSize?: number;
+  /** the star art's drawn box inside its tile; defaults to the tile */
+  iconWidth?: number;
+  iconHeight?: number;
+  gap?: number;
+  style?: ViewStyle;
+  testID?: string;
+}>) {
   const clamped = Math.max(0, Math.min(max, Math.round(value)));
   const faces: number[] = [];
   for (let i = 0; i < max; i++) faces.push(i);
@@ -1838,9 +1515,6 @@ export function RatingStars({
         const face = src ? (
           <Image
             source={src}
-            // the star's artwork: the row and its buttons carry the words
-            alt=""
-            aria-hidden
             resizeMode="contain"
             style={{
               width: iconWidth ?? starSize,
@@ -1901,39 +1575,34 @@ export function SegmentedControl({
   labelFontWeight,
   itemRadius = 999,
   optionWidths,
-  wrap = false,
   style,
   testID,
-}: Readonly<
-  OrUndefined<{
-    options: string[];
-    activeIndex: number;
-    onChange: (i: number) => void;
-    /** the strip wraps its tabs onto more rows where the row has no room for them (a page laid out as rows and cells); a sideways scroller otherwise */
-    wrap?: boolean;
-    /** the resting labels' weight — the design's own; 400 otherwise */
-    labelFontWeight?: RNFontWeight;
-    /** the design's own tab widths, in design px. Tabs split the row EVENLY
-     *  without them, which clips a long label beside a short one
-     *  ("Create Account" beside "Login" in a 241pt row). */
-    optionWidths?: number[];
-    /** how the design draws the active tab: filled pill or underline bar */
-    indicator?: 'pill' | 'underline';
-    /** the pill's fill / the underline's colour */
-    activeColor?: string;
-    /** active label ink — defaults to the resting ink for underline tabs (the
-     *  bar carries the state) and to white on a filled pill */
-    activeTextColor?: string;
-    labelColor?: string;
-    fontSize?: number;
-    /** active label weight; resting labels render at 400 like RadioOption */
-    fontWeight?: RNFontWeight;
-    /** the design's own pill radius; a full pill only when it gave none */
-    itemRadius?: number;
-    style?: ViewStyle;
-    testID?: string;
-  }>
->) {
+}: Readonly<{
+  options: string[];
+  activeIndex: number;
+  onChange: (i: number) => void;
+  /** the resting labels' weight — the design's own; 400 otherwise */
+  labelFontWeight?: RNFontWeight;
+  /** the design's own tab widths, in design px. Tabs split the row EVENLY
+   *  without them, which clips a long label beside a short one
+   *  ("Create Account" beside "Login" in a 241pt row). */
+  optionWidths?: number[];
+  /** how the design draws the active tab: filled pill or underline bar */
+  indicator?: 'pill' | 'underline';
+  /** the pill's fill / the underline's colour */
+  activeColor?: string;
+  /** active label ink — defaults to the resting ink for underline tabs (the
+   *  bar carries the state) and to white on a filled pill */
+  activeTextColor?: string;
+  labelColor?: string;
+  fontSize?: number;
+  /** active label weight; resting labels render at 400 like RadioOption */
+  fontWeight?: RNFontWeight;
+  /** the design's own pill radius; a full pill only when it gave none */
+  itemRadius?: number;
+  style?: ViewStyle;
+  testID?: string;
+}>) {
   const activeInk = activeTextColor ?? (indicator === 'pill' ? '#ffffff' : labelColor);
   // identical widths are what an even split already does, so they are left
   // alone; uneven ones become each tab's starting width (see SegmentedTab)
@@ -1943,39 +1612,30 @@ export function SegmentedControl({
     new Set(optionWidths).size > 1
       ? optionWidths
       : null;
-  const keys = optionKeys(options);
   return (
     <View
       testID={testID}
       accessibilityRole="tablist"
-      style={[
-        { flexDirection: 'row', alignItems: 'stretch', minHeight: s(28) },
-        wrap ? WRAPPING_STRIP : null,
-        style,
-      ]}
+      style={[{ flexDirection: 'row', alignItems: 'stretch', minHeight: s(28) }, style]}
     >
-      {options.map((opt, i) => {
-        const width = widths?.[i];
-        return (
-          <SegmentedTab
-            key={keys[i]}
-            label={opt}
-            on={i === activeIndex}
-            onPress={() => onChange(i)}
-            testID={subTestID(testID, String(i))}
-            indicator={indicator}
-            activeColor={activeColor}
-            activeTextColor={activeInk}
-            labelColor={labelColor}
-            fontSize={fontSize}
-            fontWeight={fontWeight}
-            labelFontWeight={labelFontWeight}
-            itemRadius={itemRadius}
-            width={width === undefined ? undefined : s(width)}
-            wrap={wrap}
-          />
-        );
-      })}
+      {options.map((opt, i) => (
+        <SegmentedTab
+          key={`${opt}|${i}`}
+          label={opt}
+          on={i === activeIndex}
+          onPress={() => onChange(i)}
+          testID={subTestID(testID, String(i))}
+          indicator={indicator}
+          activeColor={activeColor}
+          activeTextColor={activeInk}
+          labelColor={labelColor}
+          fontSize={fontSize}
+          fontWeight={fontWeight}
+          labelFontWeight={labelFontWeight}
+          itemRadius={itemRadius}
+          width={widths ? s(widths[i]) : undefined}
+        />
+      ))}
     </View>
   );
 }
@@ -2012,34 +1672,32 @@ function Tile({
   itemRadius,
   fontSize,
   fontWeight,
-}: Readonly<
-  OrUndefined<{
-    label: string;
-    /** second line under the title ("Send to your email") — r58 */
-    subtitle?: string;
-    subtitleColor?: string;
-    subtitleFontSize?: number;
-    icon?: ImageSourcePropType;
-    iconSize?: number;
-    on: boolean;
-    onPress: () => void;
-    testID?: string;
-    /** the active card's FILL — omitted when the design accents by border only */
-    activeColor?: string;
-    activeTextColor: string;
-    activeBorderColor: string;
-    activeBorderWidth: number;
-    itemColor: string;
-    itemTextColor: string;
-    itemBorderColor: string;
-    itemBorderWidth: number;
-    itemWidth?: number;
-    itemHeight?: number;
-    itemRadius: number;
-    fontSize: number;
-    fontWeight: RNFontWeight;
-  }>
->) {
+}: Readonly<{
+  label: string;
+  /** second line under the title ("Send to your email") — r58 */
+  subtitle?: string;
+  subtitleColor?: string;
+  subtitleFontSize?: number;
+  icon?: ImageSourcePropType;
+  iconSize?: number;
+  on: boolean;
+  onPress: () => void;
+  testID?: string;
+  /** the active card's FILL — omitted when the design accents by border only */
+  activeColor?: string;
+  activeTextColor: string;
+  activeBorderColor: string;
+  activeBorderWidth: number;
+  itemColor: string;
+  itemTextColor: string;
+  itemBorderColor: string;
+  itemBorderWidth: number;
+  itemWidth?: number;
+  itemHeight?: number;
+  itemRadius: number;
+  fontSize: number;
+  fontWeight: RNFontWeight;
+}>) {
   const d = iconSize ?? s(24);
   // icon-left ROW when the design's card is too short to stack the icon over
   // the label (CKF's 48px 'Connect with Facebook' pills — stacked, both
@@ -2080,16 +1738,7 @@ function Tile({
         gap: box.gap,
       }}
     >
-      {/* decoration beside the label: no alt text, hidden from the reader */}
-      {icon ? (
-        <Image
-          source={icon}
-          alt=""
-          aria-hidden
-          style={{ width: d, height: d }}
-          resizeMode="contain"
-        />
-      ) : null}
+      {icon ? <Image source={icon} style={{ width: d, height: d }} resizeMode="contain" /> : null}
       <View style={{ flexShrink: 1, alignItems: box.alignItems }}>
         <Text
           numberOfLines={box.lines}
@@ -2124,18 +1773,16 @@ function Tile({
  */
 function tileSkin(
   on: boolean,
-  p: Readonly<
-    OrUndefined<{
-      activeColor?: string;
-      activeTextColor: string;
-      activeBorderColor: string;
-      activeBorderWidth: number;
-      itemColor: string;
-      itemTextColor: string;
-      itemBorderColor: string;
-      itemBorderWidth: number;
-    }>
-  >,
+  p: Readonly<{
+    activeColor?: string;
+    activeTextColor: string;
+    activeBorderColor: string;
+    activeBorderWidth: number;
+    itemColor: string;
+    itemTextColor: string;
+    itemBorderColor: string;
+    itemBorderWidth: number;
+  }>,
 ): { borderWidth: number; borderColor: string; backgroundColor: string; color: string } {
   return {
     borderWidth: on ? p.activeBorderWidth : p.itemBorderWidth,
@@ -2180,43 +1827,41 @@ export function TileGroup({
   style,
   testID,
   scrolls = false,
-}: Readonly<
-  OrUndefined<{
-    items: {
-      label: string;
-      subtitle?: string;
-      subtitleColor?: string;
-      subtitleFontSize?: number;
-      icon?: ImageSourcePropType;
-      iconSize?: number;
-    }[];
-    activeIndex: number;
-    onChange: (i: number) => void;
-    /** the design's grid width — sizes tiles when it gave no itemWidth */
-    columns?: number;
-    activeColor?: string;
-    activeTextColor?: string;
-    activeBorderColor?: string;
-    activeBorderWidth?: number;
-    itemColor?: string;
-    itemTextColor?: string;
-    itemBorderColor?: string;
-    itemBorderWidth?: number;
-    /** the design's own card size — tiles are drawn to it, not to padding */
-    itemWidth?: number;
-    itemHeight?: number;
-    itemRadius?: number;
-    fontSize?: number;
-    /** literal union, same reasoning as RadioGroup's: TextStyle is not among
-     *  the emitted module's imports */
-    fontWeight?: RNFontWeight;
-    gap?: number;
-    style?: ViewStyle;
-    testID?: string;
-    /** the design draws more tiles than the strip shows: scroll, never squeeze */
-    scrolls?: boolean;
-  }>
->) {
+}: Readonly<{
+  items: {
+    label: string;
+    subtitle?: string;
+    subtitleColor?: string;
+    subtitleFontSize?: number;
+    icon?: ImageSourcePropType;
+    iconSize?: number;
+  }[];
+  activeIndex: number;
+  onChange: (i: number) => void;
+  /** the design's grid width — sizes tiles when it gave no itemWidth */
+  columns?: number;
+  activeColor?: string;
+  activeTextColor?: string;
+  activeBorderColor?: string;
+  activeBorderWidth?: number;
+  itemColor?: string;
+  itemTextColor?: string;
+  itemBorderColor?: string;
+  itemBorderWidth?: number;
+  /** the design's own card size — tiles are drawn to it, not to padding */
+  itemWidth?: number;
+  itemHeight?: number;
+  itemRadius?: number;
+  fontSize?: number;
+  /** literal union, same reasoning as RadioGroup's: TextStyle is not among
+   *  the emitted module's imports */
+  fontWeight?: RNFontWeight;
+  gap?: number;
+  style?: ViewStyle;
+  testID?: string;
+  /** the design draws more tiles than the strip shows: scroll, never squeeze */
+  scrolls?: boolean;
+}>) {
   // the design's own card width wins; otherwise split the row into `columns`
   // near-equal flexed tracks (a percentage basis + grow shares the gap slack)
   const basis: `${number}%` | undefined =
@@ -2227,7 +1872,6 @@ export function TileGroup({
   // the design drew below (IPhone15Blue's Add pill landed on 'Transfer
   // list'). Tiles shrink that fraction instead (maxWidth 100% on the card).
   const singleRow = columns !== undefined && columns >= items.length;
-  const keys = optionKeys(items.map((it) => it.label));
   const row = (
     <View
       testID={scrolls ? undefined : testID}
@@ -2243,7 +1887,7 @@ export function TileGroup({
       ]}
     >
       {items.map((it, i) => (
-        <View key={keys[i]} style={rowItemStyle(basis, singleRow && !scrolls)}>
+        <View key={`${it.label}|${i}`} style={rowItemStyle(basis, singleRow && !scrolls)}>
           <Tile
             label={it.label}
             subtitle={it.subtitle}
@@ -2348,80 +1992,65 @@ type DropdownProps = {
   /** open the screen's own designed sheet instead of the built-in list — a
    * sheet whose "Opened by" names this select (the transfer's From pill) */
   onOpen?: () => void;
-  /** the option sheet's fill, text and chosen-row tick — the app's own
-   * colours (emit/widget.ts). sheetInk is '#ffffff' or a dark neutral, never
-   * a theme token, because the sheet's hints and hairlines are derived from it. */
-  sheetColor?: string;
-  sheetInk?: string;
-  sheetAccent?: string;
   testID?: string;
 };
 
-export const Dropdown = forwardRef<
-  React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<DropdownProps>>
->(function Dropdown(
-  {
-    options,
-    selectedIndex,
-    onChange,
-    placeholder = 'Select…',
-    valueLabel,
-    subLabel,
-    style,
-    className,
-    textColor = '#fff',
-    placeholderColor,
-    fontSize = s(14),
-    chevronSource,
-    chevronSize = 20,
-    caretColor,
-    iconSource,
-    iconSize = 20,
-    trailingText,
-    trailingColor,
-    trailingFontSize,
-    onOpen,
-    sheetColor = '#0A1F44',
-    sheetInk = '#ffffff',
-    sheetAccent = '#EAA405',
-    testID,
-  },
-  ref,
-) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  // the sheet's quiet tones (handle, hints, search fill) are its ink at fixed
-  // strengths: dark ones on a light sheet where the dark sheet has white ones
-  const sheetInkAt = (alpha: number): string =>
-    (sheetInk === '#ffffff' ? 'rgba(255,255,255,' : 'rgba(0,0,0,') + alpha + ')';
-  const picked = selectedIndex === null ? undefined : options[selectedIndex];
-  const value = picked ?? valueLabel;
-  const visibleOptions = options
-    .map((label, i) => ({ label, i }))
-    .filter((o) => !query || o.label.toLowerCase().includes(query.toLowerCase()));
-  // its own statement: inside the long-list branch below it read as a ternary
-  // nested in a ternary (S3358)
-  const searchTestID = subTestID(testID, 'search');
-  return (
-    <>
-      <Pressable
-        ref={ref}
-        testID={testID}
-        className={className}
-        accessibilityRole="combobox"
-        onPress={() => (onOpen ? onOpen() : setOpen(true))}
-        style={[
-          {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: s(12),
-          },
-          style,
-        ]}
-      >
-        {/*
+export const Dropdown = forwardRef<React.ComponentRef<typeof View>, Readonly<DropdownProps>>(
+  function Dropdown(
+    {
+      options,
+      selectedIndex,
+      onChange,
+      placeholder = 'Select…',
+      valueLabel,
+      subLabel,
+      style,
+      className,
+      textColor = '#fff',
+      placeholderColor,
+      fontSize = s(14),
+      chevronSource,
+      chevronSize = 20,
+      caretColor,
+      iconSource,
+      iconSize = 20,
+      trailingText,
+      trailingColor,
+      trailingFontSize,
+      onOpen,
+      testID,
+    },
+    ref,
+  ) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    const picked = selectedIndex === null ? undefined : options[selectedIndex];
+    const value = picked ?? valueLabel;
+    const visibleOptions = options
+      .map((label, i) => ({ label, i }))
+      .filter((o) => !query || o.label.toLowerCase().includes(query.toLowerCase()));
+    // its own statement: inside the long-list branch below it read as a ternary
+    // nested in a ternary (S3358)
+    const searchTestID = subTestID(testID, 'search');
+    return (
+      <>
+        <Pressable
+          ref={ref}
+          testID={testID}
+          className={className}
+          accessibilityRole="combobox"
+          onPress={() => (onOpen ? onOpen() : setOpen(true))}
+          style={[
+            {
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: s(12),
+            },
+            style,
+          ]}
+        >
+          {/*
           flexShrink + minWidth:0, not just numberOfLines.
           In a space-between row a Text takes its NATURAL width, so a long
           placeholder ("Select country of registration") pushed the caret past
@@ -2430,156 +2059,180 @@ export const Dropdown = forwardRef<
           help: it caps the line count, not the width. minWidth:0 is what
           actually lets a flex child shrink below its content.
         */}
-        {iconSource ? (
-          // leading glyph: fixed size, never shrinks, and it keeps its own
-          // baked-in colours the way the caret artwork does. Decoration beside
-          // the value: no alt text, hidden from the reader.
-          <Image
-            source={iconSource}
-            alt=""
-            aria-hidden
-            resizeMode="contain"
-            style={{ width: iconSize, height: iconSize, flexShrink: 0, marginRight: s(8) }}
-          />
-        ) : null}
-        <View style={{ flexShrink: 1, minWidth: 0 }}>
-          <Text
-            style={{
-              // the hint dims only when no dedicated hint colour exists — and
-              // 0.65, not 0.5: half-opacity over an already-muted imported grey
-              // rendered placeholders unreadably washed out
-              ...placeholderInk(value === undefined, textColor, placeholderColor, 0.65),
-              fontSize,
-              flexShrink: 1,
-              minWidth: 0,
-            }}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {value ?? placeholder}
-          </Text>
-          {subLabel ? (
+          {iconSource ? (
+            // leading glyph: fixed size, never shrinks, and it keeps its own
+            // baked-in colours the way the caret artwork does
+            <Image
+              source={iconSource}
+              resizeMode="contain"
+              style={{ width: iconSize, height: iconSize, flexShrink: 0, marginRight: s(8) }}
+            />
+          ) : null}
+          <View style={{ flexShrink: 1, minWidth: 0 }}>
             <Text
-              style={{ color: textColor, fontSize: fontSize * 0.8, opacity: 0.7 }}
+              style={{
+                // the hint dims only when no dedicated hint colour exists — and
+                // 0.65, not 0.5: half-opacity over an already-muted imported grey
+                // rendered placeholders unreadably washed out
+                ...placeholderInk(value === undefined, textColor, placeholderColor, 0.65),
+                fontSize,
+                flexShrink: 1,
+                minWidth: 0,
+              }}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {subLabel}
+              {value ?? placeholder}
+            </Text>
+            {subLabel ? (
+              <Text
+                style={{ color: textColor, fontSize: fontSize * 0.8, opacity: 0.7 }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {subLabel}
+              </Text>
+            ) : null}
+          </View>
+          {trailingText ? (
+            // the design's own trailing detail, right before the caret and never
+            // shrunk: it is a number the row exists to show
+            <Text
+              style={{
+                color: trailingColor ?? textColor,
+                fontSize: trailingFontSize ?? fontSize,
+                flexShrink: 0,
+                marginHorizontal: s(8),
+              }}
+              numberOfLines={1}
+            >
+              {trailingText}
             </Text>
           ) : null}
-        </View>
-        {trailingText ? (
-          // the design's own trailing detail, right before the caret and never
-          // shrunk: it is a number the row exists to show
-          <Text
-            style={{
-              color: trailingColor ?? textColor,
-              fontSize: trailingFontSize ?? fontSize,
-              flexShrink: 0,
-              marginHorizontal: s(8),
-            }}
-            numberOfLines={1}
-          >
-            {trailingText}
-          </Text>
-        ) : null}
-        {chevronSource ? (
-          // the design's caret, exported as artwork — its colour is baked into
-          // the pixels, so it takes no tint. flexShrink:0 keeps it at its size
-          // when the label beside it is long.
-          <Image
-            source={chevronSource}
-            alt=""
-            aria-hidden
-            resizeMode="contain"
-            style={{ width: chevronSize, height: chevronSize, flexShrink: 0 }}
-          />
-        ) : (
-          <Chevron color={caretColor ?? textColor} size={fontSize} />
-        )}
-      </Pressable>
-      <ModalShell visible={open} onClose={() => setOpen(false)} variant="sheet">
-        {/*
-            The option drawer: 85% of the screen, a drag handle, title + close,
-            a search field that is ALWAYS present, and 64pt rows. Figma draws
-            it at 700 of 844 with a 44pt search input; the reference ships the
+          {chevronSource ? (
+            // the design's caret, exported as artwork — its colour is baked into
+            // the pixels, so it takes no tint. flexShrink:0 keeps it at its size
+            // when the label beside it is long.
+            <Image
+              source={chevronSource}
+              resizeMode="contain"
+              style={{ width: chevronSize, height: chevronSize, flexShrink: 0 }}
+            />
+          ) : (
+            <Chevron color={caretColor ?? textColor} size={fontSize} />
+          )}
+        </Pressable>
+        <ModalShell visible={open} onClose={() => setOpen(false)} variant="sheet">
+          {/* team-style option sheet: white card, grabber, title + close,
+            search box on long lists, radio rows (tap selects and closes) */}
+          {/*
+            The design's own drawer, not a generic white card: 85% of the
+            screen, the app's dark surface, a drag handle, title + close, a
+            search field that is ALWAYS present, and 64pt rows. Figma draws it
+            at 700 of 844 with a 44pt search input; the reference ships the
             same sheet (CountrySelectSheet).
-
-            Its colours are the app's own (sheetColor, sheetInk, sheetAccent;
-            see the dropdown case in emit/widget.ts). The defaults are the
-            reference's dark drawer, which is what a dark design still gets:
-            fixed for every app, it dropped a navy sheet over light forms.
         */}
-        <View
-          style={{
-            backgroundColor: sheetColor,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            paddingHorizontal: 20,
-            paddingBottom: 16,
-            flex: 1,
-          }}
-        >
           <View
             style={{
-              height: 4,
-              width: 40,
-              borderRadius: 2,
-              backgroundColor: sheetInkAt(0.2),
-              alignSelf: 'center',
-              marginTop: 8,
-              marginBottom: 12,
-            }}
-          />
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              backgroundColor: '#0A1F44',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              paddingHorizontal: 20,
               paddingBottom: 16,
+              flex: 1,
             }}
           >
-            <Text style={{ color: sheetInk, fontSize: 22, fontWeight: '700' }}>{placeholder}</Text>
-            <Pressable
-              testID={subTestID(testID, 'close')}
-              onPress={() => {
-                setQuery('');
-                setOpen(false);
+            <View
+              style={{
+                height: 4,
+                width: 40,
+                borderRadius: 2,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                alignSelf: 'center',
+                marginTop: 8,
+                marginBottom: 12,
               }}
-              hitSlop={8}
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: 16,
+              }}
             >
-              <Text style={{ color: sheetInk, fontSize: 20 }}>✕</Text>
-            </Pressable>
-          </View>
-          <TextInput
-            testID={searchTestID}
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search by name or number"
-            placeholderTextColor={sheetInkAt(0.5)}
-            style={{
-              height: 48,
-              borderRadius: 12,
-              backgroundColor: sheetInkAt(0.08),
-              paddingHorizontal: 14,
-              color: sheetInk,
-              fontSize,
-              marginBottom: 8,
-            }}
-          />
-          <FlatList
-            data={visibleOptions}
-            keyboardShouldPersistTaps="handled"
-            keyExtractor={(item) => String(item.i)}
-            // never a BLANK sheet (r27 QA: grabber + title + divider and
-            // nothing else). An empty literal list still shows the drawn
-            // value as its one row; a bound list that has not arrived, or a
-            // search with no hit, says so in muted text.
-            ListEmptyComponent={
-              options.length === 0 && valueLabel !== undefined ? (
+              <Text style={{ color: '#ffffff', fontSize: 22, fontWeight: '700' }}>
+                {placeholder}
+              </Text>
+              <Pressable
+                testID={subTestID(testID, 'close')}
+                onPress={() => {
+                  setQuery('');
+                  setOpen(false);
+                }}
+                hitSlop={8}
+              >
+                <Text style={{ color: '#ffffff', fontSize: 20 }}>✕</Text>
+              </Pressable>
+            </View>
+            <TextInput
+              testID={searchTestID}
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search by name or number"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              style={{
+                height: 48,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                paddingHorizontal: 14,
+                color: '#ffffff',
+                fontSize,
+                marginBottom: 8,
+              }}
+            />
+            <FlatList
+              data={visibleOptions}
+              keyboardShouldPersistTaps="handled"
+              keyExtractor={(item) => String(item.i)}
+              // never a BLANK sheet (r27 QA: grabber + title + divider and
+              // nothing else). An empty literal list still shows the drawn
+              // value as its one row; a bound list that has not arrived, or a
+              // search with no hit, says so in muted text.
+              ListEmptyComponent={
+                options.length === 0 && valueLabel !== undefined ? (
+                  <Pressable
+                    testID={subTestID(testID, 'option:0')}
+                    onPress={() => {
+                      setQuery('');
+                      setOpen(false);
+                    }}
+                    style={{
+                      height: 64,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: '700' }}>
+                      {valueLabel}
+                    </Text>
+                    <Text style={{ color: '#EAA405', fontSize: 18 }}>✓</Text>
+                  </Pressable>
+                ) : (
+                  <Text
+                    testID={subTestID(testID, 'empty')}
+                    style={{ color: 'rgba(255,255,255,0.5)', fontSize, paddingVertical: 20 }}
+                  >
+                    {options.length === 0 ? 'No options' : 'No matches'}
+                  </Text>
+                )
+              }
+              renderItem={({ item }) => (
                 <Pressable
-                  testID={subTestID(testID, 'option:0')}
+                  testID={subTestID(testID, `option:${item.i}`)}
                   onPress={() => {
+                    onChange(item.i);
                     setQuery('');
                     setOpen(false);
                   }}
@@ -2590,57 +2243,29 @@ export const Dropdown = forwardRef<
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Text style={{ color: sheetInk, fontSize: 16, fontWeight: '700' }}>
-                    {valueLabel}
+                  <Text
+                    style={{ color: '#ffffff', fontSize: 16, fontWeight: '700', flexShrink: 1 }}
+                    numberOfLines={1}
+                  >
+                    {item.label}
                   </Text>
-                  <Text style={{ color: sheetAccent, fontSize: 18 }}>✓</Text>
+                  <Text
+                    style={{
+                      color: item.i === selectedIndex ? '#EAA405' : 'rgba(255,255,255,0.5)',
+                      fontSize: 18,
+                    }}
+                  >
+                    {item.i === selectedIndex ? '✓' : '›'}
+                  </Text>
                 </Pressable>
-              ) : (
-                <Text
-                  testID={subTestID(testID, 'empty')}
-                  style={{ color: sheetInkAt(0.5), fontSize, paddingVertical: 20 }}
-                >
-                  {options.length === 0 ? 'No options' : 'No matches'}
-                </Text>
-              )
-            }
-            renderItem={({ item }) => (
-              <Pressable
-                testID={subTestID(testID, `option:${item.i}`)}
-                onPress={() => {
-                  onChange(item.i);
-                  setQuery('');
-                  setOpen(false);
-                }}
-                style={{
-                  height: 64,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Text
-                  style={{ color: sheetInk, fontSize: 16, fontWeight: '700', flexShrink: 1 }}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
-                <Text
-                  style={{
-                    color: item.i === selectedIndex ? sheetAccent : sheetInkAt(0.5),
-                    fontSize: 18,
-                  }}
-                >
-                  {item.i === selectedIndex ? '✓' : '›'}
-                </Text>
-              </Pressable>
-            )}
-          />
-        </View>
-      </ModalShell>
-    </>
-  );
-});
+              )}
+            />
+          </View>
+        </ModalShell>
+      </>
+    );
+  },
+);
 
 /* ---------------- MonthCalendar + DateField ------------------------------- */
 
@@ -2666,14 +2291,15 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
  * The calendar's own palette.
  *
  * These were '#fff' on '#1c2128' — a dark sheet that dropped in front of a
- * light form and read as a different app. In a browser they are CSS variables
- * the theme already publishes, so changing the brand moves the calendar with
- * everything else; React Native has no var(), so here they are the literals.
+ * light form and read as a different app. They are CSS variables the theme
+ * already publishes, with a literal fallback so the RN targets (where a
+ * var() means nothing) still paint. Changing the brand moves the calendar
+ * with everything else instead of stranding it.
  */
-const CAL_SURFACE = '#ffffff';
-const CAL_INK = '#1c2128';
-const CAL_ACCENT = '#4c8bf5';
-const CAL_BORDER = 'rgba(0,0,0,0.12)';
+const CAL_SURFACE = 'var(--color-background, #ffffff)';
+const CAL_INK = 'var(--color-text-primary, #1c2128)';
+const CAL_ACCENT = 'var(--color-primary, #4c8bf5)';
+const CAL_BORDER = 'var(--color-border, rgba(0,0,0,0.12))';
 
 /** An ISO yyyy-mm-dd at local midnight, or null when unset. */
 const isoDay = (d?: string): Date | null => (d ? new Date(d + 'T00:00:00') : null);
@@ -2715,99 +2341,13 @@ type MonthCalendarProps = {
   initialDate?: string;
   /** Day number the design draws selected, until the user picks one. */
   selectedDay?: number;
-  /** The design draws this many months one under another, in a column that
-   *  scrolls, under ONE weekday row and with no arrows (Salon Booking's "More
-   *  dates" sheet). Studio twin: render/style.ts monthListSpec. */
-  monthsShown?: number;
-  /** a list month's week pitch, title-to-weeks gap and month-to-month gap */
-  dayCellHeight?: number;
-  titleGap?: number;
-  monthGap?: number;
-  /** the rule drawn after each month's title, and where it starts */
-  monthRuleColor?: string;
-  monthRuleX?: number;
-  weekdayFontSize?: number;
-  /** the design's day-number size */
-  fontSize?: number;
-  /** days before availableFrom (ISO) are drawn in pastDayColor and not offered */
-  pastDayColor?: string;
-  availableFrom?: string;
   /** The design's drawn range highlight: band paint behind days start…end. */
   rangeBg?: string;
   rangeStart?: number;
   rangeEnd?: number;
-  /** ONE month laid out by the design's own numbers (see calendarFit) */
-  monthFit?: CalMonthFit;
   style?: ViewStyle;
   testID?: string;
 };
-
-/** What the design measures out for one month: the week pitch, the weekday
- *  band, the picked day's disc and the title row (QA 14/10). */
-type CalMonthFit = Readonly<{
-  cell: number;
-  weekdayRow?: number;
-  weekdayFont?: number;
-  weekdayWeight?: number;
-  dayFont?: number;
-  disc?: number;
-  pickWeight?: number;
-  headFont?: number;
-  headHeight?: number;
-  headInset?: number;
-  headWeight?: number;
-  caret?: boolean;
-  nav?: number;
-}>;
-
-/**
- * The sizes one month is drawn at: the design's own where the importer
- * measured them, this calendar's otherwise.
- *
- * Workoo's date picker sets its weeks 40pt apart under a 40pt weekday row,
- * picks a day with a 40pt disc and titles "August 2023 ⌄" at weight 500 in a
- * 56pt row with 48pt arrow buttons. Without these numbers an inline month
- * stretched its weeks over the box (56dp apart on Android) under a bold title
- * with no caret. The popup keeps its own card. Studio twin: render/style.ts
- * monthGridSpec.
- */
-function calendarFit(fit: CalMonthFit | undefined, popup: boolean, weeks: number) {
-  if (popup || !fit || Number.isNaN(fit.cell) || fit.cell <= 0) {
-    return {
-      headRow: undefined,
-      weekRow: undefined,
-      day: popup ? CAL_SQUARE_DAY : { height: `${100 / weeks}%` as const },
-      disc: 34,
-      dayFont: 13,
-      weekdayFont: 11,
-      weekdayWeight: '600' as TextStyle['fontWeight'],
-      pickWeight: '700' as TextStyle['fontWeight'],
-      headFont: undefined,
-      headWeight: '700' as const,
-      caret: false,
-      navBox: undefined,
-      navFont: 16,
-    };
-  }
-  const nav = fit.nav && fit.nav > 0 ? fit.nav : undefined;
-  return {
-    headRow: { height: fit.headHeight, paddingStart: fit.headInset ?? 0, marginBottom: 0 },
-    weekRow: { height: fit.weekdayRow, alignItems: 'center' as const, marginBottom: 0 },
-    // the design's pitch, never more than a week's share of the box: a month
-    // needing six weeks where the design drew five still fits
-    day: { height: fit.cell, maxHeight: `${100 / weeks}%` as const },
-    disc: Math.min(fit.disc ?? Math.round(fit.cell * 0.8), fit.cell),
-    dayFont: fit.dayFont ?? 13,
-    weekdayFont: fit.weekdayFont ?? 11,
-    weekdayWeight: String(fit.weekdayWeight ?? 600) as TextStyle['fontWeight'],
-    pickWeight: String(fit.pickWeight ?? 700) as TextStyle['fontWeight'],
-    headFont: fit.headFont,
-    headWeight: String(fit.headWeight ?? 700) as TextStyle['fontWeight'],
-    caret: fit.caret === true,
-    navBox: nav ? { width: nav, height: nav, borderRadius: nav / 2 } : undefined,
-    navFont: nav ? Math.round(nav / 2) : 16,
-  };
-}
 
 const CAL_CASE: Record<string, 'uppercase' | 'lowercase' | undefined> = {
   UPPER: 'uppercase',
@@ -2826,7 +2366,7 @@ const CAL_SQUARE_DAY = { aspectRatio: 1 } as const;
 
 export const MonthCalendar = forwardRef<
   React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<MonthCalendarProps>>
+  Readonly<MonthCalendarProps>
 >(function MonthCalendar(
   {
     value,
@@ -2852,17 +2392,6 @@ export const MonthCalendar = forwardRef<
     rangeBg,
     rangeStart,
     rangeEnd,
-    monthFit,
-    monthsShown,
-    dayCellHeight = 44,
-    titleGap = 16,
-    monthGap = 22,
-    monthRuleColor,
-    monthRuleX = 0,
-    weekdayFontSize = 14,
-    fontSize = 16,
-    pastDayColor,
-    availableFrom,
     style,
     testID,
   },
@@ -2918,141 +2447,18 @@ export const MonthCalendar = forwardRef<
   const weeks = Math.max(1, Math.ceil(cells.length / 7));
   const calBox = popup ? CAL_POPUP_BOX : CAL_INLINE_BOX;
   const gridFill = popup ? null : CAL_GRID_FILL;
-  const fit = calendarFit(monthFit, popup, weeks);
-  const dayBox = fit.day;
-  const headSize = fit.headFont ?? headerFontSize ?? 15;
+  const dayBox = popup ? CAL_SQUARE_DAY : { height: `${100 / weeks}%` as const };
   // header chrome ink: the design's headerColor when captured, body ink otherwise
   const headInk = headerColor ?? textColor;
   // the design's own header case, over the live title (its MONTH placeholder is drawn in caps)
   const headTransform = CAL_CASE[headerCase ?? ''];
   const wk =
     weekdayLabels && weekdayLabels.length >= 5 ? weekdayLabels : WEEKDAYS.map((d) => d.slice(0, 1));
-  // the row never reorders and the design's captions may repeat ('S','M','T','W','T','F','S'):
-  // a caption keys its cell, with an ordinal where it comes round again (S6479)
-  const wkKeys = optionKeys(wk);
-  if (monthsShown && monthsShown >= 2) {
-    // the design's LIST of months: one weekday row, then each month under its
-    // own title and rule, in a column that scrolls — no arrows, nothing steps
-    const anchor = isoDay(initialDate) ?? init;
-    const list = Array.from({ length: monthsShown }, (_, i) => {
-      const at = new Date(anchor.getFullYear(), anchor.getMonth() + i, 1);
-      const y = at.getFullYear();
-      const m = at.getMonth();
-      const firstDow = weekStart === 'monday' ? (at.getDay() + 6) % 7 : at.getDay();
-      const count = new Date(y, m + 1, 0).getDate();
-      const cellsOf = [
-        ...Array.from({ length: firstDow }, (_, k) => ({
-          day: null,
-          key: y + '-' + m + '-lead-' + k,
-        })),
-        ...Array.from({ length: count }, (_, k) => ({ day: k + 1, key: toISO(y, m, k + 1) })),
-      ];
-      return { y, m, key: y + '-' + m, cells: cellsOf };
-    });
-    const disc = Math.round(dayCellHeight * 0.8);
-    return (
-      <View
-        ref={ref}
-        testID={testID}
-        style={[{ flexDirection: 'column', overflow: 'hidden' }, style]}
-      >
-        <View style={{ flexDirection: 'row' }}>
-          {wk.map((d, i) => (
-            <View key={wkKeys[i]} style={{ flex: 1, alignItems: 'center' }}>
-              <Text
-                style={{
-                  color: weekdayColor ?? textColor,
-                  fontSize: weekdayFontSize,
-                  fontWeight: '500',
-                }}
-              >
-                {d}
-              </Text>
-            </View>
-          ))}
-        </View>
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          {list.map((mo) => (
-            <View key={mo.key} style={{ marginTop: monthGap }}>
-              <View style={{ justifyContent: 'center', marginBottom: titleGap }}>
-                {monthRuleColor ? (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      left: monthRuleX,
-                      right: 0,
-                      height: 1,
-                      backgroundColor: monthRuleColor,
-                    }}
-                  />
-                ) : null}
-                <Text
-                  style={{
-                    alignSelf: 'flex-start',
-                    color: headInk,
-                    fontSize: headerFontSize ?? 16,
-                    fontWeight: '600',
-                    textTransform: headTransform,
-                  }}
-                >
-                  {MONTHS[mo.m]} {mo.y}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                {mo.cells.map((cell) => {
-                  const d = cell.day;
-                  const iso = d ? toISO(mo.y, mo.m, d) : '';
-                  const past = d !== null && !!availableFrom && iso < availableFrom;
-                  const chosen = d !== null && iso === value;
-                  let ink = textColor;
-                  if (chosen) ink = activeTextColor;
-                  else if (past) ink = pastDayColor ?? textColor;
-                  return (
-                    <Pressable
-                      key={cell.key}
-                      testID={d ? subTestID(testID, `day:${iso}`) : undefined}
-                      disabled={d === null || past}
-                      accessibilityRole="button"
-                      accessibilityLabel={d === null ? undefined : `${MONTHS[mo.m]} ${d}, ${mo.y}`}
-                      accessibilityState={{ selected: chosen, disabled: past }}
-                      onPress={() => d !== null && onChange(iso)}
-                      style={{
-                        width: `${100 / 7}%`,
-                        height: dayCellHeight,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {d === null ? null : (
-                        <View
-                          style={{
-                            width: disc,
-                            height: disc,
-                            borderRadius: disc / 2,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: chosen ? accentColor : 'transparent',
-                          }}
-                        >
-                          <Text style={{ color: ink, fontSize, fontWeight: '500' }}>{d}</Text>
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  }
   // a header PICKER: the design's own label with its caret, stepping on tap.
   // The month one steps months, the year one steps years — a caret in a design
   // means "this opens a list", and stepping is the honest approximation a
   // generated screen can offer without inventing a picker sheet.
-  // the month's name is an index read, typed as it may be missing (it never is): the label takes that type
-  const headPick = (label: string | undefined, onPress: () => void, a11y: string) => (
+  const headPick = (label: string, onPress: () => void, a11y: string) => (
     <Pressable
       onPress={onPress}
       hitSlop={8}
@@ -3063,14 +2469,16 @@ export const MonthCalendar = forwardRef<
       <Text
         style={{
           color: headInk,
-          fontWeight: fit.headWeight,
-          fontSize: headSize,
+          fontWeight: '700',
+          fontSize: headerFontSize ?? 15,
           textTransform: headTransform,
         }}
       >
         {label}
       </Text>
-      <Text style={{ color: headInk, fontSize: headSize * 0.8, marginLeft: 4 }}>{'⌄'}</Text>
+      <Text style={{ color: headInk, fontSize: (headerFontSize ?? 15) * 0.8, marginLeft: 4 }}>
+        {'⌄'}
+      </Text>
     </Pressable>
   );
   const navBtn = (label: string, onPress: () => void, a11y: string) => (
@@ -3079,12 +2487,15 @@ export const MonthCalendar = forwardRef<
       hitSlop={8}
       accessibilityRole="button"
       accessibilityLabel={a11y}
-      style={[
-        { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-        fit.navBox,
-      ]}
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <Text style={{ color: headInk, fontSize: fit.navFont, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: headInk, fontSize: 16, fontWeight: '600' }}>{label}</Text>
     </Pressable>
   );
   // one statement per layout rather than a ternary nested in a ternary
@@ -3108,21 +2519,16 @@ export const MonthCalendar = forwardRef<
     // headerAlign, r29
     header = (
       <>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text
-            style={{
-              color: headInk,
-              fontWeight: fit.headWeight,
-              fontSize: headSize,
-              textTransform: headTransform,
-            }}
-          >
-            {MONTHS[month]} {year}
-          </Text>
-          {fit.caret && (
-            <Text style={{ color: headInk, fontSize: headSize * 0.8, marginLeft: 8 }}>{'⌄'}</Text>
-          )}
-        </View>
+        <Text
+          style={{
+            color: headInk,
+            fontWeight: '700',
+            fontSize: headerFontSize ?? 15,
+            textTransform: headTransform,
+          }}
+        >
+          {MONTHS[month]} {year}
+        </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {navBtn('‹', prev, 'Previous month')}
           {navBtn('›', next, 'Next month')}
@@ -3133,16 +2539,14 @@ export const MonthCalendar = forwardRef<
     header = (
       <>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* a boolean gate rather than a ternary: MonthCalendar sat at Sonar's
-              cognitive complexity 17 of 15 on every app with a calendar */}
-          {popup && navBtn('«', prevYear, 'Previous year')}
+          {popup ? navBtn('«', prevYear, 'Previous year') : null}
           {navBtn('‹', prev, 'Previous month')}
         </View>
         <Text
           style={{
             color: headInk,
-            fontWeight: fit.headWeight,
-            fontSize: headSize,
+            fontWeight: '700',
+            fontSize: headerFontSize ?? 15,
             textTransform: headTransform,
           }}
         >
@@ -3150,7 +2554,7 @@ export const MonthCalendar = forwardRef<
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {navBtn('›', next, 'Next month')}
-          {popup && navBtn('»', nextYear, 'Next year')}
+          {popup ? navBtn('»', nextYear, 'Next year') : null}
         </View>
       </>
     );
@@ -3158,28 +2562,27 @@ export const MonthCalendar = forwardRef<
   return (
     <View ref={ref} testID={testID} style={[calBox, style]}>
       <View
-        style={[
-          {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 12,
-          },
-          fit.headRow,
-        ]}
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 12,
+        }}
       >
         {header}
       </View>
-      <View style={[{ flexDirection: 'row', marginBottom: 4 }, fit.weekRow]}>
+      <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+        {/* slot identity IS the cell here: the row never reorders, and the
+            design's captions may repeat ('S','M','T','W','T','F','S') */}
         {wk.map((d, i) => (
-          <View key={wkKeys[i]} style={{ flex: 1, alignItems: 'center' }}>
+          <View key={'wd-' + i} style={{ flex: 1, alignItems: 'center' }}>
             <Text
               style={{
                 color: weekdayColor ?? textColor,
                 // an explicit design ink renders at full opacity
                 opacity: weekdayColor ? 1 : 0.55,
-                fontSize: fit.weekdayFont,
-                fontWeight: fit.weekdayWeight,
+                fontSize: 11,
+                fontWeight: '600',
                 backgroundColor: weekdayBg ?? 'transparent',
                 borderRadius: weekdayBg ? weekdayBgRadius : 0,
                 paddingHorizontal: weekdayBg ? 6 : 0,
@@ -3248,9 +2651,9 @@ export const MonthCalendar = forwardRef<
               {d !== null && (
                 <View
                   style={{
-                    width: fit.disc,
-                    height: fit.disc,
-                    borderRadius: fit.disc / 2,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 17,
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: dayFill,
@@ -3263,8 +2666,8 @@ export const MonthCalendar = forwardRef<
                   <Text
                     style={{
                       color: selected ? activeTextColor : textColor,
-                      fontSize: fit.dayFont,
-                      fontWeight: selected || isToday ? fit.pickWeight : '400',
+                      fontSize: 13,
+                      fontWeight: selected || isToday ? '700' : '400',
                     }}
                   >
                     {d}
@@ -3346,22 +2749,17 @@ function FieldTrailingGlyph({
   hasLabelIcon,
   ink,
   fontSize,
-}: Readonly<
-  OrUndefined<{
-    iconSource?: ImageSourcePropType;
-    iconSize: number;
-    hasLabelIcon: boolean;
-    ink: string;
-    fontSize: number;
-  }>
->) {
+}: Readonly<{
+  iconSource?: ImageSourcePropType;
+  iconSize: number;
+  hasLabelIcon: boolean;
+  ink: string;
+  fontSize: number;
+}>) {
   if (iconSource) {
-    // the picker's affordance; the row itself carries the words
     return (
       <Image
         source={iconSource}
-        alt=""
-        aria-hidden
         resizeMode="contain"
         style={{ width: iconSize, height: iconSize }}
       />
@@ -3494,135 +2892,129 @@ type DateFieldProps = {
   monthPicker?: 'start' | 'end';
   /** the month sheet's button colour — the design's gold */
   accent?: string;
-  /** How a chosen day reads (the Designer's "Show date as": DD MMM YYYY,
-   *  DD/MM/YYYY, dddd D MMMM). The value stays ISO; the canvas and Run read
-   *  DD MMM YYYY when the design names none, and so does the field. */
-  dateFormat?: string;
   testID?: string;
 };
 
-export const DateField = forwardRef<
-  React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<DateFieldProps>>
->(function DateField(
-  {
-    value,
-    onChange,
-    placeholder = 'Select date',
-    style,
-    className,
-    textColor = '#fff',
-    placeholderColor,
-    fontSize = s(14),
-    fontFamily,
-    iconSource,
-    labelIcon,
-    iconSize = s(20),
-    label: labelProp,
-    monthPicker,
-    accent = '#EAA405',
-    dateFormat,
-    testID,
-  },
-  ref,
-) {
-  const [open, setOpen] = useState(false);
-  // a month field shows the month by name, and keeps its placeholder as the
-  // caption above once filled (the design's "Starting Month / March 2026")
-  const shown = monthPicker ? monthLabel(value) : dayLabel(value, dateFormat);
-  const label = labelProp ?? (monthPicker && value ? placeholder : undefined);
-  return (
-    <>
-      <Pressable
-        ref={ref}
-        testID={testID}
-        className={className}
-        accessibilityRole="button"
-        accessibilityLabel={value ? `${placeholder}: ${value}` : placeholder}
-        onPress={() => setOpen(true)}
-        style={[
-          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-          // gap: 0 first — the widget's class gap is the spacing between
-          // STACKED card rows, not between a row's glyph and its text (the
-          // design's heading gap is 6). Zeroing it inline is what lets the
-          // 6 below actually apply, since a class gap outranks an inline one
-          // only when the inline value is absent.
-          labelIcon ? { gap: s(6), columnGap: s(6) } : null,
-          // A labelled DETAIL row sits inside a card that already provides the
-          // inset, and its siblings (emitted as plain heading rows) add none —
-          // so an invented 12pt here pushed the calendar and its label in from
-          // the column every other row lines up on. A bare picker keeps it.
-          labelIcon || label ? null : { paddingHorizontal: 12 },
-          style,
-          // A LABELLED date row is a row: glyph, label, then the value. The
-          // widget's own container style is a stacking box (the design draws
-          // the label above the field), and applied last it flipped this to
-          // flexDirection:'column' + justifyContent:'center' — which centred
-          // the calendar glyph over its label and left the value nowhere near
-          // the sibling rows. Re-assert the axis AFTER the caller's style, and
-          // only when there is a label to lay out; a bare picker is unaffected.
-          // …and the SAME is true of a bare picker with only a placeholder.
-          // The guard used to require a label, so "Starting Month" — a
-          // placeholder-only date field whose Figma GROUP stacks vertically,
-          // giving the widget layout.direction 'column' — kept the caller's
-          // column and rendered as centred text with the calendar glyph
-          // stranded underneath it, where the design draws one bordered row.
-          // A date field is a row whatever labels it carries; the axis is the
-          // component's, never the container's.
-          {
-            flexDirection: 'row' as const,
-            alignItems: 'center' as const,
-            justifyContent: 'space-between' as const,
-          },
-        ]}
-      >
-        {labelIcon ? (
-          // A 16pt BOX with the glyph filling it, exactly as the sibling detail
-          // rows are emitted (icon box 16x16 with the artwork inside, then a
-          // 10pt gap). Sizing the Image itself and letting contain letterbox a
-          // non-square export made the glyph take more width than 16pt, so the
-          // label after it started ~12pt right of its siblings' column.
-          // The glyph box, sized like the sibling detail rows emit theirs.
-          //
-          // Spacing is NOT set here. The row's className carries the card's own
-          // gap and a class gap outranks an inline one, so a margin or an
-          // inline gap either doubled the space or was ignored outright. The
-          // labelled flavour instead drops that class gap (see the row style
-          // above) and states the design's 6pt itself.
-          <View style={{ width: s(16), height: s(16), overflow: 'hidden' }}>
-            {/* decoration beside the label: no alt text, hidden from the reader */}
-            <Image
-              source={labelIcon}
-              alt=""
-              aria-hidden
-              resizeMode="contain"
-              style={{ width: '100%', height: '100%' }}
-            />
-          </View>
-        ) : null}
-        {label ? (
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: textColor, fontSize: fontSize * 0.85, opacity: 0.7, fontFamily }}>
-              {label}
-            </Text>
-            {/* Empty + labelled: the label already says what the row is, so
+export const DateField = forwardRef<React.ComponentRef<typeof View>, Readonly<DateFieldProps>>(
+  function DateField(
+    {
+      value,
+      onChange,
+      placeholder = 'Select date',
+      style,
+      className,
+      textColor = '#fff',
+      placeholderColor,
+      fontSize = s(14),
+      fontFamily,
+      iconSource,
+      labelIcon,
+      iconSize = s(20),
+      label: labelProp,
+      monthPicker,
+      accent = '#EAA405',
+      testID,
+    },
+    ref,
+  ) {
+    const [open, setOpen] = useState(false);
+    // a month field shows the month by name, and keeps its placeholder as the
+    // caption above once filled (the design's "Starting Month / March 2026")
+    const shown = monthPicker ? monthLabel(value) : value;
+    const label = labelProp ?? (monthPicker && value ? placeholder : undefined);
+    return (
+      <>
+        <Pressable
+          ref={ref}
+          testID={testID}
+          className={className}
+          accessibilityRole="button"
+          accessibilityLabel={value ? `${placeholder}: ${value}` : placeholder}
+          onPress={() => setOpen(true)}
+          style={[
+            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+            // gap: 0 first — the widget's class gap is the spacing between
+            // STACKED card rows, not between a row's glyph and its text (the
+            // design's heading gap is 6). Zeroing it inline is what lets the
+            // 6 below actually apply, since a class gap outranks an inline one
+            // only when the inline value is absent.
+            labelIcon ? { gap: s(6), columnGap: s(6) } : null,
+            // A labelled DETAIL row sits inside a card that already provides the
+            // inset, and its siblings (emitted as plain heading rows) add none —
+            // so an invented 12pt here pushed the calendar and its label in from
+            // the column every other row lines up on. A bare picker keeps it.
+            labelIcon || label ? null : { paddingHorizontal: 12 },
+            style,
+            // A LABELLED date row is a row: glyph, label, then the value. The
+            // widget's own container style is a stacking box (the design draws
+            // the label above the field), and applied last it flipped this to
+            // flexDirection:'column' + justifyContent:'center' — which centred
+            // the calendar glyph over its label and left the value nowhere near
+            // the sibling rows. Re-assert the axis AFTER the caller's style, and
+            // only when there is a label to lay out; a bare picker is unaffected.
+            // …and the SAME is true of a bare picker with only a placeholder.
+            // The guard used to require a label, so "Starting Month" — a
+            // placeholder-only date field whose Figma GROUP stacks vertically,
+            // giving the widget layout.direction 'column' — kept the caller's
+            // column and rendered as centred text with the calendar glyph
+            // stranded underneath it, where the design draws one bordered row.
+            // A date field is a row whatever labels it carries; the axis is the
+            // component's, never the container's.
+            {
+              flexDirection: 'row' as const,
+              alignItems: 'center' as const,
+              justifyContent: 'space-between' as const,
+            },
+          ]}
+        >
+          {labelIcon ? (
+            // A 16pt BOX with the glyph filling it, exactly as the sibling detail
+            // rows are emitted (icon box 16x16 with the artwork inside, then a
+            // 10pt gap). Sizing the Image itself and letting contain letterbox a
+            // non-square export made the glyph take more width than 16pt, so the
+            // label after it started ~12pt right of its siblings' column.
+            // The glyph box, sized like the sibling detail rows emit theirs.
+            //
+            // Spacing is NOT set here. The row's className carries the card's own
+            // gap and a class gap outranks an inline one, so a margin or an
+            // inline gap either doubled the space or was ignored outright. The
+            // labelled flavour instead drops that class gap (see the row style
+            // above) and states the design's 6pt itself.
+            <View style={{ width: s(16), height: s(16), overflow: 'hidden' }}>
+              <Image
+                source={labelIcon}
+                resizeMode="contain"
+                style={{ width: '100%', height: '100%' }}
+              />
+            </View>
+          ) : null}
+          {label ? (
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: textColor, fontSize: fontSize * 0.85, opacity: 0.7, fontFamily }}
+              >
+                {label}
+              </Text>
+              {/* Empty + labelled: the label already says what the row is, so
                 repeating it as placeholder text prints the words twice
                 ("Date of Birth" over "Date of Birth"). Show the value, or
                 nothing. */}
-            {value ? <Text style={{ color: textColor, fontSize, fontFamily }}>{shown}</Text> : null}
-          </View>
-        ) : (
-          <Text
-            style={{
-              ...placeholderInk(value === undefined, textColor, placeholderColor, 0.5),
-              fontSize,
-              fontFamily,
-            }}
-          >
-            {shown || placeholder}
-          </Text>
-        )}
-        {/*
+              {value ? (
+                <Text style={{ color: textColor, fontSize, fontFamily }}>{shown}</Text>
+              ) : null}
+            </View>
+          ) : (
+            <Text
+              style={{
+                ...placeholderInk(value === undefined, textColor, placeholderColor, 0.5),
+                fontSize,
+                fontFamily,
+              }}
+            >
+              {shown ?? placeholder}
+            </Text>
+          )}
+          {/*
             The drawn fallback stands in for a picker affordance the design did not
             export. A row that already shows the design's OWN calendar beside
             its label does not want a second one on the right — Figma's detail
@@ -3630,45 +3022,46 @@ export const DateField = forwardRef<
             after the value — so the emoji only appears when the row has no
             icon at all.
         */}
-        <FieldTrailingGlyph
-          iconSource={iconSource}
-          iconSize={iconSize}
-          hasLabelIcon={Boolean(labelIcon)}
-          ink={placeholderColor ?? textColor}
-          fontSize={fontSize}
-        />
-      </Pressable>
-      {monthPicker ? (
-        <ModalShell visible={open} onClose={() => setOpen(false)} variant="sheet">
-          <MonthSheet
-            title={placeholder}
-            value={value}
-            edge={monthPicker}
-            accent={accent}
-            onPick={(iso) => {
-              onChange(iso);
-              setOpen(false);
-            }}
-            onCancel={() => setOpen(false)}
+          <FieldTrailingGlyph
+            iconSource={iconSource}
+            iconSize={iconSize}
+            hasLabelIcon={Boolean(labelIcon)}
+            ink={placeholderColor ?? textColor}
+            fontSize={fontSize}
           />
-        </ModalShell>
-      ) : (
-        <ModalShell visible={open} onClose={() => setOpen(false)} variant="center">
-          <View style={{ backgroundColor: CAL_SURFACE, borderRadius: 16, overflow: 'hidden' }}>
-            <MonthCalendar
+        </Pressable>
+        {monthPicker ? (
+          <ModalShell visible={open} onClose={() => setOpen(false)} variant="sheet">
+            <MonthSheet
+              title={placeholder}
               value={value}
-              onChange={(iso) => {
+              edge={monthPicker}
+              accent={accent}
+              onPick={(iso) => {
                 onChange(iso);
                 setOpen(false);
               }}
               onCancel={() => setOpen(false)}
             />
-          </View>
-        </ModalShell>
-      )}
-    </>
-  );
-});
+          </ModalShell>
+        ) : (
+          <ModalShell visible={open} onClose={() => setOpen(false)} variant="center">
+            <View style={{ backgroundColor: CAL_SURFACE, borderRadius: 16, overflow: 'hidden' }}>
+              <MonthCalendar
+                value={value}
+                onChange={(iso) => {
+                  onChange(iso);
+                  setOpen(false);
+                }}
+                onCancel={() => setOpen(false)}
+              />
+            </View>
+          </ModalShell>
+        )}
+      </>
+    );
+  },
+);
 
 /* ---------------- MonthSheet (a dateInput that picks a MONTH) ------------- */
 
@@ -3713,52 +3106,6 @@ function monthLabel(iso: string | undefined): string | undefined {
   return MONTHS_LONG[Number(m[2]) - 1] + ' ' + m[1];
 }
 
-const DATE_TOKENS = /YYYY|YY|MMMM|MMM|MM|M|dddd|ddd|DD|D/g;
-const DAYS_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-/** One token of a day's label (the Designer's formatDateValue, token for token). */
-function dayPart(t: string, y: string, mo: string, d: string, weekday: number): string {
-  // the month's name for 1 to 12; anything else (a blank, 0, 13) reads back as it came
-  const month = MONTHS_LONG[Number(mo) - 1] ?? mo;
-  // getDay() is 0 to 6; String() only satisfies the index read
-  const day = String(DAYS_LONG[weekday]);
-  switch (t) {
-    case 'YYYY':
-      return y;
-    case 'YY':
-      return y.slice(2);
-    case 'MMMM':
-      return month;
-    case 'MMM':
-      return month.slice(0, 3);
-    case 'MM':
-      return mo;
-    case 'M':
-      return String(Number(mo));
-    case 'dddd':
-      return day;
-    case 'ddd':
-      return day.slice(0, 3);
-    case 'DD':
-      return d;
-    case 'D':
-      return String(Number(d));
-    /* v8 ignore next -- every token the pattern matches has its case; the default only completes the switch */
-    default:
-      return t;
-  }
-}
-/** A stored YYYY-MM-DD as the field shows it: by the design's format, else "27 Oct 2026". */
-function dayLabel(iso: string | undefined, fmt: string | undefined): string | undefined {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((iso ?? '').trim());
-  if (!m) return iso;
-  // the three groups always match; the defaults only satisfy the index reads
-  const [, y = '', mo = '', d = ''] = m;
-  // local midnight: a UTC parse of the bare day can land on the day before
-  const weekday = new Date(Number(y), Number(mo) - 1, Number(d)).getDay();
-  const pattern = fmt?.trim() ? fmt : 'DD MMM YYYY';
-  return pattern.replaceAll(DATE_TOKENS, (t) => dayPart(t, y, mo, d, weekday));
-}
-
 /** A month's label ink: chosen, not offered yet (a future month), or open. */
 function monthInk(on: boolean, off: boolean): string {
   if (on) return '#000616';
@@ -3779,16 +3126,14 @@ function MonthSheet({
   accent,
   onPick,
   onCancel,
-}: Readonly<
-  OrUndefined<{
-    title: string;
-    value?: string;
-    edge: 'start' | 'end';
-    accent: string;
-    onPick: (iso: string) => void;
-    onCancel: () => void;
-  }>
->) {
+}: Readonly<{
+  title: string;
+  value?: string;
+  edge: 'start' | 'end';
+  accent: string;
+  onPick: (iso: string) => void;
+  onCancel: () => void;
+}>) {
   const now = new Date();
   const m = /^(\d{4})-(\d{2})/.exec(value ?? '');
   const [year, setYear] = useState(m ? Number(m[1]) : now.getFullYear());
@@ -3893,7 +3238,6 @@ function MonthSheet({
           accessibilityRole="button"
           disabled={month0 === null}
           onPress={() => {
-            /* v8 ignore else -- Next is disabled until a month is picked: the guard only narrows the type */
             if (month0 !== null) onPick(monthIso(year, month0, edge));
           }}
           style={{
@@ -3930,16 +3274,14 @@ function TimeWheelColumn({
   pad,
   kind,
   testID,
-}: Readonly<
-  OrUndefined<{
-    items: number[];
-    selected: number;
-    onPick: (n: number) => void;
-    pad: boolean;
-    kind: string;
-    testID?: string;
-  }>
->) {
+}: Readonly<{
+  items: number[];
+  selected: number;
+  onPick: (n: number) => void;
+  pad: boolean;
+  kind: string;
+  testID?: string;
+}>) {
   return (
     <ScrollView style={{ maxHeight: 216 }} showsVerticalScrollIndicator={false}>
       {items.map((it) => (
@@ -3989,135 +3331,139 @@ type TimeFieldProps = {
   accessibilityLabel?: string;
 };
 
-export const TimeField = forwardRef<
-  React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<TimeFieldProps>>
->(function TimeField(
-  {
-    value,
-    onChange,
-    placeholder = 'Select time',
-    format = '12h',
-    style,
-    textColor = '#fff',
-    placeholderColor,
-    fontSize = s(14),
-    testID,
-    accessibilityLabel,
-  },
-  ref,
-) {
-  const [open, setOpen] = useState(false);
-  // form state is untyped: a binding or a toggle-shaped write can hand this a
-  // number or a boolean, and `.trim()` on one threw and took the screen down
-  const typed = typeof value === 'string' ? value.trim() : '';
-  const seed =
-    /^(\d{1,2})[:.](\d{2})\s*([ap])\.?m?\.?$/i.exec(typed) ?? /^(\d{1,2})[:.](\d{2})$/.exec(typed);
-  const [hour, setHour] = useState(seed ? Number(seed[1]) : 9);
-  const [minute, setMinute] = useState(seed ? Number(seed[2]) : 0);
-  const [mer, setMer] = useState<'AM' | 'PM'>(seed?.[3]?.toUpperCase() === 'P' ? 'PM' : 'AM');
-  const hours =
-    format === '24h'
-      ? Array.from({ length: 24 }, (_, i) => i)
-      : Array.from({ length: 12 }, (_, i) => i + 1);
-  const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
-  const done = () => {
-    onChange(
+export const TimeField = forwardRef<React.ComponentRef<typeof View>, Readonly<TimeFieldProps>>(
+  function TimeField(
+    {
+      value,
+      onChange,
+      placeholder = 'Select time',
+      format = '12h',
+      style,
+      textColor = '#fff',
+      placeholderColor,
+      fontSize = s(14),
+      testID,
+      accessibilityLabel,
+    },
+    ref,
+  ) {
+    const [open, setOpen] = useState(false);
+    // form state is untyped: a binding or a toggle-shaped write can hand this a
+    // number or a boolean, and `.trim()` on one threw and took the screen down
+    const typed = typeof value === 'string' ? value.trim() : '';
+    const seed =
+      /^(\d{1,2})[:.](\d{2})\s*([ap])\.?m?\.?$/i.exec(typed) ??
+      /^(\d{1,2})[:.](\d{2})$/.exec(typed);
+    const [hour, setHour] = useState(seed ? Number(seed[1]) : 9);
+    const [minute, setMinute] = useState(seed ? Number(seed[2]) : 0);
+    const [mer, setMer] = useState<'AM' | 'PM'>(seed?.[3]?.toUpperCase() === 'P' ? 'PM' : 'AM');
+    const hours =
       format === '24h'
-        ? pad2(hour) + ':' + pad2(minute)
-        : String(hour) + ':' + pad2(minute) + ' ' + mer,
-    );
-    setOpen(false);
-  };
-  return (
-    <>
-      <Pressable
-        ref={ref}
-        testID={testID}
-        accessibilityLabel={accessibilityLabel}
-        onPress={() => setOpen(true)}
-        style={[
-          {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 12,
-          },
-          style,
-        ]}
-      >
-        <Text
-          style={{
-            ...placeholderInk(value === undefined, textColor, placeholderColor, 0.5),
-            fontSize,
-          }}
+        ? Array.from({ length: 24 }, (_, i) => i)
+        : Array.from({ length: 12 }, (_, i) => i + 1);
+    const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
+    const done = () => {
+      onChange(
+        format === '24h'
+          ? pad2(hour) + ':' + pad2(minute)
+          : String(hour) + ':' + pad2(minute) + ' ' + mer,
+      );
+      setOpen(false);
+    };
+    return (
+      <>
+        <Pressable
+          ref={ref}
+          testID={testID}
+          accessibilityLabel={accessibilityLabel}
+          onPress={() => setOpen(true)}
+          style={[
+            {
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 12,
+            },
+            style,
+          ]}
         >
-          {value ?? placeholder}
-        </Text>
-        <ClockGlyph ink={placeholderColor ?? textColor} size={fontSize} />
-      </Pressable>
-      <ModalShell visible={open} onClose={() => setOpen(false)} variant="center">
-        <View style={{ backgroundColor: '#1c2128', borderRadius: 16, padding: 16 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
-            <TimeWheelColumn
-              items={hours}
-              selected={hour}
-              onPick={setHour}
-              pad={format === '24h'}
-              kind="hour"
-              testID={testID}
-            />
-            <TimeWheelColumn
-              items={minutes}
-              selected={minute}
-              onPick={setMinute}
-              pad
-              kind="minute"
-              testID={testID}
-            />
-            {format === '12h' && (
-              <View style={{ justifyContent: 'center', gap: 8 }}>
-                {(['AM', 'PM'] as const).map((m) => (
-                  <Pressable
-                    key={m}
-                    testID={testID ? testID + ':' + m : undefined}
-                    onPress={() => setMer(m)}
-                    style={{
-                      paddingVertical: 8,
-                      paddingHorizontal: 14,
-                      borderRadius: 8,
-                      backgroundColor: m === mer ? 'rgba(127,127,127,0.35)' : 'transparent',
-                    }}
-                  >
-                    <Text
-                      style={{ color: '#fff', fontSize: 14, fontWeight: m === mer ? '700' : '400' }}
-                    >
-                      {m}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-          <Pressable
-            testID={testID ? testID + ':done' : undefined}
-            onPress={done}
+          <Text
             style={{
-              marginTop: 12,
-              alignSelf: 'center',
-              paddingVertical: 10,
-              paddingHorizontal: 32,
-              borderRadius: 999,
-              backgroundColor: '#4c8bf5',
+              ...placeholderInk(value === undefined, textColor, placeholderColor, 0.5),
+              fontSize,
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700' }}>Done</Text>
-          </Pressable>
-        </View>
-      </ModalShell>
-    </>
-  );
-});
+            {value ?? placeholder}
+          </Text>
+          <ClockGlyph ink={placeholderColor ?? textColor} size={fontSize} />
+        </Pressable>
+        <ModalShell visible={open} onClose={() => setOpen(false)} variant="center">
+          <View style={{ backgroundColor: '#1c2128', borderRadius: 16, padding: 16 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+              <TimeWheelColumn
+                items={hours}
+                selected={hour}
+                onPick={setHour}
+                pad={format === '24h'}
+                kind="hour"
+                testID={testID}
+              />
+              <TimeWheelColumn
+                items={minutes}
+                selected={minute}
+                onPick={setMinute}
+                pad
+                kind="minute"
+                testID={testID}
+              />
+              {format === '12h' && (
+                <View style={{ justifyContent: 'center', gap: 8 }}>
+                  {(['AM', 'PM'] as const).map((m) => (
+                    <Pressable
+                      key={m}
+                      testID={testID ? testID + ':' + m : undefined}
+                      onPress={() => setMer(m)}
+                      style={{
+                        paddingVertical: 8,
+                        paddingHorizontal: 14,
+                        borderRadius: 8,
+                        backgroundColor: m === mer ? 'rgba(127,127,127,0.35)' : 'transparent',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 14,
+                          fontWeight: m === mer ? '700' : '400',
+                        }}
+                      >
+                        {m}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+            <Pressable
+              testID={testID ? testID + ':done' : undefined}
+              onPress={done}
+              style={{
+                marginTop: 12,
+                alignSelf: 'center',
+                paddingVertical: 10,
+                paddingHorizontal: 32,
+                borderRadius: 999,
+                backgroundColor: '#4c8bf5',
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '700' }}>Done</Text>
+            </Pressable>
+          </View>
+        </ModalShell>
+      </>
+    );
+  },
+);
 
 /* ---------------- CurrencyField (money amount entry) ---------------------- */
 
@@ -4149,7 +3495,7 @@ type CurrencyFieldProps = {
 
 export const CurrencyField = forwardRef<
   React.ComponentRef<typeof View>,
-  Readonly<OrUndefined<CurrencyFieldProps>>
+  Readonly<CurrencyFieldProps>
 >(function CurrencyField(
   {
     value,
@@ -4268,14 +3614,12 @@ export function BusySpinner({
   backgroundColor,
   borderRadius,
   color,
-}: Readonly<
-  OrUndefined<{
-    visible: boolean;
-    backgroundColor?: string;
-    borderRadius?: number;
-    color?: string;
-  }>
->) {
+}: Readonly<{
+  visible: boolean;
+  backgroundColor?: string;
+  borderRadius?: number;
+  color?: string;
+}>) {
   if (!visible) return null;
   return (
     <View
@@ -4320,38 +3664,30 @@ export function SwipeConfirm({
   style,
   children,
   className,
-}: Readonly<
-  OrUndefined<{
-    testID?: string;
-    className?: string;
-    onConfirm?: () => void;
-    thumbSource: ImageSourcePropType;
-    thumbSize: number;
-    thumbInset: number;
-    trackColor: string;
-    accessibilityLabel?: string;
-    accessibilityState?: { disabled?: boolean };
-    style?: ViewStyle | ViewStyle[];
-    children?: React.ReactNode;
-  }>
->) {
+}: Readonly<{
+  testID?: string;
+  className?: string;
+  onConfirm?: () => void;
+  thumbSource: ImageSourcePropType;
+  thumbSize: number;
+  thumbInset: number;
+  trackColor: string;
+  accessibilityLabel?: string;
+  accessibilityState?: { disabled?: boolean };
+  style?: ViewStyle | ViewStyle[];
+  children?: React.ReactNode;
+}>) {
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [dx, setDx] = useState(0);
-  const max = Math.max(0, box.w - thumbSize - thumbInset * 2);
-  // the PanResponder is created once and would close over stale values: the
-  // latest ones live in a ref, written after each commit rather than during
-  // the render (react-hooks/refs) — a layout effect, so they are current
-  // before the next pointer event can arrive
-  const live = useRef({ onConfirm, max, dx: 0 });
-  React.useLayoutEffect(() => {
-    live.current.onConfirm = onConfirm;
-    live.current.max = max;
-  }, [onConfirm, max]);
+  // refs: the PanResponder is created once and would close over stale values
+  const live = useRef({ onConfirm, max: 0, dx: 0 });
+  live.current.onConfirm = onConfirm;
+  live.current.max = Math.max(0, box.w - thumbSize - thumbInset * 2);
   const move = (x: number) => {
     live.current.dx = Math.min(live.current.max, Math.max(0, x));
     setDx(live.current.dx);
   };
-  const pan = useOnce(() =>
+  const pan = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => Boolean(live.current.onConfirm),
       onMoveShouldSetPanResponder: (_e, g) =>
@@ -4359,9 +3695,9 @@ export function SwipeConfirm({
       onPanResponderTerminationRequest: () => false,
       onPanResponderMove: (_e, g) => move(g.dx),
       onPanResponderRelease: () => {
-        const { max: end, dx: at, onConfirm: fire } = live.current;
-        if (end > 0 && at >= end * 0.85 && fire) {
-          move(end);
+        const { max, dx: at, onConfirm: fire } = live.current;
+        if (max > 0 && at >= max * 0.85 && fire) {
+          move(max);
           fire();
           setTimeout(() => move(0), 800);
         } else {
@@ -4370,9 +3706,7 @@ export function SwipeConfirm({
       },
       onPanResponderTerminate: () => move(0),
     }),
-  );
-  /* v8 ignore next -- a React Native accessibility action: the web shim strips it, so nothing here can fire it */
-  const activate = () => onConfirm?.();
+  ).current;
   const thumb = {
     position: 'absolute' as const,
     top: thumbInset,
@@ -4388,7 +3722,7 @@ export function SwipeConfirm({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={accessibilityState}
       accessibilityActions={[{ name: 'activate' }]}
-      onAccessibilityAction={activate}
+      onAccessibilityAction={() => onConfirm?.()}
       onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
       {...pan.panHandlers}
       style={style}
@@ -4417,11 +3751,8 @@ export function SwipeConfirm({
             { insetInlineStart: thumbInset, overflow: 'hidden', transform: [{ translateX: dx }] },
           ]}
         >
-          {/* the moving window onto the track's own art: the control carries the words */}
           <Image
             source={thumbSource}
-            alt=""
-            aria-hidden
             style={{
               position: 'absolute',
               left: -thumbInset,
@@ -4440,7 +3771,7 @@ export function SwipeConfirm({
 export function SpinnerOverlay({
   visible,
   blocking,
-}: Readonly<OrUndefined<{ visible: boolean; blocking?: boolean }>>) {
+}: Readonly<{ visible: boolean; blocking?: boolean }>) {
   if (!visible) return null;
   // blocking = processing takeover (team payment-loading pattern) vs. a
   // screen's own first data load. BOTH dim the screen: a bare spinner over
@@ -4469,193 +3800,66 @@ export function SpinnerOverlay({
   );
 }
 
-/**
- * The design's toggle, drawn: a pill track holding a round knob, at the size
- * the design drew it. RN's native Switch is the platform's control, and on
- * Android that is Material's thin track with an overhanging thumb, which a
- * pill-drawn design never looks like. The knob sits inset by the design's
- * proportion (Laza: 15.7 in an 18 track) and moves by flex, so a right-to-left
- * app flips it with the row.
- */
-export function PillSwitch({
-  value,
-  onValueChange,
-  trackColor,
-  thumbColor = '#ffffff',
-  width = s(51),
-  height = s(31),
-  disabled,
-  testID,
-  accessibilityLabel,
-}: Readonly<
-  OrUndefined<{
-    value: boolean;
-    onValueChange?: (v: boolean) => void;
-    /** the off and on track paint; the platform's own when the design names neither */
-    trackColor?: { false?: string; true?: string };
-    thumbColor?: string;
-    width?: number;
-    height?: number;
-    disabled?: boolean;
-    testID?: string;
-    accessibilityLabel?: string;
-  }>
->) {
-  const inset = Math.max(1, height * 0.065);
-  const knob = height - inset * 2;
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: value, disabled }}
-      disabled={disabled}
-      hitSlop={8}
-      onPress={() => onValueChange?.(!value)}
-      style={{
-        width,
-        height,
-        borderRadius: height / 2,
-        padding: inset,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: value ? 'flex-end' : 'flex-start',
-        backgroundColor: value
-          ? (trackColor?.true ?? '#34c759')
-          : (trackColor?.false ?? 'rgba(120,120,128,0.16)'),
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
-      <View
-        style={{ width: knob, height: knob, borderRadius: knob / 2, backgroundColor: thumbColor }}
-      />
-    </Pressable>
-  );
-}
-
 /** Draggable slider (the design's 'slider' widget). Local state only — the
  * design carries no binding, but a thumb that will not move breaks the
  * promise the artwork makes. */
 export function SliderCtl({
   progress = 0.5,
   progressEnd,
-  min,
-  max,
-  step = 1,
-  value,
-  onChangeValue,
   trackColor,
   fillColor,
   thumbColor,
   thumbBorderColor,
   thumbBorderWidth = s(1),
-  thumbShadow,
-  trackHeight = s(4),
-  thumbSize = s(20),
   style,
   className,
   testID,
   accessibilityLabel,
-}: Readonly<
-  OrUndefined<{
-    progress?: number;
-    /** the design's SECOND thumb: this slider is a RANGE. */
-    progressEnd?: number;
-    /** With `max` the slider holds a VALUE between min and max, moved in steps
-     *  and reported as it changes — a goal's duration in months. */
-    min?: number;
-    max?: number;
-    step?: number;
-    value?: number;
-    onChangeValue?: (value: number) => void;
-    trackColor: string;
-    fillColor: string;
-    thumbColor: string;
-    /** the ring Figma drew round the thumb — without it a white thumb on a
-     *  white sheet is invisible, which is how a whole price filter went missing. */
-    thumbBorderColor?: string;
-    thumbBorderWidth?: number;
-    /** the knob's own drop shadow: iOS's white, ringless knob shows on a white
-     *  sheet by its shadow alone. */
-    thumbShadow?: ViewStyle;
-    /** the design's rail height and knob diameter, where the importer read
-     *  them — a 15pt pill track drawn as a 4pt hairline read as another control */
-    trackHeight?: number;
-    thumbSize?: number;
-    style?: ViewStyle;
-    className?: string;
-    testID?: string;
-    // The a11yLabels feature puts accessibilityLabel on every interactive
-    // widget, this one included, so omitting it here made that feature and a
-    // slider mutually exclusive — a type error in any app that has both.
-    accessibilityLabel?: string;
-  }>
->) {
-  const valued = max !== undefined;
-  const lo = min ?? 0;
-  const span = max === undefined ? 1 : Math.max(1e-9, max - lo);
-  const at =
-    valued && value !== undefined ? Math.min(1, Math.max(0, (value - lo) / span)) : undefined;
-  const [p, setP] = useState(at ?? Math.min(1, Math.max(0, progress)));
+}: Readonly<{
+  progress?: number;
+  /** the design's SECOND thumb: this slider is a RANGE. */
+  progressEnd?: number;
+  trackColor: string;
+  fillColor: string;
+  thumbColor: string;
+  /** the ring Figma drew round the thumb — without it a white thumb on a
+   *  white sheet is invisible, which is how a whole price filter went missing. */
+  thumbBorderColor?: string;
+  thumbBorderWidth?: number;
+  style?: ViewStyle;
+  className?: string;
+  testID?: string;
+  // The a11yLabels feature puts accessibilityLabel on every interactive
+  // widget, this one included, so omitting it here made that feature and a
+  // slider mutually exclusive — a type error in any app that has both.
+  accessibilityLabel?: string;
+}>) {
+  const [p, setP] = useState(Math.min(1, Math.max(0, progress)));
   const [q, setQ] = useState(Math.min(1, Math.max(0, progressEnd ?? 1)));
   const range = progressEnd !== undefined;
-  // the value can change from outside (a field cleared, a preset): follow it.
-  // Noticed during the render, against the value last seen, the way React
-  // documents it — not mirrored from an effect (react-hooks/set-state-in-effect).
-  // Object.is, as an effect's dependency compare would be: a NaN must not
-  // re-render for ever.
-  const [seenAt, setSeenAt] = useState(at);
-  if (!Object.is(at, seenAt)) {
-    setSeenAt(at);
-    if (at !== undefined) setP(at);
-  }
-  // the PanResponder below is created once and would close over stale values:
-  // the config, the width and both handles live in refs, written after each
-  // commit rather than during the render (react-hooks/refs) — a layout
-  // effect, so they are current before the next pointer event can arrive
-  const valueCfg = React.useRef({ valued, lo, span, step, onChangeValue });
   const wRef = React.useRef(0);
   const pRef = React.useRef(p);
   const qRef = React.useRef(q);
-  React.useLayoutEffect(() => {
-    valueCfg.current = { valued, lo, span, step, onChangeValue };
-    pRef.current = p;
-    qRef.current = q;
-  }, [valued, lo, span, step, onChangeValue, p, q]);
+  pRef.current = p;
+  qRef.current = q;
   const drag = (x: number) => {
     if (wRef.current <= 0) return;
     const v = Math.min(1, Math.max(0, x / wRef.current));
-    const c = valueCfg.current;
-    if (c.valued) {
-      const size = c.step > 0 ? c.step : 1;
-      const snapped = Math.min(
-        c.lo + c.span,
-        Math.max(c.lo, c.lo + Math.round((v * c.span) / size) * size),
-      );
-      setP((snapped - c.lo) / c.span);
-      c.onChangeValue?.(snapped);
-      return;
-    }
     // a range moves whichever handle the touch is nearer — refs, because the
     // PanResponder below is created once and would close over stale values
     if (!range || Math.abs(v - pRef.current) <= Math.abs(v - qRef.current)) setP(v);
     else setQ(v);
   };
   // width lives in a ref, not state: PanResponder is created once and would
-  // close over a stale width. locationX is measured from the view under the
-  // finger, so the track, fill and thumbs below take no touches: a finger on
-  // the thumb read as a spot near the start, the thumb jumped away from it and
-  // back on the next move, and the slider flickered while dragged. The page's
-  // scroll view does not take the drag over either, as the switch's does not.
-  const pan = useOnce(() =>
+  // close over a stale width
+  const pan = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: (e) => drag(e.nativeEvent.locationX),
       onPanResponderMove: (e) => drag(e.nativeEvent.locationX),
     }),
-  );
+  ).current;
   return (
     <View
       testID={testID}
@@ -4669,17 +3873,13 @@ export function SliderCtl({
       {...pan.panHandlers}
       style={[{ justifyContent: 'center', minHeight: s(24) }, style]}
     >
+      <View style={{ height: s(4), borderRadius: 999, backgroundColor: trackColor }} />
       <View
-        pointerEvents="none"
-        style={{ height: trackHeight, borderRadius: 999, backgroundColor: trackColor }}
-      />
-      <View
-        pointerEvents="none"
         style={{
           position: 'absolute',
           insetInlineStart: `${(range ? Math.min(p, q) : 0) * 100}%`,
           width: `${(range ? Math.abs(q - p) : p) * 100}%`,
-          height: trackHeight,
+          height: s(4),
           borderRadius: 999,
           backgroundColor: fillColor,
         }}
@@ -4693,19 +3893,17 @@ export function SliderCtl({
       ).map(({ v, thumb }) => (
         <View
           key={thumb}
-          pointerEvents="none"
           style={{
             position: 'absolute',
             insetInlineStart: `${v * 100}%`,
-            width: thumbSize,
-            height: thumbSize,
+            width: s(20),
+            height: s(20),
             borderRadius: 999,
-            marginStart: -thumbSize / 2,
+            marginStart: s(-10),
             backgroundColor: thumbColor,
             ...(thumbBorderColor === undefined
               ? {}
               : { borderWidth: thumbBorderWidth, borderColor: thumbBorderColor }),
-            ...thumbShadow,
           }}
         />
       ))}

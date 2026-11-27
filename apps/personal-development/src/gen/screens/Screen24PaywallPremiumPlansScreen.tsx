@@ -110,7 +110,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               >
                 <Img
                   testID="w:8:370"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['18774151c6c6c5b1f7e9598955a08570e8f7bfe68282f9f0d4f7c09bd1701a2e']
                   }
@@ -135,7 +135,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               >
                 <Img
                   testID="w:8:375"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['18774151c6c6c5b1f7e9598955a08570e8f7bfe68282f9f0d4f7c09bd1701a2e']
                   }
@@ -160,7 +160,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               >
                 <Img
                   testID="w:8:380"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['18774151c6c6c5b1f7e9598955a08570e8f7bfe68282f9f0d4f7c09bd1701a2e']
                   }
@@ -186,11 +186,11 @@ export function Screen24PaywallPremiumPlansScreen() {
           >
             <Box
               testID="w:8:385"
-              className="absolute start-[4.1026vw] top-[5.8974vw] w-[5.641vw] h-[5.641vw] bg-teal rounded-[2.8205vw]"
+              className="absolute start-[4.6154vw] top-[6.4103vw] w-[5.641vw] h-[5.641vw] bg-teal rounded-[2.8205vw]"
             />
             <Box
               testID="w:8:386"
-              className="absolute start-[12.8205vw] top-[4.1026vw] w-[45.3846vw] h-[9.2308vw]"
+              className="absolute start-[13.3333vw] top-[4.6154vw] w-[45.3846vw] h-[9.2308vw]"
               pointerEvents="box-none"
             >
               <Box
@@ -231,7 +231,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               <Txt
                 testID="w:8:389"
                 accessibilityLabel={t('59_99_year_e920292f')}
-                className="absolute start-[61.2821vw] top-[6.5385vw] w-[23.3333vw] text-text-primary font-inter-600 text-[length:3.5897vw] leading-[4.3436vw] text-left"
+                className="absolute start-[61.7949vw] top-[7.0513vw] w-[23.3333vw] text-text-primary font-inter-600 text-[length:3.5897vw] leading-[4.3436vw] text-left"
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.65}
@@ -246,11 +246,11 @@ export function Screen24PaywallPremiumPlansScreen() {
           >
             <Box
               testID="w:8:393"
-              className="absolute start-[4.1026vw] top-[5.8974vw] w-[5.641vw] h-[5.641vw] bg-[rgba(255,255,255,0.25)] rounded-[2.8205vw]"
+              className="absolute start-[4.359vw] top-[6.1538vw] w-[5.641vw] h-[5.641vw] bg-[rgba(255,255,255,0.25)] rounded-[2.8205vw]"
             />
             <Box
               testID="w:8:394"
-              className="absolute start-[12.8205vw] top-[4.1026vw] w-[44.6154vw] h-[9.2308vw]"
+              className="absolute start-[13.0769vw] top-[4.359vw] w-[44.6154vw] h-[9.2308vw]"
               pointerEvents="box-none"
             >
               <Box
@@ -291,7 +291,7 @@ export function Screen24PaywallPremiumPlansScreen() {
               <Txt
                 testID="w:8:397"
                 accessibilityLabel={t('9_99_month_a04c3895')}
-                className="absolute start-[60.5128vw] top-[6.5385vw] w-[24.6154vw] text-surface font-inter-600 text-[length:3.5897vw] leading-[4.3436vw] text-left"
+                className="absolute start-[60.7692vw] top-[6.7949vw] w-[24.6154vw] text-surface font-inter-600 text-[length:3.5897vw] leading-[4.3436vw] text-left"
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.65}
@@ -347,16 +347,21 @@ export function Screen24PaywallPremiumPlansScreen() {
             goTo(navigation, 'navigate', 'Screen27ManageSubscription');
           }}
         >
-          <Txt
-            testID="w:I8:399;3:146"
-            accessibilityLabel={t('start_7_day_free_trial_48159a81')}
-            className="text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
+          <Box
+            pointerEvents="none"
+            style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
           >
-            {t('start_7_day_free_trial_48159a81')}
-          </Txt>
+            <Txt
+              testID="w:I8:399;3:146"
+              accessibilityLabel={t('start_7_day_free_trial_48159a81')}
+              className="absolute start-[24.7436vw] top-[4.7436vw] text-surface font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+            >
+              {t('start_7_day_free_trial_48159a81')}
+            </Txt>
+          </Box>
         </PressableBox>
       </Box>
     </ScreenFrame>

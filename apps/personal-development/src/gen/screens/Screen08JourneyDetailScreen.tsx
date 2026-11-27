@@ -2,12 +2,11 @@
 // Screen: Screen08JourneyDetail  ·  figma node 5:226
 import React from 'react';
 // prettier-ignore
-import { assets, Box, errorMessage, getPath, Img, LinearGradient, matchOp, PressableBox, scaleFor, ScreenFrame, ScreenStatusBar, setLastResponse, showToast, SpinnerOverlay, toStr, Txt, useI18n, useListMyCheckIns, useViewport } from '../screen-kit';
+import { assets, Box, errorMessage, getPath, Img, LinearGradient, matchOp, PressableBox, scaleFor, ScreenFrame, ScreenStatusBar, showToast, SpinnerOverlay, toStr, Txt, useI18n, useListMyCheckIns, useViewport } from '../screen-kit';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -16,45 +15,21 @@ export function Screen08JourneyDetailScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
 
-  const insets = useSafeAreaInsets();
-
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
 
   const q0 = useListMyCheckIns({});
   React.useEffect(() => {
-    if (q0.isSuccess) {
-      setLastResponse('b:lQlWhvc3', q0.data);
-      if (__DEV__) {
-        const d0 = q0.data as unknown as Record<string, unknown> | null;
-        console.log(
-          '[Test] read ' +
-            'b:lQlWhvc3' +
-            ' keys=' +
-            Object.keys(d0 ?? {})
-              .slice(0, 14)
-              .join(',') +
-            ' status=' +
-            String((d0 as { status?: unknown } | null)?.status) +
-            ' uaepassKeys=' +
-            Object.keys((d0 as { uaepass?: Record<string, unknown> } | null)?.uaepass ?? {}).join(
-              ',',
-            ),
-        );
-      }
-    }
-  }, [q0.isSuccess, q0.dataUpdatedAt]);
-  React.useEffect(() => {
     if (q0.isError) showToast(errorMessage(q0.error));
-  }, [q0.isError, q0.error, q0.errorUpdatedAt]);
+  }, [q0.isError, q0.errorUpdatedAt]);
   const focusedOnce = React.useRef(false);
   React.useEffect(() => {
     const unsub = (
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        void q0.refetch();
+        q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -74,12 +49,7 @@ export function Screen08JourneyDetailScreen() {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight:
-            Math.max(sv(844), sv(795) + s(56), sv(813.5) + s(19)) +
-            Math.max(0, insets.bottom - sv(11)),
-          paddingBottom: Math.max(0, insets.bottom - sv(11)),
-        }}
+        contentContainerStyle={{ minHeight: Math.max(sv(844), sv(795) + s(56), sv(813.5) + s(19)) }}
       >
         <Box
           testID="w:5:237"
@@ -149,12 +119,7 @@ export function Screen08JourneyDetailScreen() {
                   accessibilityLabel={t('21_day_release_a47cbd66')}
                   className="absolute start-[0vw] top-[6.4103vw] w-[54.359vw] text-surface font-inter-700 text-[length:7.1795vw] leading-[8.6897vw] text-left"
                   numberOfLines={1}
-                  adjustsFontSizeToFit={
-                    toStr(
-                      (route.params as Record<string, string> | undefined)?.['itemName'] ??
-                        t('21_day_release_a47cbd66'),
-                    ).length <= 14
-                  }
+                  adjustsFontSizeToFit
                   minimumFontScale={0.65}
                 >
                   {toStr(
@@ -209,9 +174,6 @@ export function Screen08JourneyDetailScreen() {
                       testID="w:5:254"
                       accessibilityLabel={t('21')}
                       className="text-text-primary font-inter-700 text-[length:4.359vw] leading-[5.2744vw] text-left"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.65}
                     >
                       {t('21')}
                     </Txt>
@@ -289,20 +251,14 @@ export function Screen08JourneyDetailScreen() {
                 <Txt
                   testID="w:5:264"
                   accessibilityLabel={t('your_progress')}
-                  className="text-text-primary font-inter-600 text-[length:3.5897vw] leading-[4.3436vw] text-left"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
+                  className="self-stretch text-text-primary font-inter-600 text-[length:3.5897vw] leading-[4.3436vw] text-left"
                 >
                   {t('your_progress')}
                 </Txt>
                 <Txt
                   testID="w:5:265"
                   accessibilityLabel={t('day_4_of_21')}
-                  className="text-text-secondary font-inter-400 text-[length:3.3333vw] leading-[4.0333vw] text-left"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
+                  className="self-stretch text-text-secondary font-inter-400 text-[length:3.3333vw] leading-[4.0333vw] text-left"
                 >
                   {t('day_4_of_21')}
                 </Txt>
@@ -343,7 +299,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:270"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['7236641f4eef17f5e068ae980447093a3d96de8247754e3fb0959ac3b091632c']
                   }
@@ -396,7 +352,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:277"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['7236641f4eef17f5e068ae980447093a3d96de8247754e3fb0959ac3b091632c']
                   }
@@ -449,7 +405,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:284"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   source={
                     assets['7236641f4eef17f5e068ae980447093a3d96de8247754e3fb0959ac3b091632c']
                   }
@@ -502,7 +458,7 @@ export function Screen08JourneyDetailScreen() {
               >
                 <Img
                   testID="w:5:291"
-                  accessibilityLabel="Play"
+                  accessibilityLabel="IconBtn/play"
                   source={
                     assets['ce0e1803a634bb9ad36bb7650388432b0a782c746ada134eeccf1d83939f7ae3']
                   }
@@ -555,16 +511,6 @@ export function Screen08JourneyDetailScreen() {
             <PressableBox
               accessible={false}
               onPress={() => {
-                if (
-                  matchOp(
-                    getPath(q0.data, 'rows(;kind=post;journey=21-Day Release;day=4)[0].id'),
-                    'notExists' as never,
-                    undefined as never,
-                  )
-                ) {
-                  showToast(t('Finish Day 4 to unlock Day 5.'));
-                  return;
-                }
                 goTo(navigation, 'navigate', 'Screen09DailyContentDay4', {
                   day: '5',
                   dayName: 'Release ritual',
@@ -579,13 +525,16 @@ export function Screen08JourneyDetailScreen() {
                 className="self-stretch bg-surface border-orange border border-solid rounded-[4.1026vw] flex-row items-center gap-[3.0769vw] p-[3.0769vw]"
               >
                 {matchOp(
-                  getPath(q0.data, 'rows(;kind=post;journey=21-Day Release;day=4)[0].id'),
+                  getPath(
+                    q0.data as unknown,
+                    'rows(;kind=post;journey=21-Day Release;day=4)[0].id',
+                  ),
                   'notExists' as never,
                   undefined as never,
                 ) && (
                   <Img
                     testID="w:5:300"
-                    accessibilityLabel="Locked"
+                    accessibilityLabel="IconBtn/lock"
                     source={
                       assets['d2cb6233cf3a2f34f858a49127d6048a007bbfb4e72bedb78c615c31d2789c36']
                     }

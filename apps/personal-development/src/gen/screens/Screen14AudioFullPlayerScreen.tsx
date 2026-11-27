@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -16,27 +15,25 @@ export function Screen14AudioFullPlayerScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
 
-  const insets = useSafeAreaInsets();
-
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   rememberParams(route.params);
 
   const q0 = useGetLibrariesById(
-    { id: recallParam(route.params, 'id') },
+    { id: (route.params as any)?.['id'] },
     { enabled: recallParam(route.params, 'id') !== '' },
   );
   React.useEffect(() => {
     if (q0.isError) showToast(errorMessage(q0.error));
-  }, [q0.isError, q0.error, q0.errorUpdatedAt]);
+  }, [q0.isError, q0.errorUpdatedAt]);
   const focusedOnce = React.useRef(false);
   React.useEffect(() => {
     const unsub = (
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        void q0.refetch();
+        q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -60,11 +57,7 @@ export function Screen14AudioFullPlayerScreen() {
         className="flex-1 w-full"
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: sv(844) + Math.max(0, insets.bottom - sv(137)),
-          paddingBottom: Math.max(0, insets.bottom - sv(137)),
-        }}
+        contentContainerClassName="min-h-[216.4103vw] flex-col"
       >
         <Box
           testID="w:6:255"
@@ -98,7 +91,7 @@ export function Screen14AudioFullPlayerScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:6:257"
-                  accessibilityLabel="Close player"
+                  accessibilityLabel="IconBtn/chevD"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['725628ae014377354e2b29ee21eebcb03692b81e54f388fdb987014777187826']
@@ -138,7 +131,7 @@ export function Screen14AudioFullPlayerScreen() {
               <Box className="absolute top-[0vw]" style={{ insetInlineStart: s(-310) }}>
                 <Img
                   testID="w:6:260"
-                  accessibilityLabel="More options"
+                  accessibilityLabel="IconBtn/dots"
                   className="absolute start-[79.4872vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['a1e329fef5d4c0ef075d7b68d6b41d314f846d97ece23e8869e2626529209f96']
@@ -220,10 +213,6 @@ export function Screen14AudioFullPlayerScreen() {
                 accessibilityLabel="04:12"
                 initialSeconds={252}
                 template="{time}"
-                minuteDigits={2}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
                 style={{
                   position: 'absolute',
                   insetInlineStart: s(0),
@@ -338,7 +327,7 @@ export function Screen14AudioFullPlayerScreen() {
               >
                 <Img
                   testID="w:6:304"
-                  accessibilityLabel="Time"
+                  accessibilityLabel="icon/clock"
                   className="absolute start-[6.4103vw] top-[0vw] overflow-hidden"
                   source={
                     assets['2cdd1403bcda915891b3d62680e190749e492266f85afe28d5e15bc14053e1ce']
@@ -374,7 +363,7 @@ export function Screen14AudioFullPlayerScreen() {
               >
                 <Img
                   testID="w:6:309"
-                  accessibilityLabel="Download"
+                  accessibilityLabel="icon/download"
                   className="absolute start-[6.4103vw] top-[0vw] overflow-hidden"
                   source={
                     assets['b35bb57e680019581133615078dcfc5ad5cb594b17483b8e6cfde0ccf39a57f1']
@@ -410,7 +399,7 @@ export function Screen14AudioFullPlayerScreen() {
               >
                 <Img
                   testID="w:6:315"
-                  accessibilityLabel="Favorite"
+                  accessibilityLabel="icon/heart"
                   className="absolute start-[6.4103vw] top-[0vw] overflow-hidden"
                   source={
                     assets['98dbf83464bf6a09fe980fbfe7b6f43c8fee21ac5a8999fd47a0f9cd02bbf929']
@@ -427,9 +416,6 @@ export function Screen14AudioFullPlayerScreen() {
                   testID="w:6:317"
                   accessibilityLabel={t('fav')}
                   className="absolute start-[6.7949vw] top-[6.6667vw] w-[4.8718vw] text-[rgba(214,210,238,1)] font-inter-400 text-[length:2.8205vw] leading-[3.4128vw] text-left"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
                 >
                   {t('fav')}
                 </Txt>
@@ -447,7 +433,7 @@ export function Screen14AudioFullPlayerScreen() {
             >
               <Img
                 testID="w:6:319"
-                accessibilityLabel="Locked"
+                accessibilityLabel="icon/lock"
                 className="absolute start-[0vw] top-[0vw] overflow-hidden"
                 source={assets['584cacc3b51626c2343beaef4111f473099c21e9660103155d72f9cbfe9e0a9d']}
                 resizeMode="cover"

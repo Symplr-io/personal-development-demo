@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -15,8 +14,6 @@ const { s, sv } = scaleFor(390);
 export function Screen27ManageSubscriptionScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -34,12 +31,7 @@ export function Screen27ManageSubscriptionScreen() {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight:
-            Math.max(sv(844), sv(768) + s(56), sv(486) + s(198)) +
-            Math.max(0, insets.bottom - sv(20)),
-          paddingBottom: Math.max(0, insets.bottom - sv(20)),
-        }}
+        contentContainerStyle={{ minHeight: Math.max(sv(844), sv(768) + s(56), sv(486) + s(198)) }}
       >
         <Box
           testID="w:8:568"
@@ -77,7 +69,7 @@ export function Screen27ManageSubscriptionScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:8:570"
-                  accessibilityLabel="Back"
+                  accessibilityLabel="IconBtn/chevL"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -199,7 +191,7 @@ export function Screen27ManageSubscriptionScreen() {
               >
                 <Img
                   testID="w:8:583"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['bc6d54aa33ef7c33ab2b50da31bf79fa1446ee4d52c2d1e9c47ed23d3511a98a']
@@ -235,7 +227,7 @@ export function Screen27ManageSubscriptionScreen() {
               >
                 <Img
                   testID="w:8:588"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['bc6d54aa33ef7c33ab2b50da31bf79fa1446ee4d52c2d1e9c47ed23d3511a98a']
@@ -271,7 +263,7 @@ export function Screen27ManageSubscriptionScreen() {
               >
                 <Img
                   testID="w:8:593"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['bc6d54aa33ef7c33ab2b50da31bf79fa1446ee4d52c2d1e9c47ed23d3511a98a']
@@ -335,7 +327,7 @@ export function Screen27ManageSubscriptionScreen() {
               <Txt
                 testID="w:I8:600;3:148"
                 accessibilityLabel={t('manage_in_store')}
-                className="absolute start-[28.5897vw] top-[4.359vw] w-[31.7949vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+                className="absolute start-[28.9744vw] top-[4.7436vw] w-[31.7949vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.65}

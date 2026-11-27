@@ -5,14 +5,12 @@
 // see the note in the generator's screen-kit emitter. Navigation is
 // deliberately absent: it imports the screens, and re-exporting it here would
 // close a require cycle.
-export { listRows, mapList, toContent, toLibrary, toMyJournalEntry, toWeek1s } from './acl';
-export { useSignInEmail, useSignInWithOAuth, useSignUpEmail } from './api/SupabaseAuth';
+export { listRows, mapList, toContent, toWeek1s } from './acl';
 export {
   useCreateCheckIns,
   useCreateMilestones,
   useDeleteJournalEntries,
   useGetAllContents,
-  useGetAllLibraries,
   useGetAllWeek1s,
   useGetJournalEntriesById,
   useGetLibrariesById,
@@ -25,25 +23,14 @@ export {
 export { assets } from './assets';
 export {
   asList,
-  asTyped,
   boolishOr,
-  dayRow,
   getPath,
-  imageOr,
-  listGrowth,
   matchOp,
   pickedIndex,
-  pickedOf,
-  pickedRow,
-  pickedRowIn,
-  pickedSetOf,
   previewItem,
   samplesWhileEmpty,
-  stripDay,
   toStr,
-  toggledPick,
-  weekShift,
-  wireText,
+  withErrors,
 } from './branch';
 export { Countdown } from './components/countdown';
 export {
@@ -51,7 +38,6 @@ export {
   BusySpinner,
   ChipGroup,
   MonthCalendar,
-  PillSwitch,
   SegmentedControl,
   SliderCtl,
   SpinnerOverlay,
@@ -69,16 +55,12 @@ export {
 export { showToast } from './components/toast';
 export { errorMessage, fireAndForget } from './errors';
 export { recallParam, rememberParams } from './features/appState';
-export { useKeptDraft } from './features/drafts';
-export { clearSession } from './features/session';
-export { figureText, rowsAt } from './figures';
+export { hasStoredSession, tryResumeSession } from './features/session';
 export { fmt } from './fmt';
 export { useI18n } from './i18n';
 export {
   opacityWhen,
-  panelWhen,
   pressUnless,
-  segmentIndex,
   useKeyboardBehavior,
   useScreenForm,
   useViewport,

@@ -7,7 +7,6 @@ import { ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -16,8 +15,6 @@ export function Screen25LockedPremiumContentScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
 
-  const insets = useSafeAreaInsets();
-
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
@@ -25,14 +22,14 @@ export function Screen25LockedPremiumContentScreen() {
   const q0 = useGetAllContents({ select: '*' });
   React.useEffect(() => {
     if (q0.isError) showToast(errorMessage(q0.error));
-  }, [q0.isError, q0.error, q0.errorUpdatedAt]);
+  }, [q0.isError, q0.errorUpdatedAt]);
   const focusedOnce = React.useRef(false);
   React.useEffect(() => {
     const unsub = (
       navigation as unknown as { addListener?: (t: string, cb: () => void) => () => void }
     ).addListener?.('focus', () => {
       if (focusedOnce.current) {
-        void q0.refetch();
+        q0.refetch();
       }
       focusedOnce.current = true;
     });
@@ -52,12 +49,7 @@ export function Screen25LockedPremiumContentScreen() {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight:
-            Math.max(sv(844), sv(517) + s(327), sv(760) + s(56)) +
-            Math.max(0, insets.bottom - sv(28)),
-          paddingBottom: Math.max(0, insets.bottom - sv(28)),
-        }}
+        contentContainerStyle={{ minHeight: Math.max(sv(844), sv(517) + s(327), sv(760) + s(56)) }}
       >
         <Box
           testID="w:8:413"
@@ -109,15 +101,8 @@ export function Screen25LockedPremiumContentScreen() {
               <Txt
                 testID="w:8:422"
                 accessibilityLabel={t('deep_sleep_reset')}
-                className="self-stretch text-surface font-inter-700 text-[length:7.1795vw] leading-[8.6897vw] text-left"
+                className="shrink self-stretch text-surface font-inter-700 text-[length:7.1795vw] leading-[8.6897vw] text-left"
                 numberOfLines={1}
-                adjustsFontSizeToFit={
-                  toStr(
-                    (route.params as Record<string, string> | undefined)?.['itemName'] ??
-                      t('deep_sleep_reset'),
-                  ).length <= 16
-                }
-                minimumFontScale={0.65}
               >
                 {toStr(
                   (route.params as Record<string, string> | undefined)?.['itemName'] ??
@@ -127,15 +112,8 @@ export function Screen25LockedPremiumContentScreen() {
               <Txt
                 testID="w:8:423"
                 accessibilityLabel={t('14_days_15_min_day_0c6445b9')}
-                className="text-[rgba(214,210,238,1)] font-inter-400 text-[length:3.3333vw] leading-[4.0333vw] text-left"
+                className="shrink text-[rgba(214,210,238,1)] font-inter-400 text-[length:3.3333vw] leading-[4.0333vw] text-left"
                 numberOfLines={1}
-                adjustsFontSizeToFit={
-                  toStr(
-                    (route.params as Record<string, string> | undefined)?.['itemDescription'] ??
-                      t('14_days_15_min_day_0c6445b9'),
-                  ).length <= 20
-                }
-                minimumFontScale={0.65}
               >
                 {toStr(
                   (route.params as Record<string, string> | undefined)?.['itemDescription'] ??
@@ -168,7 +146,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:426"
-                    accessibilityLabel="Locked"
+                    accessibilityLabel="IconBtn/lock"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -183,24 +161,16 @@ export function Screen25LockedPremiumContentScreen() {
                     <Txt
                       testID="w:8:431"
                       accessibilityLabel={t('winding_down')}
-                      className="self-stretch text-text-secondary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                      className="shrink self-stretch text-text-secondary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
                       numberOfLines={1}
-                      adjustsFontSizeToFit={
-                        toStr(previewItem?.name ?? t('winding_down')).length <= 12
-                      }
-                      minimumFontScale={0.65}
                     >
                       {toStr(previewItem?.name ?? t('winding_down'))}
                     </Txt>
                     <Txt
                       testID="w:8:432"
                       accessibilityLabel={t('day_1_15_min_2421f707')}
-                      className="text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
+                      className="shrink text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
                       numberOfLines={1}
-                      adjustsFontSizeToFit={
-                        toStr(previewItem?.subtitle ?? t('day_1_15_min_2421f707')).length <= 14
-                      }
-                      minimumFontScale={0.65}
                     >
                       {toStr(previewItem?.subtitle ?? t('day_1_15_min_2421f707'))}
                     </Txt>
@@ -212,7 +182,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:434"
-                    accessibilityLabel="Locked"
+                    accessibilityLabel="IconBtn/lock"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -237,16 +207,8 @@ export function Screen25LockedPremiumContentScreen() {
                     <Txt
                       testID="w:8:440"
                       accessibilityLabel={t('day_2_15_min_bd6960f8')}
-                      className="text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
+                      className="shrink text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
                       numberOfLines={1}
-                      adjustsFontSizeToFit={
-                        toStr(
-                          (route.params as Record<string, string> | undefined)?.[
-                            'itemDescription'
-                          ] ?? t('day_2_15_min_bd6960f8'),
-                        ).length <= 14
-                      }
-                      minimumFontScale={0.65}
                     >
                       {toStr(
                         (route.params as Record<string, string> | undefined)?.['itemDescription'] ??
@@ -261,7 +223,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:442"
-                    accessibilityLabel="Locked"
+                    accessibilityLabel="IconBtn/lock"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -286,16 +248,8 @@ export function Screen25LockedPremiumContentScreen() {
                     <Txt
                       testID="w:8:448"
                       accessibilityLabel={t('day_3_14_min_d50a392e')}
-                      className="text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
+                      className="shrink text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
                       numberOfLines={1}
-                      adjustsFontSizeToFit={
-                        toStr(
-                          (route.params as Record<string, string> | undefined)?.[
-                            'itemDescription'
-                          ] ?? t('day_3_14_min_d50a392e'),
-                        ).length <= 14
-                      }
-                      minimumFontScale={0.65}
                     >
                       {toStr(
                         (route.params as Record<string, string> | undefined)?.['itemDescription'] ??
@@ -314,7 +268,7 @@ export function Screen25LockedPremiumContentScreen() {
                 >
                   <Img
                     testID="w:8:426"
-                    accessibilityLabel="Locked"
+                    accessibilityLabel="IconBtn/lock"
                     source={
                       assets['dc6f3e84450df3ea171344b517364c14d253a97ffbc0d4b6ad5abc44f437fe28']
                     }
@@ -329,22 +283,16 @@ export function Screen25LockedPremiumContentScreen() {
                     <Txt
                       testID="w:8:431"
                       accessibilityLabel={t('winding_down')}
-                      className="self-stretch text-text-secondary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
+                      className="shrink self-stretch text-text-secondary font-inter-600 text-[length:3.8462vw] leading-[4.6538vw] text-left"
                       numberOfLines={1}
-                      adjustsFontSizeToFit={toStr(item?.name ?? t('winding_down')).length <= 12}
-                      minimumFontScale={0.65}
                     >
                       {toStr(item?.name ?? t('winding_down'))}
                     </Txt>
                     <Txt
                       testID="w:8:432"
                       accessibilityLabel={t('day_1_15_min_2421f707')}
-                      className="text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
+                      className="shrink text-blue font-inter-400 text-[length:3.0769vw] leading-[3.7231vw] text-left"
                       numberOfLines={1}
-                      adjustsFontSizeToFit={
-                        toStr(item?.subtitle ?? t('day_1_15_min_2421f707')).length <= 14
-                      }
-                      minimumFontScale={0.65}
                     >
                       {toStr(item?.subtitle ?? t('day_1_15_min_2421f707'))}
                     </Txt>
@@ -363,14 +311,14 @@ export function Screen25LockedPremiumContentScreen() {
               borderBottomLeftRadius: s(0),
               shadowColor: 'rgba(31,36,64,0.16)',
               shadowOffset: { width: 0, height: 4 },
-              shadowRadius: 8,
-              shadowOpacity: 1,
+              shadowRadius: 16,
+              shadowOpacity: 0.16,
               elevation: 8,
             }}
           >
             <Img
               testID="w:8:450"
-              accessibilityLabel="Premium"
+              accessibilityLabel="IconBtn/crown"
               source={assets['7b509521a543ff745e7066916992478c6337f8220c66f9e298a79654556f1211']}
               resizeMode="cover"
               style={{ width: s(52), height: s(52) }}
@@ -388,7 +336,7 @@ export function Screen25LockedPremiumContentScreen() {
             <Txt
               testID="w:8:454"
               accessibilityLabel={t('unlock_all_journeys_the_full_audio_libra_8fff0fcd')}
-              className="self-stretch text-text-secondary font-inter-400 text-[length:3.5897vw] leading-[5.1282vw] text-left max-w-[90.7692vw]"
+              className="self-stretch text-text-secondary font-inter-400 text-[length:3.5897vw] leading-[5.1282vw] text-left"
             >
               {t('unlock_all_journeys_the_full_audio_libra_8fff0fcd')}
             </Txt>

@@ -3,19 +3,12 @@
 jest.setTimeout(30000);
 import {
   getPath,
-  gatherPages,
-  gatherEach,
-  photoCrop,
   toStr,
   pickedIndex,
   optionIndex,
   amountOf,
   listGrowth,
   pickedRow,
-  pickedRowIn,
-  pickedSetOf,
-  toggledPick,
-  rowPasses,
   samplesWhileEmpty,
   numText,
   qtyOf,
@@ -24,18 +17,13 @@ import {
   momentAhead,
   momentWithinDays,
   boolishOr,
-  keptFill,
   keptSpace,
   firstWhen,
   pollVerdict,
-  pollAgain,
   settled,
-  failedWith,
   resStatus,
   parseErrorBody,
-  errorTextAt,
   ruleReset,
-  ruleText,
   ruleHandled,
   ruleNav,
   firstMatchingRule,
@@ -51,90 +39,7 @@ import {
 const read = <T = unknown>(o: unknown, p: string): T => getPath(o, p) as T;
 const ids = (o: unknown, p: string): unknown[] => read<Array<{ id?: unknown }>>(o, p).map((r) => r.id);
 
-describe('rows(…) decorations', () => {
-  const companies = {
-    records: [
-      { id: 'g1', name: 'Modon Group', path: 'g1' },
-      { id: 'e1', name: 'Alpha SPV', path: 'g1.e1' },
-      { id: 'e2', name: 'Beta SPV', path: 'g2.e2' },
-    ],
-  };
-  it('via= names each row by the root its path starts with, and marks each root once', () => {
-    const rows = read<Array<Record<string, unknown>>>(companies, 'rows(records;via=path:name)');
-    expect(rows.map((r) => [r.id, r.rootId, r.rootName, r.firstOfRoot])).toEqual([
-      ['g1', 'g1', 'Modon Group', true],
-      ['e1', 'g1', 'Modon Group', false],
-      ['e2', 'g2', 'Beta SPV', true],
-    ]);
-  });
-  it('join= fills a field from another list of the same answer, the first table that knows the id', () => {
-    const answer = {
-      edges: [{ id: 'x', holderId: 'h1' }, { id: 'y', holderId: 'h2' }, { id: 'z', holderId: 'h9' }, { id: 'w', holderId: 'h1', holder: 'Kept' }],
-      people: [{ id: 'h1', name: 'Mona' }, { id: 'h1', name: 'Second' }, { id: 'h2', name: '' }],
-      firms: [{ id: 'h2', name: 'Falak' }],
-    };
-    const rows = read<Array<Record<string, unknown>>>(answer, 'rows(edges;join=holder:people:id:name:holderId;join=holder:firms:id:name:holderId)');
-    expect(rows.map((r) => r.holder)).toEqual(['Mona', 'Falak', undefined, 'Kept']);
-    // a join with too few parts is left out
-    expect(ids(answer, 'rows(edges;join=holder:people)')).toEqual(['x', 'y', 'z', 'w']);
-  });
-  it('cat= words a field from several, where it is still empty', () => {
-    const answer = { records: [{ id: 1, role: 'signatory', of: 'Modon' }, { id: 2, role: '', of: '' }, { id: 3, label: 'Set', role: 'x' }] };
-    const rows = read<Array<Record<string, unknown>>>(answer, 'rows(records;cat=label:role,of)');
-    expect(rows.map((r) => r.label)).toEqual(['signatory Modon', undefined, 'Set']);
-    expect(read<Array<Record<string, unknown>>>(answer, 'rows(records;cat=label:role,of:·)')[0]?.label).toBe('signatory · Modon');
-    expect(ids(answer, 'rows(records;cat=:role)')).toEqual([1, 2, 3]);
-  });
-  it('map= words a code, has= the strongest word a field holds', () => {
-    const answer = {
-      records: [
-        { id: 1, status: 'ACTIVE', roles: 'corporate:viewer corporate:admin' },
-        { id: 2, status: 'GONE', roles: 'corporate:viewer' },
-        { id: 3, status: 'X', roles: '', label: 'Own' },
-      ],
-    };
-    const mapped = read<Array<Record<string, unknown>>>(answer, 'rows(records;map=label:status:ACTIVE=On~CLOSED=Off~*=Other)');
-    expect(mapped.map((r) => r.label)).toEqual(['On', 'Other', 'Own']);
-    const held = read<Array<Record<string, unknown>>>(answer, 'rows(records;has=strongest:roles:corporate:admin=Admin~corporate:viewer=Viewer)');
-    expect(held.map((r) => r.strongest)).toEqual(['Admin', 'Viewer', undefined]);
-    expect(ids(answer, 'rows(records;map=label)')).toEqual([1, 2, 3]);
-    expect(ids(answer, 'rows(records;map=label:status:noequals)')).toEqual([1, 2, 3]);
-  });
-});
 
-describe('rows(…) order, dedupe and headings', () => {
-  const answer = {
-    records: [
-      { id: 'a', group: 'B', amount: 10, name: 'pear' },
-      { id: 'b', group: 'A', amount: 2, name: 'apple' },
-      { id: 'c', group: 'A', amount: 2, name: 'Apricot' },
-      { id: 'd', group: 'B', amount: '7', name: 'fig' },
-    ],
-  };
-  it('sort= by several keys, numbers as numbers, :desc reversed', () => {
-    // a number and a numeric string compare as text: "10" before "7", reversed by :desc
-    expect(ids(answer, 'rows(records;sort=group,amount:desc)')).toEqual(['b', 'c', 'd', 'a']);
-    expect(ids({ records: [{ id: 'x', n: 10 }, { id: 'y', n: 2 }, { id: 'z', n: 7 }] }, 'rows(records;sort=n)')).toEqual(['y', 'z', 'x']);
-    expect(ids(answer, 'rows(records;sort=name:desc)')[0]).toBe('a');
-  });
-  it('unique= drops a row repeating an earlier one, heads= marks where a run starts', () => {
-    expect(ids(answer, 'rows(records;unique=group,amount)')).toEqual(['a', 'b', 'd']);
-    const headed = read<Array<Record<string, unknown>>>(answer, 'rows(records;sort=group;heads=group)');
-    expect(headed.map((r) => r.firstOf)).toEqual([true, false, true, false]);
-  });
-  it('a condition with nothing set filters nothing; a lookup with nothing finds nothing', () => {
-    expect(ids(answer, 'rows(records;name~=;)')).toEqual(['a', 'b', 'c', 'd']);
-    expect(ids(answer, 'rows(records;id==)')).toEqual([]);
-    expect(ids(answer, 'rows(records;group!=A|C)')).toEqual(['a', 'd']);
-    expect(ids(answer, 'rows(records;name!~=ap)')).toEqual(['a', 'd']);
-    expect(ids(answer, 'rows(records;amount>=5;amount<=9)')).toEqual(['d']);
-    expect(ids(answer, 'rows(records;name>=b)')).toEqual(['a', 'd']);
-  });
-  it('a value that is not a list is no rows', () => {
-    expect(read({ records: 'x' }, 'rows(records)')).toEqual([]);
-    expect(read([{ id: 1 }], 'rows(;id=1)')).toEqual([{ id: 1 }]);
-  });
-});
 
 describe('time windows', () => {
   beforeAll(() => {
@@ -144,23 +49,6 @@ describe('time windows', () => {
     jest.useRealTimers();
   });
   const tx = { records: [{ id: 'old', at: '2026-08-01' }, { id: 'week', at: '2026-10-15' }, { id: 'none', at: '' }] };
-  it('days:<n> is the day n days ago; a bound that says nothing keeps every row', () => {
-    expect(ids(tx, 'rows(records;at>=days:30)')).toEqual(['week']);
-    expect(ids(tx, 'rows(records;at<=days:30)')).toEqual(['old']);
-    expect(ids(tx, 'rows(records;at>=days:)')).toEqual(['old', 'week', 'none']);
-    expect(ids(tx, 'rows(records;at>=months:x)')).toEqual(['old', 'week', 'none']);
-    expect(ids(tx, 'rows(records;at>=2026-09-01)')).toEqual(['week']);
-  });
-  it('pages stop at a window given in months or as a date', async () => {
-    const call = async (v: Record<string, unknown>) => ({ records: [{ at: v.page === 0 ? '2026-10-10' : '2026-01-01' }] });
-    const months = (await gatherPages(call, { size: 1 }, { max: 5, pageParam: 'page', recordsPath: 'records', countPath: 'count', untilPath: 'at' }, 'months:2')) as { records: unknown[]; count: number };
-    expect(months.records).toHaveLength(2);
-    expect(months.count).toBe(2);
-    const dated = (await gatherPages(call, { size: 1 }, { max: 5, pageParam: 'page', recordsPath: 'records', countPath: 'count', untilPath: 'at' }, '2026-09-01T00:00:00Z')) as { records: unknown[] };
-    expect(dated.records).toHaveLength(2);
-    const bare = (await gatherPages(async () => ({ records: 'none' }), {}, { max: 3, pageParam: 'p', recordsPath: 'records', countPath: 'count' }, '')) as Record<string, unknown>;
-    expect(bare).toEqual({ records: [], count: 0 });
-  });
   it('a moment that has passed, one still ahead, one within days', () => {
     expect(momentPassed('2026-10-19T00:00:00Z')).toBe(true);
     expect(momentPassed('2026-10-21T00:00:00Z')).toBe(false);
@@ -173,183 +61,7 @@ describe('time windows', () => {
   });
 });
 
-describe('group / months / pages / split edges', () => {
-  const acc = {
-    records: [
-      { k: 'A', b: 50, c: 'AED', name: 'Alpha' },
-      { k: 'B', b: 30, c: 'AED', name: 'Beta' },
-      { k: 'C', b: 20, c: 'AED', name: 'Gamma' },
-      { k: 'D', b: 0, c: 'AED' },
-    ],
-  };
-  it('other= words the folded entry by how many it holds', () => {
-    const folded = read<Array<{ key: string; label: string }>>(acc, 'group(records;k;b;top=1;other=one more|# more)');
-    expect(folded.map((g) => g.label)).toEqual(['A', '3 more']);
-    expect(read<Array<{ label: string }>>(acc, 'group(records;k;b;top=3;other=one more|# more)').at(-1)?.label).toBe('one more');
-  });
-  it('label= calls an entry by a field of its first row; else= gathers by another path when the key is absent', () => {
-    expect(read(acc, 'group(records;k;b;label=name).label')).toEqual(['Alpha', 'Beta', 'Gamma', 'D']);
-    expect(read(acc, 'group(records;missing;b;else=c).key')).toEqual(['AED']);
-  });
-  it('rest= with no label is "Rest"; nothing to share is 0%', () => {
-    expect(read<Array<{ key: string }>>({ records: [{ s: 'A', p: '40' }] }, 'group(records;s;p;whole=100;rest=)').map((g) => g.key)).toEqual(['A', 'Rest']);
-    expect(read({ records: [{ k: 'A', b: 0 }] }, 'group(records;k;b).share')).toEqual([0]);
-  });
-  it('an amount is read from text, a list, or nothing at all', () => {
-    expect(read({ records: [{ k: 'A', b: [1, 2] }, { k: 'A', b: true }, { k: 'A', b: { v: 9 } }, { k: 'A', b: 'AED 5' }] }, 'group(records;k;b).total')).toEqual([17]);
-  });
-  it('months() defaults to six months and names each', () => {
-    expect(read<string[]>({ records: [] }, 'months(records;at;b).label')).toHaveLength(6);
-    expect(read<string[]>({ records: [] }, 'months(records;at;b;x).label')).toHaveLength(6);
-  });
-  it('pages from a literal, a path, or the rows a read keeps', () => {
-    expect(read({}, 'pages(45;20).length')).toBe(3);
-    expect(read({ meta: { total: '61' } }, 'pages(meta.total;30).length')).toBe(3);
-    expect(read({}, 'pages(;x).length')).toBe(1);
-    expect(read({ records: Array.from({ length: 41 }, () => ({})) }, 'rows(records).pages:x.length')).toBe(3);
-  });
-  it('split() at a given separator, or at spaces', () => {
-    expect(read({ tags: 'a; b ;c' }, 'split(tags;;)')).toBeDefined();
-    expect(read({ tags: 'a|b' }, 'split(tags;|).key')).toEqual(['a', 'b']);
-    expect(read({ tags: '  a   b ' }, 'split(tags).key')).toEqual(['a', 'b']);
-  });
-  it('sumfx reads the rows it is given, at the rates that parse', () => {
-    expect(read([{ a: 2, c: 'aed' }, { a: 'x', c: 'AED' }, { a: 3, c: 'USD' }], 'sumfx(;a;c;AED=2,USD=x,=3)')).toBe(4);
-  });
-});
 
-describe('tree(…) edges', () => {
-  const data = {
-    from: [{ id: 'h', legalName: 'Holding' }, { id: 'a', legalName: 'Alpha' }, { id: 'b', legalName: 'Beta' }, 'not a row'],
-    edges: [
-      { t: 'OWNS', s: 'h', d: 'a', pct: '60' },
-      { t: 'OWNS', s: 'b', d: 'a', pct: '40' },
-      { t: 'OWNS', s: 'a', d: 'a', pct: '1' },
-      { t: 'OWNS', s: 'x', d: 'a', pct: '5' },
-      { t: 'OWNS', s: 'h', d: 'a', pct: '60' },
-    ],
-  };
-  it('names every other holder beside the largest', () => {
-    const t = read<Array<Record<string, unknown>>>(data, 'tree(from;id;legalName;edges;s;d;t=OWNS;pct=pct)');
-    const alpha = t.find((r) => r.id === 'a');
-    expect(alpha?.parentId).toBe('h');
-    expect(alpha?.alsoHeldBy).toBe('Beta 40%');
-  });
-  it('with no edges every row is a root; a nested name path holds the root row\'s name', () => {
-    expect(read<Array<{ depth: number }>>(data, 'tree(from;id;legalName)').map((r) => r.depth)).toEqual([0, 0, 0]);
-    const nested = read<Array<Record<string, unknown>>>({ from: [{ id: 'x', profile: { name: 'X' } }] }, 'tree(from;id;profile.name;;s;d;root=All)');
-    expect(nested[0]).toMatchObject({ id: '__root', profile: 'All' });
-  });
-});
-
-describe('getPath edges', () => {
-  it('[field=value] and [*] on what is not a list', () => {
-    expect(read({ cards: { code: 'A' } }, 'cards[code=A]')).toBeUndefined();
-    expect(read({ values: 'x' }, 'values[*].code')).toBeUndefined();
-    expect(read({ values: [{ code: '' }] }, 'values[*].code')).toBeUndefined();
-    expect(read([{ code: 'A', n: 1 }], '[code=A].n')).toBe(1);
-  });
-  it('grouped alternatives with nothing in any', () => {
-    expect(read({ records: [] }, 'rows(records;id==a)[0].name ?? rows(records;id==b)[0].name')).toBeUndefined();
-  });
-});
-
-describe('gatherEach', () => {
-  it('reads an answer that is a bare list, and keeps a non-object row as it is', async () => {
-    const out = (await gatherEach(async (v) => [{ r: v.id }, 'plain'], {}, 'id', ['a'], [{ id: 'a' }])) as { records: unknown[]; count: number; from: unknown[] };
-    expect(out.records).toEqual([{ r: 'a', __from: 'a' }, 'plain']);
-    expect(out.count).toBe(2);
-    expect(out.from).toEqual([{ id: 'a' }]);
-  });
-});
-
-describe('values as text, lists and positions', () => {
-  it('toStr reads every kind of value', () => {
-    const circular: Record<string, unknown> = {};
-    circular.self = circular;
-    expect(toStr(null)).toBe('');
-    expect(toStr(BigInt(7))).toBe('7');
-    expect(toStr(['a', 1, null])).toBe('a, 1, ');
-    expect(toStr({ a: 1 })).toBe('{"a":1}');
-    expect(toStr(circular)).toBe('');
-    expect(toStr(() => 1)).toBe('');
-  });
-  it('a seeded photo wears the design crop; any other covers the box', () => {
-    const hash = 'a'.repeat(64);
-    const crops = { [hash]: { left: -4, top: -2, width: 120, height: 80 } };
-    expect(photoCrop(crops, `https://cdn.example/seed/${hash}.png?w=2`)).toEqual({ style: { position: 'absolute', left: -4, top: -2, width: 120, height: 80 }, resizeMode: 'stretch' });
-    expect(photoCrop(crops, `${hash.toUpperCase()}`).resizeMode).toBe('stretch');
-    expect(photoCrop(crops, 'https://cdn.example/user/photo.jpg').resizeMode).toBe('cover');
-    expect(photoCrop(crops, undefined).style.width).toBe('100%');
-  });
-  it('the position a tap recorded, unless a value written since names another', () => {
-    const options = ['Goals', 'Reserve', 'Spend'];
-    expect(pickedIndex(0, options, 'Reserve', 2)).toBe(1);
-    expect(pickedIndex(0, options, 'Goals', 2)).toBe(0);
-    expect(pickedIndex(2, options, '', 0)).toBe(2);
-    expect(pickedIndex(undefined, options, 'Spend', 0)).toBe(2);
-    expect(optionIndex('b', [['x'], ['a', 'b']], 9)).toBe(1);
-    expect(optionIndex('z', [['x']], 9)).toBe(9);
-  });
-  it('amounts, totals, list slides and quantities', () => {
-    expect(amountOf(Infinity)).toBe(0);
-    expect(amountOf('1,299 kr')).toBe(1299);
-    expect(amountOf(undefined)).toBe(0);
-    expect(listGrowth(5, 3, 10, 40)).toBe(20);
-    expect(listGrowth(0, 3, 10, 40)).toBe(-40);
-    // nothing moves until the list has loaded
-    expect(listGrowth(5, 3, 10, 40, false)).toBe(0);
-    expect(listGrowth(5, 3, 10, 40, true)).toBe(20);
-    expect(numText(3)).toBe('3');
-    expect(numText(2.5)).toBe('2.50');
-    expect(qtyOf(-2)).toBe(0);
-    expect(qtyOf(Number.NaN)).toBe(1);
-    expect(totalWithFees(100, 10, 5)).toBe(105);
-    expect(totalWithFees(2, 0, 9)).toBe(0);
-    expect(totalWithFees(0, 10, 0)).toBe(0);
-  });
-  it('a picker row, and the samples a list shows until it loads', () => {
-    // the design's own pick until someone picks
-    expect(pickedRow(undefined, 1, 1, 'chosen', 'resting')).toBe('chosen');
-    expect(pickedRow(undefined, 1, 0, 'chosen', 'resting')).toBe('resting');
-    expect(pickedRow(2, 1, 2, 'chosen', 'resting')).toBe('chosen');
-    expect(pickedRow(2, 1, 1, 'chosen', 'resting')).toBe('resting');
-    // several answers: the design's own set until someone picks, then what was picked, even nothing
-    expect(pickedRowIn(undefined, [0, 2], 2, 'chosen', 'resting')).toBe('chosen');
-    expect(pickedRowIn([1], [0, 2], 2, 'chosen', 'resting')).toBe('resting');
-    expect(pickedRowIn([], [0, 2], 0, 'chosen', 'resting')).toBe('resting');
-    expect(pickedSetOf(undefined, [0, 2])).toEqual([0, 2]);
-    expect(pickedSetOf([1, 'x'], [0, 2])).toEqual([1]);
-    // a tap lets a picked row go and adds another, in the rows' order
-    expect(toggledPick(undefined, [0, 2, 5], 2)).toEqual([0, 5]);
-    expect(toggledPick([0, 5], [0, 2, 5], 3)).toEqual([0, 3, 5]);
-    expect(samplesWhileEmpty(0, false, 'samples')).toBe('samples');
-    expect(samplesWhileEmpty(0, true, 'samples')).toBeNull();
-    expect(samplesWhileEmpty(3, false, 'samples')).toBeNull();
-  });
-  it('a list narrowed by the search box and the choices over it (props.filterBy)', () => {
-    const filters = [
-      { kind: 'search' as const, widgetId: 'w:search' },
-      { kind: 'choice' as const, widgetId: 'w:chips', allLabel: 'All' },
-    ];
-    // nothing typed or chosen, or the every-row option: every row stays
-    expect(rowPasses({}, filters, ['Morning Sun Salutation'])).toBe(true);
-    expect(rowPasses({ 'w:chips': 'All' }, filters, ['4-Week Fat Loss'])).toBe(true);
-    // a search: one of the row's texts holds what was typed, case and spaces aside; a picture or a blank is no text
-    expect(rowPasses({ 'w:search': 'morning' }, filters, ['Morning Sun Salutation', '15 min'])).toBe(true);
-    expect(rowPasses({ 'w:search': 'Sun Sal' }, filters, ['Morning Sun Salutation'])).toBe(true);
-    expect(rowPasses({ 'w:search': 'evening' }, filters, ['Morning Sun Salutation'])).toBe(false);
-    expect(rowPasses({ 'w:search': 'asset' }, filters, ['', 'asset:abc', 'Plank'])).toBe(false);
-    // a choice: the chosen words shown whole, never inside another word; several chosen keep a row showing any
-    expect(rowPasses({ 'w:chips': 'Beginner' }, filters, ['4 weeks · Beginner'])).toBe(true);
-    expect(rowPasses({ 'w:chips': 'Fat Loss' }, filters, ['4-Week Fat Loss'])).toBe(true);
-    expect(rowPasses({ 'w:chips': 'Free' }, filters, ['Freestyle'])).toBe(false);
-    expect(rowPasses({ 'w:chips': ['Free', 'Premium'] }, filters, ['Premium'])).toBe(true);
-    expect(rowPasses({ 'w:chips': '·' }, filters, ['a · b'])).toBe(false);
-    // every control must agree
-    expect(rowPasses({ 'w:search': 'loss', 'w:chips': 'Free' }, filters, ['4-Week Fat Loss', 'Premium'])).toBe(false);
-  });
-});
 
 describe('screen helpers', () => {
   it('a bound checked state keeps the design\'s own when the field is absent', () => {
@@ -357,23 +69,8 @@ describe('screen helpers', () => {
     expect(boolishOr('no', true)).toBe(false);
   });
   it('a hidden widget keeps its space', () => {
-    expect(keptSpace(true)).toMatchObject({ style: undefined, pointerEvents: 'box-none' });
-    expect(keptSpace(0)).toMatchObject({ style: { opacity: 0 }, pointerEvents: 'none' });
-  });
-  // shown or hidden, the same native view: a flip that flattened it moved its children, and a stack reset
-  // landing on that move red-screened Android ("The specified child already has a parent")
-  it('a hidden widget stays one native view, shown or hidden', () => {
-    expect(keptSpace(true).collapsable).toBe(false);
-    expect(keptSpace(false).collapsable).toBe(false);
-  });
-  it('a hidden widget is hidden from screen readers, and only while hidden', () => {
-    expect(keptSpace(false)).toMatchObject({ importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true });
-    expect(keptSpace(true)).toMatchObject({ importantForAccessibility: 'auto', accessibilityElementsHidden: false });
-  });
-  // a gate around an absolute widget has no size of its own: it takes its parent's box, shown and hidden
-  it('a hidden absolute widget keeps its parent box', () => {
-    expect(keptSpace(true, keptFill).style).toBe(keptFill);
-    expect(keptSpace(false, keptFill).style).toEqual([keptFill, { opacity: 0 }]);
+    expect(keptSpace(true)).toEqual({ style: undefined, pointerEvents: 'box-none' });
+    expect(keptSpace(0)).toEqual({ style: { opacity: 0 }, pointerEvents: 'none' });
   });
   it('the first arm that holds', () => {
     expect(firstWhen([[false, 'a'], [1, 'b'], [true, 'c']])).toBe('b');
@@ -389,62 +86,10 @@ describe('screen helpers', () => {
     expect(pollVerdict({ isSuccess: false, dataUpdatedAt: 3, errorUpdatedAt: 4 }, { body: null, status: 404 }, { current: { n: 0, at: '' } }, { ...plan, notFoundPending: true })).toBeNull();
     expect(pollVerdict({ isSuccess: false, dataUpdatedAt: 3, errorUpdatedAt: 5 }, { body: null, status: 500 }, { current: { n: 0, at: '' } }, plan)).toBe(500);
   });
-  it('a read the screen fires itself is asked again until it is done, its budget is spent or it fails', () => {
-    jest.useFakeTimers();
-    let asked = 0;
-    const q = (data: unknown, isSuccess = true, isFetching = false) => ({ isSuccess, isFetching, data, refetch: () => { asked += 1; return Promise.resolve(); } });
-    const seen = { current: { n: 0, mine: false } };
-    const plan = { path: 'state', done: ['DONE'], max: 3, delayMs: 1000 };
-    expect(pollAgain(q({ state: 'PENDING' }, true, true), seen, plan)).toBeUndefined();
-    expect(pollAgain(q({ state: 'PENDING' }, false), seen, plan)).toBeUndefined();
-    expect(pollAgain(q({ data: { state: 'PENDING' } }), seen, plan)).toBeInstanceOf(Function);
-    jest.advanceTimersByTime(1000);
-    expect(asked).toBe(1);
-    pollAgain(q({ state: 'PENDING' }), seen, plan);
-    jest.advanceTimersByTime(1000);
-    expect(asked).toBe(2);
-    // the third answer spends the budget
-    expect(pollAgain(q({ state: 'PENDING' }), seen, plan)).toBeUndefined();
-    // an answer the screen asked for starts a new wait, and a cleared timer never asks
-    const stop = pollAgain(q({ state: 'PENDING' }), { current: { n: 2, mine: false } }, plan);
-    stop?.();
-    jest.advanceTimersByTime(1000);
-    expect(asked).toBe(2);
-    expect(pollAgain(q({ state: 'DONE' }), { current: { n: 0, mine: false } }, plan)).toBeUndefined();
-    jest.useRealTimers();
-  });
-  it('a settled query, its status and its error body', () => {
-    const ok = Object.defineProperty({ id: 1 }, '__status', { value: 201, enumerable: false });
-    expect(settled({ isSuccess: true, data: ok })).toEqual({ body: ok, status: 201 });
-    expect(settled({ isSuccess: false, error: { status: 422, cause: { body: '{"code":"E1"}' } } })).toEqual({ body: { code: 'E1' }, status: 422 });
-    expect(settled({ isSuccess: false, error: null }).status).toBe(0);
-    expect(resStatus('text', 204)).toBe(204);
-    expect(parseErrorBody({ body: 'not json' })).toBe('not json');
-    expect(parseErrorBody({ message: 'boom' })).toBe('boom');
-    expect(failedWith({ status: 404 }, ['4xx'])).toBe(true);
-    expect(failedWith({ status: 503 }, [404, '4xx'])).toBe(false);
-    expect(failedWith(null, [0])).toBe(true);
-  });
-  it('the text at a path of a failed call, or nothing', () => {
-    const err = { cause: { body: JSON.stringify({ message: 'Weak password', code: 42, blank: '  ', detail: { a: 1 } }) } };
-    expect(errorTextAt(err, 'message')).toBe('Weak password');
-    expect(errorTextAt(err, 'code')).toBe('42');
-    expect(errorTextAt(err, 'blank')).toBe('');
-    expect(errorTextAt(err, 'detail')).toBe('');
-  });
 });
 
 describe('response rules', () => {
   const rule = (r: Partial<ResponseRule>): ResponseRule => ({ source: 'body', op: 'eq', navigateTo: '', ...r }) as ResponseRule;
-  it('words a passing message from the response', () => {
-    expect(ruleText('Hi {name}, {missing|friend}! {count}', { name: 'Ann', count: 3 })).toBe('Hi Ann, friend! 3');
-    expect(ruleText('{missing}', {})).toBe('');
-  });
-  it('a rule that takes the response over', () => {
-    expect(ruleHandled(rule({}))).toBe(false);
-    expect(ruleHandled(rule({ stay: true }))).toBe(true);
-    expect(ruleHandled(rule({ alert: { title: 'x' } }))).toBe(true);
-  });
   it('reads a field from the envelope when the body misses it', () => {
     const r = rule({ path: 'code', value: 'E1', navigateTo: 'Err' });
     expect(firstMatchingRule([r], { data: { code: 'E1' } }, 200)).toBe(r);

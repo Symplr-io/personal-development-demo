@@ -71,41 +71,15 @@ export function useAppValue(key: string): string | undefined {
  * good remembered value, and must not resurrect one either.
  */
 export function rememberParams(params: unknown): void {
-  // THE SERVER REMEMBERS NOTHING (v79, G47): a web app's server renders every visitor's pages from this one module, so a param kept
-  // here would be handed to the next request — another person's record id, the status chip of a page rendered minutes ago — and the
-  // HTML sent would say what the browser's first render cannot (a hydration mismatch on every deep link after the first). The memory
-  // is the browser's alone; the server's render reads the live params and nothing else, as the browser's first render does.
-  if (globalThis.window === undefined || !params || typeof params !== 'object') return;
+  if (!params || typeof params !== 'object') return;
   for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
-    // a page's own strip position ('tab', 'sub', 'seg:<id>' — v79, G48) is that page's, never the next page's
-    if (typeof v === 'string' && v !== '' && !isStripKey(k)) values.set('param:' + k, v);
+    if (typeof v === 'string' && v !== '') values.set('param:' + k, v);
   }
 }
 
-/** the params that place a page's tab strips: a row opened from a group's second tab must not land on the company's second tab */
-const STRIP_KEYS: ReadonlySet<string> = new Set(['tab', 'sub']);
-export function isStripKey(key: string): boolean {
-  return STRIP_KEYS.has(key) || key.startsWith('seg:');
-}
-
-/** The live route param if present, else the remembered one — in the browser; the server, and a strip's position, read the live param alone. */
+/** The live route param if present, else the remembered one. */
 export function recallParam(params: unknown, key: string): string {
   const live = (params as Record<string, unknown> | undefined)?.[key];
   if (typeof live === 'string' && live !== '') return live;
-  if (globalThis.window === undefined || isStripKey(key)) return '';
   return values.get('param:' + key) ?? '';
-}
-
-/**
- * "Log out" (a control with props.locksSession). The app registers what ending
- * the session does — the same thing its idle timeout does at expiry: clear the
- * session and reopen on the passcode screen — and the control asks for it.
- * Nothing registered (an app with no idle timeout) leaves the control inert.
- */
-let sessionLock: (() => void) | null = null;
-export function onSessionLock(fn: (() => void) | null): void {
-  sessionLock = fn;
-}
-export function lockSession(): void {
-  sessionLock?.();
 }

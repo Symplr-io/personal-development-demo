@@ -7,7 +7,6 @@ import { fireAndForget } from '../errors';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { VALIDATION_MESSAGES, setValidationTranslator } from '../validate';
-import { monthWords } from '../fmt';
 import strings_en from './strings.en';
 import { restartApp } from './restart';
 
@@ -219,7 +218,3 @@ export function useI18n(): I18nCtx {
 export function t(k: string): string {
   return String(i18next.t(k, { defaultValue: k }));
 }
-/** A date's month ("Nov") in the language on screen: fmt's date ops ask here, and the catalog keeps it under the
- * month's own key ("nov"), as keyFor keys a one-word text. */
-monthWords.of = (month: string): string =>
-  String(i18next.t(month.toLowerCase(), { defaultValue: month }));

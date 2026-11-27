@@ -2,12 +2,11 @@
 // Screen: Screen031LogIn  ·  figma node 4:50
 import React from 'react';
 // prettier-ignore
-import { assets, Box, BusySpinner, errorMessage, FieldError, focusFirstError, Img, opacityWhen, PressableBox, pressUnless, pxUnless, scaleFor, ScreenFrame, ScreenStatusBar, SegmentedControl, setLastResponse, showToast, stateBorder, toStr, Txt, useI18n, useKeyboardBehavior, useScreenForm, useSignInEmail, useSignInWithOAuth, useViewport, validateFields } from '../screen-kit';
+import { assets, Box, FieldError, focusFirstError, Img, opacityWhen, PressableBox, pxUnless, scaleFor, ScreenFrame, ScreenStatusBar, SegmentedControl, stateBorder, toStr, Txt, useI18n, useKeyboardBehavior, useScreenForm, useViewport, validateFields, withErrors } from '../screen-kit';
 import { KeyboardAvoidingView, ScrollView, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -16,7 +15,6 @@ export function Screen031LogInScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
   const kavBehavior = useKeyboardBehavior();
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -30,29 +28,6 @@ export function Screen031LogInScreen() {
     setField,
   } = form;
 
-  const m0 = useSignInWithOAuth();
-  const m0Opts: Parameters<typeof m0.mutate>[1] = {
-    onError: (err) => {
-      showToast(errorMessage(err));
-    },
-  };
-  const m1 = useSignInWithOAuth();
-  const m1Opts: Parameters<typeof m1.mutate>[1] = {
-    onError: (err) => {
-      showToast(errorMessage(err));
-    },
-  };
-  const m2 = useSignInEmail();
-  const m2Opts: Parameters<typeof m2.mutate>[1] = {
-    onSuccess: (data) => {
-      setLastResponse('bind:49uLGCSD', data);
-      goTo(navigation, 'navigate', 'Screen06Home');
-    },
-    onError: (err) => {
-      setLastResponse('bind:49uLGCSD', undefined);
-      showToast(errorMessage(err));
-    },
-  };
   const formReady0 =
     toStr(formState['w:4:76']).trim() !== '' && toStr(formState['w:4:79']).trim() !== '';
 
@@ -76,9 +51,7 @@ export function Screen031LogInScreen() {
             minHeight:
               sv(878) +
               -pxUnless(formErrors['w:4:76'] || formErrors['w:4:79'], sv(17)) +
-              -pxUnless(formErrors['w:4:79'] || formErrors['w:4:76'], sv(17)) +
-              Math.max(0, insets.bottom - sv(24)),
-            paddingBottom: Math.max(0, insets.bottom - sv(24)),
+              -pxUnless(formErrors['w:4:79'] || formErrors['w:4:76'], sv(17)),
           }}
         >
           <Box
@@ -227,18 +200,14 @@ export function Screen031LogInScreen() {
               testID="w:4:79:error"
               msg={formErrors['w:4:79']}
               className="text-[#ff6b6b] text-[length:3.0769vw] absolute top-[96.4103vw] w-[89.7436vw] z-[20]"
-              style={{
-                insetInlineStart: s(20),
-                transform: [{ translateY: -pxUnless(formErrors['w:4:76'], sv(17)) }],
-              }}
+              style={{ insetInlineStart: s(20) }}
             />
             <PressableBox
               testID="w:4:82"
               accessibilityLabel={t('login')}
               className="absolute start-[5.1282vw] top-[103.8462vw] w-[89.7436vw] h-[14.359vw] bg-teal rounded-[7.1795vw]"
               accessibilityState={{ disabled: !formReady0 }}
-              needsOffscreenAlphaCompositing
-              onPress={pressUnless(m2.isPending, () => {
+              onPress={() => {
                 const errs = validateFields([
                   {
                     id: 'w:4:76',
@@ -247,29 +216,13 @@ export function Screen031LogInScreen() {
                   },
                   { id: 'w:4:79', value: formState['w:4:79'], rule: { required: true } },
                 ]);
-                setFormErrors((e) => ({ ...e, ...errs }));
+                if (Object.keys(errs).length > 0) setFormErrors(withErrors(errs));
                 if (Object.keys(errs).length > 0) {
                   focusFirstError(['w:4:76', 'w:4:79'], errs);
                   return;
                 }
-                if (__DEV__)
-                  console.log(
-                    '[SEND] bind:49uLGCSD signInEmail',
-                    JSON.stringify({
-                      email: formState['w:4:76'],
-                      grant_type: 'password',
-                      password: '[redacted]',
-                    }),
-                  );
-                m2.mutate(
-                  {
-                    email: formState['w:4:76'],
-                    grant_type: 'password',
-                    password: formState['w:4:79'],
-                  },
-                  m2Opts,
-                );
-              })}
+                goTo(navigation, 'navigate', 'Screen06Home');
+              }}
               style={{
                 transform: [
                   {
@@ -297,12 +250,6 @@ export function Screen031LogInScreen() {
                   {t('login')}
                 </Txt>
               </Box>
-              <BusySpinner
-                visible={m2.isPending}
-                backgroundColor={'rgba(79,124,116,1)'}
-                borderRadius={s(28)}
-                color={'rgba(255,255,255,1)'}
-              />
             </PressableBox>
             <Box
               testID="w:4:84"
@@ -331,9 +278,6 @@ export function Screen031LogInScreen() {
                   testID="w:4:87"
                   accessibilityLabel={t('or')}
                   className="absolute start-[43.2051vw] top-[0vw] w-[3.3333vw] text-blue font-inter-400 text-[length:3.3333vw] leading-[4.0333vw] text-left"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
                 >
                   {t('or')}
                 </Txt>
@@ -343,31 +287,10 @@ export function Screen031LogInScreen() {
                 className="absolute start-[49.6154vw] top-[1.9231vw] w-[40.1282vw] h-[0.2564vw] bg-orange"
               />
             </Box>
-            <PressableBox
+            <Box
               testID="w:4:88"
               accessibilityLabel={t('continue_with_apple')}
               className="absolute start-[5.1282vw] top-[129.4872vw] w-[89.7436vw] h-[14.359vw] bg-surface border-orange border-[1.5px] border-solid rounded-[7.1795vw]"
-              onPress={pressUnless(m0.isPending, () => {
-                const errs = validateFields([
-                  {
-                    id: 'w:4:76',
-                    value: formState['w:4:76'],
-                    rule: { required: true, valueType: 'email' },
-                  },
-                  { id: 'w:4:79', value: formState['w:4:79'], rule: { required: true } },
-                ]);
-                setFormErrors((e) => ({ ...e, ...errs }));
-                if (Object.keys(errs).length > 0) {
-                  focusFirstError(['w:4:76', 'w:4:79'], errs);
-                  return;
-                }
-                if (__DEV__)
-                  console.log(
-                    '[SEND] b:ZIY_askW signInWithOAuth',
-                    JSON.stringify({ provider: 'apple' }),
-                  );
-                m0.mutate({ provider: 'apple' }, m0Opts);
-              })}
               style={{
                 transform: [
                   {
@@ -386,7 +309,7 @@ export function Screen031LogInScreen() {
                 <Txt
                   testID="w:I4:88;3:148"
                   accessibilityLabel={t('continue_with_apple')}
-                  className="absolute start-[24.2308vw] top-[4.359vw] w-[40.5128vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+                  className="absolute start-[24.6154vw] top-[4.7436vw] w-[40.5128vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.65}
@@ -394,38 +317,11 @@ export function Screen031LogInScreen() {
                   {t('continue_with_apple')}
                 </Txt>
               </Box>
-              <BusySpinner
-                visible={m0.isPending}
-                backgroundColor={'rgba(255,255,255,1)'}
-                borderRadius={s(28)}
-                color={'rgba(31,35,64,1)'}
-              />
-            </PressableBox>
-            <PressableBox
+            </Box>
+            <Box
               testID="w:4:90"
               accessibilityLabel={t('continue_with_google')}
               className="absolute start-[5.1282vw] top-[147.4359vw] w-[89.7436vw] h-[14.359vw] bg-surface border-orange border-[1.5px] border-solid rounded-[7.1795vw]"
-              onPress={pressUnless(m1.isPending, () => {
-                const errs = validateFields([
-                  {
-                    id: 'w:4:76',
-                    value: formState['w:4:76'],
-                    rule: { required: true, valueType: 'email' },
-                  },
-                  { id: 'w:4:79', value: formState['w:4:79'], rule: { required: true } },
-                ]);
-                setFormErrors((e) => ({ ...e, ...errs }));
-                if (Object.keys(errs).length > 0) {
-                  focusFirstError(['w:4:76', 'w:4:79'], errs);
-                  return;
-                }
-                if (__DEV__)
-                  console.log(
-                    '[SEND] b:d1vnW09I signInWithOAuth',
-                    JSON.stringify({ provider: 'google' }),
-                  );
-                m1.mutate({ provider: 'google' }, m1Opts);
-              })}
               style={{
                 transform: [
                   {
@@ -444,7 +340,7 @@ export function Screen031LogInScreen() {
                 <Txt
                   testID="w:I4:90;3:148"
                   accessibilityLabel={t('continue_with_google')}
-                  className="absolute start-[22.9487vw] top-[4.359vw] w-[43.0769vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+                  className="absolute start-[23.3333vw] top-[4.7436vw] w-[43.0769vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.65}
@@ -452,13 +348,7 @@ export function Screen031LogInScreen() {
                   {t('continue_with_google')}
                 </Txt>
               </Box>
-              <BusySpinner
-                visible={m1.isPending}
-                backgroundColor={'rgba(255,255,255,1)'}
-                borderRadius={s(28)}
-                color={'rgba(31,35,64,1)'}
-              />
-            </PressableBox>
+            </Box>
             <Box
               testID="w:4:92"
               className="absolute start-[5.1282vw] top-[165.3846vw] w-[25.641vw] h-[34.1026vw]"

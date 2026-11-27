@@ -2,12 +2,11 @@
 // Screen: Screen15AudioPlaybackOptions  ·  figma node 6:323
 import React, { useState } from 'react';
 // prettier-ignore
-import { AppModal, assets, Box, ChipGroup, font, Img, pickedIndex, PillSwitch, scaleFor, ScreenFrame, ScreenStatusBar, tokens, Txt, useI18n, useScreenForm, useViewport } from '../screen-kit';
-import { ScrollView } from 'react-native';
+import { AppModal, assets, Box, ChipGroup, font, Img, pickedIndex, scaleFor, ScreenFrame, ScreenStatusBar, tokens, Txt, useI18n, useScreenForm, useViewport } from '../screen-kit';
+import { ScrollView, Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
 const { s, sv } = scaleFor(390);
@@ -15,8 +14,6 @@ const { s, sv } = scaleFor(390);
 export function Screen15AudioPlaybackOptionsScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -196,7 +193,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
             >
               <Img
                 testID="w:6:360"
-                accessibilityLabel="Download"
+                accessibilityLabel="IconBtn/download"
                 className="absolute start-[0vw] top-[1.5385vw] flex-row justify-center items-center"
                 source={assets['c9287c74aeeac480e501b62e49b056e8ea35ef0828b4f2892f1cb7733923d905']}
                 resizeMode="cover"
@@ -240,15 +237,16 @@ export function Screen15AudioPlaybackOptionsScreen() {
               </Box>
             </Box>
             <Box className="absolute start-[78.4615vw] top-[3.3333vw] w-[11.2821vw] h-[6.6667vw] pt-[0vw] pe-[0.7692vw] pb-[0vw] ps-[0.7692vw] justify-center">
-              <PillSwitch
+              <Switch
                 testID="w:6:368"
                 value={Boolean(formState['w:6:368'] ?? true)}
                 onValueChange={(v) => {
                   setField('w:6:368', v);
                 }}
                 trackColor={{ false: 'rgba(255,255,255,0.25)', true: 'rgba(79,124,116,1)' }}
-                width={s(44)}
-                height={s(26)}
+                ios_backgroundColor={'rgba(255,255,255,0.25)'}
+                thumbColor={'#ffffff'}
+                style={{ transform: [{ scale: 0.84 }] }}
               />
             </Box>
           </Box>
@@ -263,7 +261,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
             >
               <Img
                 testID="w:6:371"
-                accessibilityLabel="Favorite"
+                accessibilityLabel="IconBtn/heart"
                 className="absolute start-[0vw] top-[1.5385vw] flex-row justify-center items-center"
                 source={assets['b45339c7c8c10598af654e743f5ac0baed1d05344592c74d5c288329c410fc29']}
                 resizeMode="cover"
@@ -307,15 +305,16 @@ export function Screen15AudioPlaybackOptionsScreen() {
               </Box>
             </Box>
             <Box className="absolute start-[78.4615vw] top-[3.3333vw] w-[11.2821vw] h-[6.6667vw] pt-[0vw] pe-[0.7692vw] pb-[0vw] ps-[0.7692vw] justify-center">
-              <PillSwitch
+              <Switch
                 testID="w:6:377"
                 value={Boolean(formState['w:6:377'] ?? false)}
                 onValueChange={(v) => {
                   setField('w:6:377', v);
                 }}
                 trackColor={{ false: 'rgba(232,226,217,1)', true: tokens.colors.primary }}
-                width={s(44)}
-                height={s(26)}
+                ios_backgroundColor={'rgba(232,226,217,1)'}
+                thumbColor={'#ffffff'}
+                style={{ transform: [{ scale: 0.84 }] }}
               />
             </Box>
           </Box>
@@ -330,7 +329,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
             >
               <Img
                 testID="w:6:380"
-                accessibilityLabel="Bookmark"
+                accessibilityLabel="IconBtn/bookmark"
                 className="absolute start-[0vw] top-[1.5385vw] flex-row justify-center items-center"
                 source={assets['c17b7fe1055eaa051ea05dfdc0bbcd5da5a1f3b6c16100e482023a6b1603b487']}
                 resizeMode="cover"
@@ -374,15 +373,16 @@ export function Screen15AudioPlaybackOptionsScreen() {
               </Box>
             </Box>
             <Box className="absolute start-[78.4615vw] top-[3.3333vw] w-[11.2821vw] h-[6.6667vw] pt-[0vw] pe-[0.7692vw] pb-[0vw] ps-[0.7692vw] justify-center">
-              <PillSwitch
+              <Switch
                 testID="w:6:386"
                 value={Boolean(formState['w:6:386'] ?? false)}
                 onValueChange={(v) => {
                   setField('w:6:386', v);
                 }}
                 trackColor={{ false: 'rgba(232,226,217,1)', true: tokens.colors.primary }}
-                width={s(44)}
-                height={s(26)}
+                ios_backgroundColor={'rgba(232,226,217,1)'}
+                thumbColor={'#ffffff'}
+                style={{ transform: [{ scale: 0.84 }] }}
               />
             </Box>
           </Box>
@@ -395,11 +395,7 @@ export function Screen15AudioPlaybackOptionsScreen() {
         className="flex-1 w-full"
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: sv(844) + Math.max(0, insets.bottom - sv(844)),
-          paddingBottom: Math.max(0, insets.bottom - sv(844)),
-        }}
+        contentContainerClassName="min-h-[216.4103vw] flex-col"
       >
         <Box
           testID="w:6:334"

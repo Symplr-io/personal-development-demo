@@ -69,7 +69,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               <Box className="absolute top-[-1.0256vw]" style={{ insetInlineStart: s(0) }}>
                 <Img
                   testID="w:8:617"
-                  accessibilityLabel="Back"
+                  accessibilityLabel="IconBtn/chevL"
                   className="absolute start-[0vw] top-[1.0256vw] flex-row justify-center items-center"
                   source={
                     assets['4695d90cada3acbfb2233ccf718efe1862e0b414bc0c2c5845efd93da81635a8']
@@ -115,7 +115,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
             >
               <Img
                 testID="w:8:623"
-                accessibilityLabel="Premium"
+                accessibilityLabel="IconBtn/crown"
                 className="absolute start-[5.1282vw] top-[5.1282vw] flex-row justify-center items-center"
                 source={assets['0845383a922012fdfc520b249c2c055af4c85f1d817af336d9b845ac8c2593d1']}
                 resizeMode="cover"
@@ -184,7 +184,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               >
                 <Img
                   testID="w:8:631"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['d9f02fb573a9a37448198b8fb2ed5fb6c8b3393ad96a713dada6cabd41e3ea70']
@@ -220,7 +220,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               >
                 <Img
                   testID="w:8:636"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['d9f02fb573a9a37448198b8fb2ed5fb6c8b3393ad96a713dada6cabd41e3ea70']
@@ -256,7 +256,7 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
               >
                 <Img
                   testID="w:8:641"
-                  accessibilityLabel="Done"
+                  accessibilityLabel="IconBtn/check"
                   className="absolute start-[0vw] top-[0vw] flex-row justify-center items-center"
                   source={
                     assets['d9f02fb573a9a37448198b8fb2ed5fb6c8b3393ad96a713dada6cabd41e3ea70']
@@ -322,16 +322,21 @@ export function Screen28LifetimeAccessLegacyMemberScreen() {
           accessibilityLabel={t('restore_purchases')}
           className="self-stretch h-[14.359vw] bg-surface border-orange border-[1.5px] border-solid rounded-[7.1795vw] flex-row justify-center items-center gap-[2.0513vw]"
         >
-          <Txt
-            testID="w:I8:648;3:148"
-            accessibilityLabel={t('restore_purchases')}
-            className="text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.65}
+          <Box
+            pointerEvents="none"
+            style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
           >
-            {t('restore_purchases')}
-          </Txt>
+            <Txt
+              testID="w:I8:648;3:148"
+              accessibilityLabel={t('restore_purchases')}
+              className="absolute start-[26.2821vw] top-[4.7436vw] text-text-primary font-inter-600 text-[length:4.1026vw] leading-[4.9641vw] text-left"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+            >
+              {t('restore_purchases')}
+            </Txt>
+          </Box>
         </Box>
       </Box>
     </ScreenFrame>

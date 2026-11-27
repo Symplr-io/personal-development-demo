@@ -77,14 +77,11 @@ export function Screen07JourneysExploreScreen() {
                   <TextInput
                     placeholder={t('search_journeys')}
                     placeholderTextColor={'rgba(163,166,184,1)'}
-                    returnKeyType="search"
-                    autoCapitalize="none"
                     value={formState['w:5:142'] ?? ''}
                     onChangeText={(next) => {
                       setField('w:5:142', next);
                     }}
                     className="flex-1 text-[#14181d] text-[length:3.8462vw] p-[0px]"
-                    style={{ fontFamily: font('Inter', '400'), includeFontPadding: false }}
                   />
                 </Box>
               </Box>
@@ -188,7 +185,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:170"
-                    accessibilityLabel="Open"
+                    accessibilityLabel="icon/chevR"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -265,7 +262,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:183"
-                    accessibilityLabel="Open"
+                    accessibilityLabel="icon/chevR"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -342,7 +339,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:196"
-                    accessibilityLabel="Open"
+                    accessibilityLabel="icon/chevR"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -418,7 +415,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:211"
-                    accessibilityLabel="Open"
+                    accessibilityLabel="icon/chevR"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']
@@ -495,7 +492,7 @@ export function Screen07JourneysExploreScreen() {
                   </Box>
                   <Img
                     testID="w:5:224"
-                    accessibilityLabel="Open"
+                    accessibilityLabel="icon/chevR"
                     className="overflow-hidden"
                     source={
                       assets['9454e1eca1aebfd3dadf2427d82ab25e47cc9be3d2f7aeab6a250d8150304ebf']

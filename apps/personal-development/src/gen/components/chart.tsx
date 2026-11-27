@@ -3,18 +3,6 @@ import React from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 
-/** the optional members of T, each also taking an explicit undefined: a caller may hand `x={maybe}` under exactOptionalPropertyTypes without `?: T | undefined` on every member (SonarQube's S4782 reads that as redundant where the option is off) */
-type OrUndefined<T> = { [K in keyof T]: undefined extends T[K] ? T[K] | undefined : T[K] };
-/** What a screen reader is told: the chart's values in words. */
-const a11y = (label: string) => ({
-  accessibilityRole: 'image' as const,
-  accessibilityLabel: label,
-});
-/** a phone app's chart is drawn at its design width (only a responsive web page draws at the room it has) */
-const useDrawWidth = (design: number): readonly [undefined, number] => [undefined, design] as const;
-/** What a chart's box takes as its style: whatever the View it draws into takes (the undefined is the option's own). */
-type ChartStyle = NonNullable<React.ComponentProps<typeof View>['style']>;
-
 export type ChartType = 'bar' | 'line' | 'area' | 'donut' | 'pie';
 
 /**
@@ -96,26 +84,21 @@ function parseCssColor(c: string): { r: number; g: number; b: number; a: number 
   // pattern exactly — 3 or 4 comma-separated [0-9.] runs — so a malformed
   // rgb(a,b,c) still falls through to null instead of yielding NaN channels.
   const shell = /^rgba?\(([^)]*)\)$/i.exec(t);
-  const inner = shell?.[1];
-  const parts = inner === undefined ? null : inner.split(',').map((x) => x.trim());
+  const parts = shell ? shell[1].split(',').map((x) => x.trim()) : null;
   const ok =
     parts !== null &&
     (parts.length === 3 || parts.length === 4) &&
     parts.every((x) => /^[\d.]+$/.test(x));
   if (ok && parts) {
-    // three or four parts by the check above; the defaults only satisfy the index reads
-    const [r = 0, g = 0, b = 0, a = 1] = parts.map(Number);
-    return { r, g, b, a };
+    const n = parts.map(Number);
+    return { r: n[0], g: n[1], b: n[2], a: n[3] ?? 1 };
   }
   const hex = /^#([0-9a-f]{3,8})$/i.exec(t);
-  const h = hex?.[1];
-  if (h === undefined) return null;
+  if (!hex) return null;
+  const h = hex[1];
   const short = h.length === 3 || h.length === 4;
   if (!short && h.length !== 6 && h.length !== 8) return null;
-  const at = (i: number) => {
-    const ch = h.charAt(i);
-    return short ? ch + ch : h.slice(i * 2, i * 2 + 2);
-  };
+  const at = (i: number) => (short ? h[i] + h[i] : h.slice(i * 2, i * 2 + 2));
   // an alpha channel is present only in #RGBA (short) or #RRGGBBAA (long)
   const hasAlpha = short ? h.length === 4 : h.length === 8;
   const a = hasAlpha ? Number.parseInt(at(3), 16) / 255 : 1;
@@ -167,14 +150,10 @@ export interface ChartSpec {
   strokeWidth: number;
   smooth: boolean;
   dots: boolean;
-  /** The area under a plotted line (props.fillColor; the stroke colour when unset). */
-  fillColor: string;
   fillOpacity: number;
   trackColor: string | undefined;
   gap: number;
   barRadius: number;
-  /** the widest a bar is drawn (props.barWidth, px); 0: as wide as its slot */
-  barWidth: number;
   innerRadius: number;
   startAngle: number;
   segmentGap: number;
@@ -184,22 +163,6 @@ export interface ChartSpec {
   axisColor: string;
   marker: { index: number; label: string } | null;
   legend: LegendPosition;
-  /**
-   * Bars drawn side by side in groups of this many consecutive values — two
-   * per month for "credits beside debits". Colours repeat by position in the
-   * group and each group carries one caption. 1 (the default) is one bar per
-   * value, exactly as before.
-   */
-  groupSize: number;
-  /**
-   * What a ring says in its hole: a small caption over a figure ("TOTAL" over
-   * "AED 1,234.00"). Both are plain text — the figure is usually bound to a
-   * read and arrives already worded. Empty (the default) draws nothing.
-   */
-  centerLabel: string;
-  centerValue: string;
-  /** The figure's colour (props.centerColor; the legend's ink when unset). */
-  centerColor: string;
 }
 
 /** Props → the resolved spec. Identical defaults to the designer's preview. */
@@ -250,14 +213,7 @@ export function resolveChartProps(p: Record<string, unknown>, boundValues?: unkn
   const type: ChartType = CHART_TYPES.has(rawType as ChartType) ? (rawType as ChartType) : 'bar';
   const boundVals = boundValues === undefined ? undefined : numericValues(boundValues);
   const values = boundVals?.length ? boundVals : numericValues(p.values);
-  const base =
-    str(p.color) ||
-    str(p.barColor) ||
-    str(p.strokeColor) ||
-    str(p.lineColor) ||
-    DEFAULT_CHART_COLOR;
-  // lineColor is the studio's name for a plotted line's stroke
-  const stroke = str(p.strokeColor) || str(p.lineColor) || base;
+  const base = str(p.color) || str(p.barColor) || str(p.strokeColor) || DEFAULT_CHART_COLOR;
   const rawMarker = p.marker as { index?: unknown; label?: unknown } | undefined;
   const marker =
     typeof rawMarker?.index === 'number'
@@ -273,12 +229,7 @@ export function resolveChartProps(p: Record<string, unknown>, boundValues?: unkn
   const plottedAxis = plotted ? stringArray(p.labels) : [];
   const axisLabels = explicitAxis.length > 0 ? explicitAxis : plottedAxis;
   const legendGiven = p.legend === 'none' || p.legend === 'right' || p.legend === 'bottom';
-  // showLegend is the studio's yes / no for the same thing
-  let legendShown: LegendPosition | null = null;
-  if (p.showLegend === true) legendShown = 'right';
-  if (p.showLegend === false) legendShown = 'none';
-  const legendFallback: LegendPosition =
-    legendShown ?? (stringArray(p.labels).length > 0 ? 'right' : 'none');
+  const legendFallback: LegendPosition = stringArray(p.labels).length > 0 ? 'right' : 'none';
   const legend: LegendPosition = legendGiven ? (p.legend as LegendPosition) : legendFallback;
 
   return {
@@ -286,21 +237,16 @@ export function resolveChartProps(p: Record<string, unknown>, boundValues?: unkn
     values,
     labels: stringArray(p.labels),
     colors: segmentColors(values.length, stringArray(p.colors), base),
-    strokeColor: stroke,
-    series: chartSeries(p.series, values, stroke, num(p.strokeWidth, 2)),
+    strokeColor: str(p.strokeColor) || base,
+    series: chartSeries(p.series, values, str(p.strokeColor) || base, num(p.strokeWidth, 2)),
     strokeWidth: num(p.strokeWidth, 2),
     smooth: bool(p.smooth, false),
     dots: bool(p.dots, false),
-    fillColor: str(p.fillColor) || stroke,
-    // an area, or a line given a fill colour, is filled under the line
-    fillOpacity: num(p.fillOpacity, type === 'area' || str(p.fillColor) ? 0.18 : 0),
+    fillOpacity: num(p.fillOpacity, type === 'area' ? 0.18 : 0),
     trackColor: str(p.trackColor),
     gap: num(p.gap, 8),
     barRadius: num(p.barRadius, 4),
-    barWidth: num(p.barWidth, 0),
-    // holeRatio is the studio's name for a donut's hole
-    innerRadius:
-      type === 'pie' ? 0 : Math.max(0, Math.min(0.95, num(p.innerRadius, num(p.holeRatio, 0.62)))),
+    innerRadius: type === 'pie' ? 0 : Math.max(0, Math.min(0.95, num(p.innerRadius, 0.62))),
     startAngle: num(p.startAngle, 0),
     segmentGap: Math.max(0, num(p.segmentGap, 2)),
     gridLines: Math.max(0, Math.round(num(p.gridLines, 0))),
@@ -309,38 +255,12 @@ export function resolveChartProps(p: Record<string, unknown>, boundValues?: unkn
     axisColor: str(p.axisColor) || DEFAULT_AXIS_COLOR,
     marker,
     legend,
-    groupSize: Math.max(1, Math.round(num(p.groupSize, 1))),
-    centerLabel: str(p.centerLabel) ?? '',
-    centerValue: str(p.centerValue) ?? '',
-    centerColor: str(p.centerColor) || str(p.axisColor) || DEFAULT_AXIS_COLOR,
   };
-}
-
-/**
- * The chart's values in words, for a screen reader — "Bar chart: Active 12,
- * Closed 3." Mirrors the schema's chartSpokenWords: an area is said as a line,
- * twelve pairs at most, then how many more.
- */
-export function spokenWords(spec: ChartSpec, max = 12): string {
-  const name = spec.type === 'area' ? 'line' : spec.type;
-  const pairs = spec.values
-    .slice(0, max)
-    .map((v, i) => (spec.labels[i] ?? '#' + (i + 1)) + ' ' + (Number.isFinite(v) ? v : 0));
-  const more = spec.values.length > max ? ', and ' + (spec.values.length - max) + ' more' : '';
-  const head = name.charAt(0).toUpperCase() + name.slice(1) + ' chart';
-  return pairs.length === 0 ? head + ': no values.' : head + ': ' + pairs.join(', ') + more + '.';
 }
 
 /* --------------------------------------------------------------------- legend */
 
 const LEGEND = { swatch: 12, swatchGap: 8, rowHeight: 22, fontSize: 12, pad: 12, charWidth: 0.58 };
-const CENTER = { label: 11, value: 13, min: 9 };
-/** The figure in a ring's hole, shrunk until it fits the hole (a long amount is not cut). */
-export const centerFont = (text: string, room: number): number =>
-  Math.max(
-    CENTER.min,
-    Math.min(CENTER.value, Math.floor((room - 8) / Math.max(1, text.length * LEGEND.charWidth))),
-  );
 
 export interface LegendRow {
   index: number;
@@ -390,16 +310,13 @@ export function donutLayout(
       })),
     };
   }
-  const items = labels.map((label) => ({
-    label,
-    w: LEGEND.swatch + LEGEND.swatchGap + textWidth(label),
-  }));
-  const totalW = items.reduce((a, b) => a + b.w, 0) + LEGEND.pad * (labels.length - 1);
+  const itemWs = labels.map((l) => LEGEND.swatch + LEGEND.swatchGap + textWidth(l));
+  const totalW = itemWs.reduce((a, b) => a + b, 0) + LEGEND.pad * (labels.length - 1);
   const size = Math.max(0, Math.min(width, height - LEGEND.rowHeight - LEGEND.pad));
   let cursor = Math.max(0, (width - totalW) / 2);
-  const rows = items.map(({ label, w }, index) => {
+  const rows = labels.map((label, index) => {
     const x = cursor;
-    cursor += w + LEGEND.pad;
+    cursor += itemWs[index] + LEGEND.pad;
     return { index, x, y: height - LEGEND.rowHeight, label };
   });
   return { size, ox: (width - size) / 2, oy: 0, rows };
@@ -440,19 +357,18 @@ export function linePoints(
 
 /** Catmull-Rom when smoothed, so the curve passes THROUGH every sample. */
 export function linePath(pts: Pt[], smooth: boolean): string {
-  const first = pts[0];
-  if (!first) return '';
-  let d = 'M ' + r2(first.x) + ' ' + r2(first.y);
+  if (pts.length === 0) return '';
+  let d = 'M ' + r2(pts[0].x) + ' ' + r2(pts[0].y);
   if (pts.length === 1) return d;
   if (!smooth) {
-    for (const pt of pts.slice(1)) d += ' L ' + r2(pt.x) + ' ' + r2(pt.y);
+    for (let i = 1; i < pts.length; i++) d += ' L ' + r2(pts[i].x) + ' ' + r2(pts[i].y);
     return d;
   }
-  // from each point to the next, the neighbours before and after steering the curve; an end stands in for the neighbour it lacks
-  let p1 = first;
-  for (const [j, p2] of pts.slice(1).entries()) {
-    const p0 = pts[j - 1] ?? p1;
-    const p3 = pts[j + 2] ?? p2;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
     d +=
       ' C ' +
       r2(p1.x + (p2.x - p0.x) / 6) +
@@ -466,15 +382,13 @@ export function linePath(pts: Pt[], smooth: boolean): string {
       r2(p2.x) +
       ' ' +
       r2(p2.y);
-    p1 = p2;
   }
   return d;
 }
 
 export function areaPath(pts: Pt[], baselineY: number, smooth: boolean): string {
-  const first = pts[0];
-  const last = pts.at(-1);
-  if (pts.length < 2 || !first || !last) return '';
+  if (pts.length < 2) return '';
+  const last = pts.at(-1)!; // length >= 2 is guaranteed above
   return (
     linePath(pts, smooth) +
     ' L ' +
@@ -482,7 +396,7 @@ export function areaPath(pts: Pt[], baselineY: number, smooth: boolean): string 
     ' ' +
     r2(baselineY) +
     ' L ' +
-    r2(first.x) +
+    r2(pts[0].x) +
     ' ' +
     r2(baselineY) +
     ' Z'
@@ -534,7 +448,8 @@ export function donutArcs(
   const effGap = nDrawn > 1 ? Math.max(0, gapIn) : 0;
   const out: Arc[] = [];
   let cursor = startAngle;
-  for (const [i, v] of positive.entries()) {
+  for (let i = 0; i < positive.length; i++) {
+    const v = positive[i];
     const sweep = (v / total) * 360;
     if (v <= 0) {
       cursor += sweep;
@@ -632,94 +547,6 @@ export function barRects(values: number[], width: number, height: number, gap: n
   });
 }
 
-/**
- * Bars in groups of `k` consecutive values: the groups are spaced as single
- * bars would be, and the bars of a group share its width with a small gap.
- * Every bar measures against the one maximum, so the groups compare.
- */
-export function groupedBarRects(
-  values: number[],
-  width: number,
-  height: number,
-  gap: number,
-  k: number,
-): BarRect[] {
-  const groups = Math.ceil(values.length / k);
-  if (groups === 0 || width <= 0 || height <= 0) return [];
-  const finite = (v: number): number => (Number.isFinite(v) ? v : 0);
-  const max = Math.max.apply(null, values.map(finite).concat([0]));
-  const slots = barRects(new Array(groups).fill(1), width, height, gap);
-  // the bars of each slot in turn (slot g holds the values from g * k), so no slot is read by index
-  return slots.flatMap((slot, g) => {
-    const inner = Math.min(4, slot.w * 0.1);
-    const w = (slot.w - inner * (k - 1)) / k;
-    return values.slice(g * k, (g + 1) * k).map((v, j) => {
-      const frac = max <= 0 ? 0 : Math.max(0, Math.min(1, finite(v) / max));
-      const h = frac * height;
-      return {
-        index: g * k + j,
-        x: r2(slot.x + j * (w + inner)),
-        y: r2(height - h),
-        w: r2(w),
-        h: r2(h),
-        trackH: r2(height),
-      };
-    });
-  });
-}
-
-/**
- * Bars no wider than `maxW` (props.barWidth; 0 or unset: as wide as their slot), each group narrowed about its own
- * centre with its inner gap kept — a design's 16 px bars stay 16 px when the data brings few months.
- */
-export function narrowBars(bars: BarRect[], maxW: number, k: number): BarRect[] {
-  if (Number.isNaN(maxW) || maxW <= 0) return bars;
-  const size = Math.max(1, k);
-  const out: BarRect[] = [];
-  for (let g = 0; g < bars.length; g += size) {
-    const group = bars.slice(g, g + size);
-    // the group read whole — its edges, its widths — never through an index: an index read is T or T | undefined by the
-    // app's tsconfig, an assertion either config does not need is a finding (Sonar S4325), and a check on a value no
-    // input leaves undefined is a branch no test reaches (the portal holds src/gen at 100 % per file)
-    if (group.every((b) => b.w <= maxW)) {
-      out.push(...group);
-      continue;
-    }
-    const start = Math.min(...group.map((b) => b.x));
-    const end = Math.max(...group.map((b) => b.x + b.w));
-    const widths = group.reduce((sum, b) => sum + b.w, 0);
-    // the gap between the group's bars: the room between its edges the bars do not take, shared by the gaps
-    const inner = group.length > 1 ? (end - start - widths) / (group.length - 1) : 0;
-    const span = group.length * maxW + (group.length - 1) * inner;
-    const left = (start + end) / 2 - span / 2;
-    group.forEach((b, j) => out.push({ ...b, x: r2(left + j * (maxW + inner)), w: r2(maxW) }));
-  }
-  return out;
-}
-
-/** One caption per bar, or per group of bars: `labels` may name every bar or every group. */
-export function barCaptions(
-  labels: string[],
-  bars: BarRect[],
-  k: number,
-): Array<{ key: number; x: number; text: string }> {
-  if (k <= 1) {
-    return bars.flatMap((b) => {
-      const text = labels[b.index];
-      return text === undefined ? [] : [{ key: b.index, x: b.x + b.w / 2, text }];
-    });
-  }
-  const out: Array<{ key: number; x: number; text: string }> = [];
-  for (let g = 0; g * k < bars.length; g++) {
-    const first = bars[g * k];
-    const last = bars[Math.min(bars.length, (g + 1) * k) - 1];
-    const text = labels.length === bars.length ? labels[g * k] : labels[g];
-    if (first && last && text !== undefined)
-      out.push({ key: g, x: (first.x + last.x + last.w) / 2, text });
-  }
-  return out;
-}
-
 /** Only the TOP corners round — an <Rect rx> lifts every bar off its baseline. */
 export function barPath(x: number, y: number, w: number, h: number, radius: number): string {
   if (w <= 0 || h <= 0) return '';
@@ -783,30 +610,16 @@ interface ChartPartProps {
   width: number;
   height: number;
   testID?: string;
-  style?: ChartStyle;
-  /** the box measured for the drawing width (web, a responsive page): handed to the part's own View */
-  boxRef?: unknown;
+  style?: any;
 }
 
 /** Donut and pie — the ring is sized by whatever the legend leaves over. */
-function DonutChart({
-  spec,
-  width,
-  height,
-  testID,
-  style,
-  boxRef,
-}: Readonly<OrUndefined<ChartPartProps>>) {
+function DonutChart({ spec, width, height, testID, style }: Readonly<ChartPartProps>) {
   const { size, ox, oy, rows } = donutLayout(spec.labels, width, height, spec.legend);
   const arcs = donutArcs(spec.values, size, spec.innerRadius, spec.startAngle, spec.segmentGap);
   const ring = spec.innerRadius > 0 ? (size * (1 - spec.innerRadius)) / 2 : size / 2;
   return (
-    <View
-      testID={testID}
-      style={style}
-      {...a11y(spokenWords(spec))}
-      {...({ elRef: boxRef } as object)}
-    >
+    <View testID={testID} style={style}>
       <Svg width="100%" height="100%" viewBox={'0 0 ' + width + ' ' + height}>
         {/* translate through the transform prop, not the x/y props — those are
             deprecated in react-native-svg (S1874) and mean exactly this. */}
@@ -823,32 +636,6 @@ function DonutChart({
           ) : (
             arcs.map((a) => <Path key={a.index} d={a.d} fill={spec.colors[a.index]} />)
           )}
-          {spec.innerRadius > 0 && spec.centerValue ? (
-            <G>
-              {spec.centerLabel ? (
-                <SvgText
-                  x={size / 2}
-                  y={size / 2 - 6}
-                  textAnchor="middle"
-                  fill={spec.axisColor}
-                  fontSize={CENTER.label}
-                  letterSpacing={0.4}
-                >
-                  {spec.centerLabel.toUpperCase()}
-                </SvgText>
-              ) : null}
-              <SvgText
-                x={size / 2}
-                y={size / 2 + (spec.centerLabel ? 12 : 4)}
-                textAnchor="middle"
-                fill={spec.centerColor}
-                fontSize={centerFont(spec.centerValue, size * spec.innerRadius)}
-                fontWeight="600"
-              >
-                {spec.centerValue}
-              </SvgText>
-            </G>
-          ) : null}
         </G>
         {rows.map((r) => (
           <G key={r.index}>
@@ -876,14 +663,7 @@ function DonutChart({
 }
 
 /** Line and area — plotBox splits the box into marker / plot / axis bands. */
-function LineChart({
-  spec,
-  width,
-  height,
-  testID,
-  style,
-  boxRef,
-}: Readonly<OrUndefined<ChartPartProps>>) {
+function LineChart({ spec, width, height, testID, style }: Readonly<ChartPartProps>) {
   const { markerH, plotH, padX, padY } = plotBox(spec, height);
   /**
    * Several series share ONE y-scale.
@@ -899,21 +679,10 @@ function LineChart({
     min: Math.min.apply(null, allValues),
     max: Math.max.apply(null, allValues),
   };
-  // Every series as drawn. A series has no name, and the importer repeats the
-  // first one on purpose, so two can be identical in every value: its position
-  // is its identity, and the key says so. Summed up front rather than keyed
-  // off the map's index inside the JSX (S6479).
-  const lines: Array<{ key: string; color: string; strokeWidth: number; pts: Pt[] }> = [];
-  for (const se of spec.series) {
-    lines.push({
-      key: 's' + lines.length,
-      color: se.color,
-      strokeWidth: se.strokeWidth,
-      pts: linePoints(se.values, width, plotH, padX, padY, domain),
-    });
-  }
-  // the first series' points: the dots, the fill and the marker follow it (a slice, so no series at all is simply no points)
-  const pts = lines.slice(0, 1).flatMap((ln) => ln.pts);
+  const seriesPts = spec.series.map((se) =>
+    linePoints(se.values, width, plotH, padX, padY, domain),
+  );
+  const pts = seriesPts[0] ?? [];
   const grid = gridYs(plotH, spec.gridLines, padY);
   const marker = spec.marker ? pts[spec.marker.index] : undefined;
   const label = spec.marker ? spec.marker.label : '';
@@ -922,15 +691,10 @@ function LineChart({
   const pillX = marker ? Math.max(0, Math.min(width - pillW, marker.x - pillW / 2)) : 0;
   const pillY = marker ? Math.max(0, marker.y + markerH - MARKER_BAND) : 0;
   return (
-    <View
-      testID={testID}
-      style={style}
-      {...a11y(spokenWords(spec))}
-      {...({ elRef: boxRef } as object)}
-    >
+    <View testID={testID} style={style}>
       <Svg width="100%" height="100%" viewBox={'0 0 ' + width + ' ' + height}>
         <G transform={[{ translateY: markerH }]}>
-          {grid.map((y) => (
+          {grid.map((y, i) => (
             <Line
               key={'g' + y}
               x1={0}
@@ -944,17 +708,17 @@ function LineChart({
           {spec.fillOpacity > 0 && pts.length > 1 ? (
             <Path
               d={areaPath(pts, plotH, spec.smooth)}
-              fill={spec.fillColor}
+              fill={spec.strokeColor}
               fillOpacity={spec.fillOpacity}
             />
           ) : null}
-          {lines.map((ln) => (
+          {seriesPts.map((sp, i) => (
             <Path
-              key={ln.key}
-              d={linePath(ln.pts, spec.smooth)}
+              key={'s' + i}
+              d={linePath(sp, spec.smooth)}
               fill="none"
-              stroke={ln.color}
-              strokeWidth={ln.strokeWidth}
+              stroke={spec.series[i] ? spec.series[i].color : spec.strokeColor}
+              strokeWidth={spec.series[i] ? spec.series[i].strokeWidth : spec.strokeWidth}
               strokeLinejoin="round"
               strokeLinecap="round"
             />
@@ -1027,31 +791,12 @@ function LineChart({
  * per-bar captions), NOT spec.axisLabels the way plotBox does, which is why it
  * measures its own plot height instead of borrowing the line chart's.
  */
-function BarChart({
-  spec,
-  width,
-  height,
-  testID,
-  style,
-  boxRef,
-}: Readonly<OrUndefined<ChartPartProps>>) {
+function BarChart({ spec, width, height, testID, style }: Readonly<ChartPartProps>) {
   const axisH = spec.labels.length > 0 ? AXIS_BAND : 0;
   const plotH = Math.max(0, height - axisH);
-  const k = spec.groupSize;
-  const bars = narrowBars(
-    k > 1
-      ? groupedBarRects(spec.values, width, plotH, spec.gap, k)
-      : barRects(spec.values, width, plotH, spec.gap),
-    spec.barWidth,
-    k,
-  );
+  const bars = barRects(spec.values, width, plotH, spec.gap);
   return (
-    <View
-      testID={testID}
-      style={style}
-      {...a11y(spokenWords(spec))}
-      {...({ elRef: boxRef } as object)}
-    >
+    <View testID={testID} style={style}>
       <Svg width="100%" height="100%" viewBox={'0 0 ' + width + ' ' + height}>
         {spec.trackColor
           ? bars.map((b) => (
@@ -1069,21 +814,23 @@ function BarChart({
           <Path
             key={b.index}
             d={barPath(b.x, b.y, b.w, b.h, spec.barRadius)}
-            fill={spec.colors[k > 1 ? b.index % k : b.index]}
+            fill={spec.colors[b.index]}
           />
         ))}
-        {barCaptions(spec.labels, bars, k).map((c) => (
-          <SvgText
-            key={'l' + c.key}
-            x={c.x}
-            y={height - AXIS_BASELINE_OFFSET}
-            fill={spec.axisColor}
-            fontSize={AXIS_FONT}
-            textAnchor="middle"
-          >
-            {c.text}
-          </SvgText>
-        ))}
+        {bars.map((b) =>
+          spec.labels[b.index] === undefined ? null : (
+            <SvgText
+              key={'l' + b.index}
+              x={b.x + b.w / 2}
+              y={height - AXIS_BASELINE_OFFSET}
+              fill={spec.axisColor}
+              fontSize={AXIS_FONT}
+              textAnchor="middle"
+            >
+              {spec.labels[b.index]}
+            </SvgText>
+          ),
+        )}
       </Svg>
     </View>
   );
@@ -1099,29 +846,17 @@ function BarChart({
  * then hand (spec, box) to the shape. The bar chart is the fall-through, as it
  * was when these were three branches.
  */
-/**
- * The dispatcher's props: the design box, the widget's own testID and style,
- * and every chart prop verbatim for resolveChartProps to read as unknown.
- */
-type ChartProps = Record<string, unknown> & { width: number; height: number } & OrUndefined<{
-    testID?: string;
-    style?: ChartStyle;
-  }>;
-
-export function Chart({ values, width, height, testID, style, ...rest }: Readonly<ChartProps>) {
+export function Chart({
+  values,
+  width,
+  height,
+  testID,
+  style,
+  ...rest
+}: Record<string, any> & { width: number; height: number }) {
   const spec = resolveChartProps({ ...rest, values });
-  const [boxRef, drawWidth] = useDrawWidth(width);
   if (width <= 0 || height <= 0) return null;
-  // a ring keeps its design box (it is drawn in a square); bars and lines take the room they have
-  const round = spec.type === 'donut' || spec.type === 'pie';
-  const part: OrUndefined<ChartPartProps> = {
-    spec,
-    width: round ? width : drawWidth,
-    height,
-    testID,
-    style,
-    boxRef,
-  };
+  const part: ChartPartProps = { spec, width, height, testID, style };
   if (spec.type === 'donut' || spec.type === 'pie') return <DonutChart {...part} />;
   if (spec.type === 'line' || spec.type === 'area') return <LineChart {...part} />;
   return <BarChart {...part} />;

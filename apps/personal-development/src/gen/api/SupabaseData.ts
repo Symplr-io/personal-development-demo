@@ -5,11 +5,7 @@ import {
   apiFetch,
   asBodyNumber,
   enc,
-  idempotencyKeyOf,
-  mappedQuery,
   setByPath,
-  checkShape,
-  emptyWhenNotFound,
   keepStatus,
   stringBody,
   useIdempotencyKey,
@@ -25,7 +21,7 @@ import { z } from 'zod';
  * became '' and every call went out host-less — "Network Error" on a relative
  * path, which reads like the server is down rather than like configuration. */
 export const BASE = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const DEFAULT_HEADERS: Record<string, unknown> = {
+const DEFAULT_HEADERS: Record<string, any> = {
   apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   'Accept-Profile': process.env.EXPO_PUBLIC_SUPABASE_DB_SCHEMA,
   'Content-Profile': process.env.EXPO_PUBLIC_SUPABASE_DB_SCHEMA,
@@ -60,36 +56,32 @@ const shape3 = z.looseObject({
 });
 
 // List week1s (RLS: only the signed-in user's rows).
-const getAllWeek1sResponse = z.array(
-  z.looseObject({
-    id: z.string().optional().nullable(),
-    created_at: z.string().optional().nullable(),
-    updated_at: z.string().optional().nullable(),
-    name: z.string().optional().nullable(),
-    subtitle: z.string().optional().nullable(),
-  }),
-);
+const getAllWeek1sResponse = z
+  .array(
+    z.looseObject({
+      id: z.string().optional().nullable(),
+      created_at: z.string().optional().nullable(),
+      updated_at: z.string().optional().nullable(),
+      name: z.string().optional().nullable(),
+      subtitle: z.string().optional().nullable(),
+    }),
+  )
+  .catch([]);
 export type getAllWeek1sData = z.infer<typeof getAllWeek1sResponse>;
-export async function getAllWeek1s(vars: Record<string, unknown> = {}): Promise<getAllWeek1sData> {
+export async function getAllWeek1s(vars: Record<string, any> = {}): Promise<getAllWeek1sData> {
   const path = `/rest/v1/week1s?select=*`;
-  const query: Record<string, unknown> = {};
+  const query: Record<string, any> = {};
   query['select'] = vars['select'];
-  mappedQuery(query, vars, []);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, query: query, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(getAllWeek1sResponse, data, 'getAllWeek1s');
+  const checked = getAllWeek1sResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'getAllWeek1s: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -97,10 +89,7 @@ export async function getAllWeek1s(vars: Record<string, unknown> = {}): Promise<
   return keepStatus(checked.data, data);
 }
 
-export function useGetAllWeek1s(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
-) {
+export function useGetAllWeek1s(vars: Record<string, any> = {}, options: Record<string, any> = {}) {
   return useQuery<getAllWeek1sData>({
     queryKey: ['getAllWeek1s', vars],
     queryFn: () => getAllWeek1s(vars),
@@ -108,73 +97,23 @@ export function useGetAllWeek1s(
   });
 }
 
-// List libraries (RLS: only the signed-in user's rows).
-const getAllLibrariesResponse = z.array(shape1);
-export type getAllLibrariesData = z.infer<typeof getAllLibrariesResponse>;
-export async function getAllLibraries(
-  vars: Record<string, unknown> = {},
-): Promise<getAllLibrariesData> {
-  const path = `/rest/v1/libraries?select=*`;
-  const query: Record<string, unknown> = {};
-  query['select'] = vars['select'];
-  mappedQuery(query, vars, []);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
-  const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(getAllLibrariesResponse, data, 'getAllLibraries');
-  if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
-    throw new AppError('server', 'getAllLibraries: unexpected response shape', {
-      cause: checked.error.issues.slice(0, 3),
-    });
-  }
-  return keepStatus(checked.data, data);
-}
-
-export function useGetAllLibraries(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
-) {
-  return useQuery<getAllLibrariesData>({
-    queryKey: ['getAllLibraries', vars],
-    queryFn: () => getAllLibraries(vars),
-    ...options,
-  });
-}
-
 // Get one libraries by id (bind the raw id value).
-const getLibrariesByIdResponse = getAllLibrariesResponse;
+const getLibrariesByIdResponse = z.array(shape1).catch([]);
 export type getLibrariesByIdData = z.infer<typeof getLibrariesByIdResponse>;
 export async function getLibrariesById(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<getLibrariesByIdData> {
   const path = `/rest/v1/libraries?id=eq.${enc(vars['id'])}&select=*`;
-  const query: Record<string, unknown> = {};
-  mappedQuery(query, vars, ['id']);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(getLibrariesByIdResponse, data, 'getLibrariesById');
+  const checked = getLibrariesByIdResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'getLibrariesById: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -183,8 +122,8 @@ export async function getLibrariesById(
 }
 
 export function useGetLibrariesById(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
+  options: Record<string, any> = {},
 ) {
   return useQuery<getLibrariesByIdData>({
     queryKey: ['getLibrariesById', vars],
@@ -194,30 +133,22 @@ export function useGetLibrariesById(
 }
 
 // List contents (RLS: only the signed-in user's rows).
-const getAllContentsResponse = getAllLibrariesResponse;
+const getAllContentsResponse = getLibrariesByIdResponse;
 export type getAllContentsData = z.infer<typeof getAllContentsResponse>;
-export async function getAllContents(
-  vars: Record<string, unknown> = {},
-): Promise<getAllContentsData> {
+export async function getAllContents(vars: Record<string, any> = {}): Promise<getAllContentsData> {
   const path = `/rest/v1/contents?select=*`;
-  const query: Record<string, unknown> = {};
+  const query: Record<string, any> = {};
   query['select'] = vars['select'];
-  mappedQuery(query, vars, []);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, query: query, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(getAllContentsResponse, data, 'getAllContents');
+  const checked = getAllContentsResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'getAllContents: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -226,8 +157,8 @@ export async function getAllContents(
 }
 
 export function useGetAllContents(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
+  options: Record<string, any> = {},
 ) {
   return useQuery<getAllContentsData>({
     queryKey: ['getAllContents', vars],
@@ -237,25 +168,27 @@ export function useGetAllContents(
 }
 
 // Create a milestones (auth_user_id set by DB trigger — do not send it)
-const createMilestonesResponse = z.array(
-  z.looseObject({
-    id: z.string().optional().nullable(),
-    created_at: z.string().optional().nullable(),
-    updated_at: z.string().optional().nullable(),
-    stress_level: z.number().optional().nullable(),
-    sleep_quality: z.number().optional().nullable(),
-    self_compassion: z.number().optional().nullable(),
-    journey: z.string().optional().nullable(),
-    day: z.number().optional().nullable(),
-    day_name: z.string().optional().nullable(),
-  }),
-);
+const createMilestonesResponse = z
+  .array(
+    z.looseObject({
+      id: z.string().optional().nullable(),
+      created_at: z.string().optional().nullable(),
+      updated_at: z.string().optional().nullable(),
+      stress_level: z.number().optional().nullable(),
+      sleep_quality: z.number().optional().nullable(),
+      self_compassion: z.number().optional().nullable(),
+      journey: z.string().optional().nullable(),
+      day: z.number().optional().nullable(),
+      day_name: z.string().optional().nullable(),
+    }),
+  )
+  .catch([]);
 export type createMilestonesData = z.infer<typeof createMilestonesResponse>;
 export async function createMilestones(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<createMilestonesData> {
   const path = `/rest/v1/milestones`;
-  const body: Record<string, unknown> = {};
+  const body: Record<string, any> = {};
   setByPath(body, 'stress_level', asBodyNumber(vars['stress_level']));
   setByPath(body, 'sleep_quality', asBodyNumber(vars['sleep_quality']));
   setByPath(body, 'self_compassion', asBodyNumber(vars['self_compassion']));
@@ -267,17 +200,17 @@ export async function createMilestones(
     path,
     headers: DEFAULT_HEADERS,
     body,
-    idempotencyKey: idempotencyKeyOf(vars),
+    idempotencyKey: vars['__idempotencyKey'],
   });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(createMilestonesResponse, data, 'createMilestones');
+  const checked = createMilestonesResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'createMilestones: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -287,47 +220,48 @@ export async function createMilestones(
 
 export function useCreateMilestones(
   opts: Omit<
-    UseMutationOptions<createMilestonesData, unknown, Record<string, unknown>>,
+    UseMutationOptions<createMilestonesData, unknown, Record<string, any>>,
     'mutationFn'
   > = {},
 ) {
   const idem = useIdempotencyKey();
   const { onSettled, ...rest } = opts;
-  return useMutation<createMilestonesData, unknown, Record<string, unknown>>({
+  return useMutation<createMilestonesData, unknown, Record<string, any>>({
     ...rest,
-    mutationFn: (vars: Record<string, unknown> = {}) =>
+    mutationFn: (vars: Record<string, any> = {}) =>
       createMilestones({ __idempotencyKey: idem.key, ...vars }),
     onSettled: (...args) => {
-      // a send that got no answer keeps its key, so pressing again cannot do it twice (useIdempotencyKey settled)
-      idem.settled(args[1]);
+      idem.rotate();
       onSettled?.(...args);
     },
   });
 }
 
 // Create a check_ins (auth_user_id set by DB trigger — do not send it)
-const createCheck_insResponse = z.array(
-  z.looseObject({
-    id: z.string().optional().nullable(),
-    created_at: z.string().optional().nullable(),
-    updated_at: z.string().optional().nullable(),
-    overall_mood: z.string().optional().nullable(),
-    mind: z.unknown().optional().nullable(),
-    energy_level: z.number().optional().nullable(),
-    feel_now: z.string().optional().nullable(),
-    stress_level: z.number().optional().nullable(),
-    kind: z.string().optional().nullable(),
-    journey: z.string().optional().nullable(),
-    day: z.number().optional().nullable(),
-    day_name: z.string().optional().nullable(),
-  }),
-);
+const createCheck_insResponse = z
+  .array(
+    z.looseObject({
+      id: z.string().optional().nullable(),
+      created_at: z.string().optional().nullable(),
+      updated_at: z.string().optional().nullable(),
+      overall_mood: z.string().optional().nullable(),
+      mind: z.unknown().optional().nullable(),
+      energy_level: z.number().optional().nullable(),
+      feel_now: z.string().optional().nullable(),
+      stress_level: z.number().optional().nullable(),
+      kind: z.string().optional().nullable(),
+      journey: z.string().optional().nullable(),
+      day: z.number().optional().nullable(),
+      day_name: z.string().optional().nullable(),
+    }),
+  )
+  .catch([]);
 export type createCheck_insData = z.infer<typeof createCheck_insResponse>;
 export async function createCheck_ins(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<createCheck_insData> {
   const path = `/rest/v1/check_ins`;
-  const body: Record<string, unknown> = {};
+  const body: Record<string, any> = {};
   setByPath(body, 'overall_mood', vars['overall_mood']);
   setByPath(body, 'mind', vars['mind']);
   setByPath(body, 'energy_level', asBodyNumber(vars['energy_level']));
@@ -342,17 +276,17 @@ export async function createCheck_ins(
     path,
     headers: DEFAULT_HEADERS,
     body,
-    idempotencyKey: idempotencyKeyOf(vars),
+    idempotencyKey: vars['__idempotencyKey'],
   });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(createCheck_insResponse, data, 'createCheck_ins');
+  const checked = createCheck_insResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'createCheck_ins: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -362,60 +296,54 @@ export async function createCheck_ins(
 
 export function useCreateCheckIns(
   opts: Omit<
-    UseMutationOptions<createCheck_insData, unknown, Record<string, unknown>>,
+    UseMutationOptions<createCheck_insData, unknown, Record<string, any>>,
     'mutationFn'
   > = {},
 ) {
   const idem = useIdempotencyKey();
   const { onSettled, ...rest } = opts;
-  return useMutation<createCheck_insData, unknown, Record<string, unknown>>({
+  return useMutation<createCheck_insData, unknown, Record<string, any>>({
     ...rest,
-    mutationFn: (vars: Record<string, unknown> = {}) =>
+    mutationFn: (vars: Record<string, any> = {}) =>
       createCheck_ins({ __idempotencyKey: idem.key, ...vars }),
     onSettled: (...args) => {
-      // a send that got no answer keeps its key, so pressing again cannot do it twice (useIdempotencyKey settled)
-      idem.settled(args[1]);
+      idem.rotate();
       onSettled?.(...args);
     },
   });
 }
 
 // Get one journal_entries by id (bind the raw id value).
-const getJournal_entriesByIdResponse = z.array(
-  z.looseObject({
-    id: z.string().optional().nullable(),
-    created_at: z.string().optional().nullable(),
-    updated_at: z.string().optional().nullable(),
-    body: z.string().optional().nullable(),
-    prompt: z.string().optional().nullable(),
-    journey: z.string().optional().nullable(),
-    day: z.number().optional().nullable(),
-    day_name: z.string().optional().nullable(),
-    entry_date: z.string().optional().nullable(),
-  }),
-);
+const getJournal_entriesByIdResponse = z
+  .array(
+    z.looseObject({
+      id: z.string().optional().nullable(),
+      created_at: z.string().optional().nullable(),
+      updated_at: z.string().optional().nullable(),
+      body: z.string().optional().nullable(),
+      prompt: z.string().optional().nullable(),
+      journey: z.string().optional().nullable(),
+      day: z.number().optional().nullable(),
+      day_name: z.string().optional().nullable(),
+      entry_date: z.string().optional().nullable(),
+    }),
+  )
+  .catch([]);
 export type getJournal_entriesByIdData = z.infer<typeof getJournal_entriesByIdResponse>;
 export async function getJournal_entriesById(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<getJournal_entriesByIdData> {
   const path = `/rest/v1/journal_entries?id=eq.${enc(vars['id'])}&select=*`;
-  const query: Record<string, unknown> = {};
-  mappedQuery(query, vars, ['id']);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(getJournal_entriesByIdResponse, data, 'getJournal_entriesById');
+  const checked = getJournal_entriesByIdResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'getJournal_entriesById: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -424,8 +352,8 @@ export async function getJournal_entriesById(
 }
 
 export function useGetJournalEntriesById(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
+  options: Record<string, any> = {},
 ) {
   return useQuery<getJournal_entriesByIdData>({
     queryKey: ['getJournal_entriesById', vars],
@@ -435,58 +363,47 @@ export function useGetJournalEntriesById(
 }
 
 // Delete a journal_entries by id (bind the raw id value).
-export async function deleteJournal_entries(vars: Record<string, unknown> = {}): Promise<any> {
+export async function deleteJournal_entries(vars: Record<string, any> = {}): Promise<any> {
   const path = `/rest/v1/journal_entries?id=eq.${enc(vars['id'])}`;
-  const query: Record<string, unknown> = {};
-  mappedQuery(query, vars, ['id']);
   return apiFetch(BASE, {
     method: 'DELETE',
     path,
-    query: query,
     headers: DEFAULT_HEADERS,
-    idempotencyKey: idempotencyKeyOf(vars),
+    idempotencyKey: vars['__idempotencyKey'],
   });
 }
 
 export function useDeleteJournalEntries(
-  opts: Omit<UseMutationOptions<any, unknown, Record<string, unknown>>, 'mutationFn'> = {},
+  opts: Omit<UseMutationOptions<any, unknown, Record<string, any>>, 'mutationFn'> = {},
 ) {
   const idem = useIdempotencyKey();
   const { onSettled, ...rest } = opts;
-  return useMutation<any, unknown, Record<string, unknown>>({
+  return useMutation<any, unknown, Record<string, any>>({
     ...rest,
-    mutationFn: (vars: Record<string, unknown> = {}) =>
+    mutationFn: (vars: Record<string, any> = {}) =>
       deleteJournal_entries({ __idempotencyKey: idem.key, ...vars }),
     onSettled: (...args) => {
-      // a send that got no answer keeps its key, so pressing again cannot do it twice (useIdempotencyKey settled)
-      idem.settled(args[1]);
+      idem.rotate();
       onSettled?.(...args);
     },
   });
 }
 
 // Read the signed-in user's own profile row, falling back to the sample row
-const getMyProfileResponse = z.array(shape2);
+const getMyProfileResponse = z.array(shape2).catch([]);
 export type getMyProfileData = z.infer<typeof getMyProfileResponse>;
-export async function getMyProfile(vars: Record<string, unknown> = {}): Promise<getMyProfileData> {
+export async function getMyProfile(vars: Record<string, any> = {}): Promise<getMyProfileData> {
   const path = `/rest/v1/profiles?select=*&order=is_sample.asc.nullsfirst&limit=1`;
-  const query: Record<string, unknown> = {};
-  mappedQuery(query, vars, []);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(getMyProfileResponse, data, 'getMyProfile');
+  const checked = getMyProfileResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'getMyProfile: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -494,10 +411,7 @@ export async function getMyProfile(vars: Record<string, unknown> = {}): Promise<
   return keepStatus(checked.data, data);
 }
 
-export function useGetMyProfile(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
-) {
+export function useGetMyProfile(vars: Record<string, any> = {}, options: Record<string, any> = {}) {
   return useQuery<getMyProfileData>({
     queryKey: ['getMyProfile', vars],
     queryFn: () => getMyProfile(vars),
@@ -509,33 +423,33 @@ export function useGetMyProfile(
 const upsertMyProfileResponse = getMyProfileResponse;
 export type upsertMyProfileData = z.infer<typeof upsertMyProfileResponse>;
 export async function upsertMyProfile(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<upsertMyProfileData> {
   vars = { Prefer: 'resolution=merge-duplicates,return=representation', ...vars };
   const path = `/rest/v1/profiles?on_conflict=auth_user_id`;
-  const body: Record<string, unknown> = {};
+  const body: Record<string, any> = {};
   setByPath(body, 'display_name', vars['display_name']);
   setByPath(body, 'email', vars['email']);
   setByPath(body, 'avatar_url', vars['avatar_url']);
   setByPath(body, 'notifications_enabled', vars['notifications_enabled']);
-  const headers: Record<string, unknown> = {};
+  const headers: Record<string, any> = {};
   headers['Prefer'] = vars['Prefer'];
   const raw = await apiFetch(BASE, {
     method: 'POST',
     path,
     headers: { ...DEFAULT_HEADERS, ...headers },
     body,
-    idempotencyKey: idempotencyKeyOf(vars),
+    idempotencyKey: vars['__idempotencyKey'],
   });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(upsertMyProfileResponse, data, 'upsertMyProfile');
+  const checked = upsertMyProfileResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'upsertMyProfile: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -545,62 +459,54 @@ export async function upsertMyProfile(
 
 export function useUpsertMyProfile(
   opts: Omit<
-    UseMutationOptions<upsertMyProfileData, unknown, Record<string, unknown>>,
+    UseMutationOptions<upsertMyProfileData, unknown, Record<string, any>>,
     'mutationFn'
   > = {},
 ) {
   const idem = useIdempotencyKey();
   const { onSettled, ...rest } = opts;
-  return useMutation<upsertMyProfileData, unknown, Record<string, unknown>>({
+  return useMutation<upsertMyProfileData, unknown, Record<string, any>>({
     ...rest,
-    mutationFn: (vars: Record<string, unknown> = {}) =>
+    mutationFn: (vars: Record<string, any> = {}) =>
       upsertMyProfile({ __idempotencyKey: idem.key, ...vars }),
     onSettled: (...args) => {
-      // a send that got no answer keeps its key, so pressing again cannot do it twice (useIdempotencyKey settled)
-      idem.settled(args[1]);
+      idem.rotate();
       onSettled?.(...args);
     },
   });
 }
 
 // List the signed-in person's own check ins, newest first
-const listMyCheckInsResponse = z.array(
-  z.looseObject({
-    id: z.string().optional().nullable(),
-    created_at: z.string().optional().nullable(),
-    overall_mood: z.string().optional().nullable(),
-    mind: z.unknown().optional().nullable(),
-    energy_level: z.number().optional().nullable(),
-    feel_now: z.string().optional().nullable(),
-    stress_level: z.number().optional().nullable(),
-    kind: z.string().optional().nullable(),
-    journey: z.string().optional().nullable(),
-    day: z.number().optional().nullable(),
-    day_name: z.string().optional().nullable(),
-  }),
-);
+const listMyCheckInsResponse = z
+  .array(
+    z.looseObject({
+      id: z.string().optional().nullable(),
+      created_at: z.string().optional().nullable(),
+      overall_mood: z.string().optional().nullable(),
+      mind: z.unknown().optional().nullable(),
+      energy_level: z.number().optional().nullable(),
+      feel_now: z.string().optional().nullable(),
+      stress_level: z.number().optional().nullable(),
+      kind: z.string().optional().nullable(),
+      journey: z.string().optional().nullable(),
+      day: z.number().optional().nullable(),
+      day_name: z.string().optional().nullable(),
+    }),
+  )
+  .catch([]);
 export type listMyCheckInsData = z.infer<typeof listMyCheckInsResponse>;
-export async function listMyCheckIns(
-  vars: Record<string, unknown> = {},
-): Promise<listMyCheckInsData> {
+export async function listMyCheckIns(vars: Record<string, any> = {}): Promise<listMyCheckInsData> {
   const path = `/rest/v1/check_ins?select=*&is_sample=is.false&order=created_at.desc`;
-  const query: Record<string, unknown> = {};
-  mappedQuery(query, vars, []);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(listMyCheckInsResponse, data, 'listMyCheckIns');
+  const checked = listMyCheckInsResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'listMyCheckIns: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -609,8 +515,8 @@ export async function listMyCheckIns(
 }
 
 export function useListMyCheckIns(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
+  options: Record<string, any> = {},
 ) {
   return useQuery<listMyCheckInsData>({
     queryKey: ['listMyCheckIns', vars],
@@ -620,29 +526,22 @@ export function useListMyCheckIns(
 }
 
 // List the signed-in person's own journal entries, newest first
-const listMyJournalEntriesResponse = z.array(shape3);
+const listMyJournalEntriesResponse = z.array(shape3).catch([]);
 export type listMyJournalEntriesData = z.infer<typeof listMyJournalEntriesResponse>;
 export async function listMyJournalEntries(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<listMyJournalEntriesData> {
   const path = `/rest/v1/journal_entries?select=*&is_sample=is.false&order=created_at.desc`;
-  const query: Record<string, unknown> = {};
-  mappedQuery(query, vars, []);
-  const raw = await apiFetch(BASE, {
-    method: 'GET',
-    path,
-    query: query,
-    headers: DEFAULT_HEADERS,
-  }).catch(emptyWhenNotFound([]));
+  const raw = await apiFetch(BASE, { method: 'GET', path, headers: DEFAULT_HEADERS });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(listMyJournalEntriesResponse, data, 'listMyJournalEntries');
+  const checked = listMyJournalEntriesResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'listMyJournalEntries: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -651,8 +550,8 @@ export async function listMyJournalEntries(
 }
 
 export function useListMyJournalEntries(
-  vars: Record<string, unknown> = {},
-  options: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
+  options: Record<string, any> = {},
 ) {
   return useQuery<listMyJournalEntriesData>({
     queryKey: ['listMyJournalEntries', vars],
@@ -665,11 +564,11 @@ export function useListMyJournalEntries(
 const saveMyJournalEntriesResponse = listMyJournalEntriesResponse;
 export type saveMyJournalEntriesData = z.infer<typeof saveMyJournalEntriesResponse>;
 export async function saveMyJournalEntries(
-  vars: Record<string, unknown> = {},
+  vars: Record<string, any> = {},
 ): Promise<saveMyJournalEntriesData> {
   vars = { Prefer: 'resolution=merge-duplicates,return=representation', ...vars };
   const path = `/rest/v1/journal_entries?on_conflict=id`;
-  const body: Record<string, unknown> = {};
+  const body: Record<string, any> = {};
   setByPath(body, 'id', vars['id']);
   setByPath(body, 'body', vars['body']);
   setByPath(body, 'prompt', vars['prompt']);
@@ -677,24 +576,24 @@ export async function saveMyJournalEntries(
   setByPath(body, 'day', asBodyNumber(vars['day']));
   setByPath(body, 'day_name', vars['day_name']);
   setByPath(body, 'entry_date', vars['entry_date']);
-  const headers: Record<string, unknown> = {};
+  const headers: Record<string, any> = {};
   headers['Prefer'] = vars['Prefer'];
   const raw = await apiFetch(BASE, {
     method: 'POST',
     path,
     headers: { ...DEFAULT_HEADERS, ...headers },
     body,
-    idempotencyKey: idempotencyKeyOf(vars),
+    idempotencyKey: vars['__idempotencyKey'],
   });
   const data = typeof raw === 'string' ? stringBody(raw) : raw;
-  const checked = checkShape(saveMyJournalEntriesResponse, data, 'saveMyJournalEntries');
+  const checked = saveMyJournalEntriesResponse.safeParse(data);
   if (!checked.success) {
-    // "Not a list of rows" and "no rows" are the same thing to every screen — both render the design's own empty state — so an
-    // answer that is no list at all (an empty body from a write that reuses this read's shape, a bare value) is no rows, with its status.
-    if (!Array.isArray(data)) return keepStatus([], data);
-    // A list whose row is not the row described is stopped for, as a row inside any nested list is: the schema is lenient
-    // already — every field optional, unknown keys passed through, a scalar spelt differently re-spelt by checkShape — so a
-    // failure here means a row genuinely not what this operation promised, and that is worth stopping for.
+    // A console.warn here meant the check RAN and changed nothing: the
+    // unvalidated body went to the screens anyway and surfaced as a blank
+    // or a wrong number somewhere else entirely. The schema is already
+    // lenient — every field optional, unknown keys passed through — so a
+    // failure means the shape is genuinely not what this operation
+    // promised, and that is worth stopping for.
     throw new AppError('server', 'saveMyJournalEntries: unexpected response shape', {
       cause: checked.error.issues.slice(0, 3),
     });
@@ -704,19 +603,18 @@ export async function saveMyJournalEntries(
 
 export function useSaveMyJournalEntries(
   opts: Omit<
-    UseMutationOptions<saveMyJournalEntriesData, unknown, Record<string, unknown>>,
+    UseMutationOptions<saveMyJournalEntriesData, unknown, Record<string, any>>,
     'mutationFn'
   > = {},
 ) {
   const idem = useIdempotencyKey();
   const { onSettled, ...rest } = opts;
-  return useMutation<saveMyJournalEntriesData, unknown, Record<string, unknown>>({
+  return useMutation<saveMyJournalEntriesData, unknown, Record<string, any>>({
     ...rest,
-    mutationFn: (vars: Record<string, unknown> = {}) =>
+    mutationFn: (vars: Record<string, any> = {}) =>
       saveMyJournalEntries({ __idempotencyKey: idem.key, ...vars }),
     onSettled: (...args) => {
-      // a send that got no answer keeps its key, so pressing again cannot do it twice (useIdempotencyKey settled)
-      idem.settled(args[1]);
+      idem.rotate();
       onSettled?.(...args);
     },
   });

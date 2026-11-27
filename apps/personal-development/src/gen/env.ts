@@ -3,18 +3,7 @@
 // inlining on Expo. Same surface either way (team lib/config/env pattern).
 type EnvShape = Record<string, string | undefined>;
 
-// Each name written out whole, as a release build needs it to inline the value: a key built at run time
-// is answered in development only
-const PUBLIC: EnvShape = {
-  API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
-  DEEP_LINK_PREFIX: process.env.EXPO_PUBLIC_DEEP_LINK_PREFIX,
-  MIN_APP_VERSION: process.env.EXPO_PUBLIC_MIN_APP_VERSION,
-  SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  SUPABASE_DB_SCHEMA: process.env.EXPO_PUBLIC_SUPABASE_DB_SCHEMA,
-  SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
-};
-
-const read = (k: string): string | undefined => PUBLIC[k] ?? process.env['EXPO_PUBLIC_' + k];
+const read = (k: string): string | undefined => process.env['EXPO_PUBLIC_' + k];
 
 const raw: EnvShape = {
   API_BASE_URL: read('API_BASE_URL'),

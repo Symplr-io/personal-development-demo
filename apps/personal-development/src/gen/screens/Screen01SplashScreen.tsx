@@ -2,28 +2,35 @@
 // Screen: Screen01Splash  ·  figma node 4:3
 import React from 'react';
 // prettier-ignore
-import { assets, Box, Img, scaleFor, ScreenFrame, ScreenStatusBar, Txt, useI18n, useViewport } from '../screen-kit';
+import { assets, Box, fireAndForget, hasStoredSession, Img, scaleFor, ScreenFrame, ScreenStatusBar, tryResumeSession, Txt, useI18n, useViewport } from '../screen-kit';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { goTo } from '../navigation/tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 // This screen was drawn at 390px — scale by ITS width, not the app-wide mode.
-const { s, sv } = scaleFor(390);
+const { s } = scaleFor(390);
 
 export function Screen01SplashScreen() {
   // keeps s()/sv() and the vw classNames in step — see useViewport
   useViewport();
-
-  const insets = useSafeAreaInsets();
 
   const { t } = useI18n();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   React.useEffect(() => {
     const t = setTimeout(() => {
-      goTo(navigation, 'replace', 'Screen02Welcome1Of3');
+      fireAndForget(
+        (async () => {
+          if (await hasStoredSession()) {
+            if (await tryResumeSession()) {
+              goTo(navigation, 'replace', 'Screen06Home');
+              return;
+            }
+          }
+          goTo(navigation, 'replace', 'Screen02Welcome1Of3');
+        })(),
+      );
     }, 1500);
     return () => clearTimeout(t);
   }, [navigation]);
@@ -44,11 +51,7 @@ export function Screen01SplashScreen() {
         className="flex-1 w-full"
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="flex-col"
-        contentContainerStyle={{
-          minHeight: sv(844) + Math.max(0, insets.bottom - sv(305)),
-          paddingBottom: Math.max(0, insets.bottom - sv(305)),
-        }}
+        contentContainerClassName="min-h-[216.4103vw] flex-col"
       >
         <Box
           testID="w:4:14"

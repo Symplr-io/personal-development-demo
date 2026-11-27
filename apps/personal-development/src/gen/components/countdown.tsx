@@ -11,11 +11,6 @@ export function Countdown({
   template = '{time}',
   format = 'clock',
   unit = '',
-  minuteDigits = 1,
-  timeStyle,
-  numberOfLines,
-  adjustsFontSizeToFit,
-  minimumFontScale,
   doneText,
   style,
   testID,
@@ -37,19 +32,6 @@ export function Countdown({
   /** The unit word a seconds design was written with, spacing and all
    * (" sec", "s"). Empty for a clock. */
   unit?: string;
-  /** 2 when the design pads its minutes ("00:20"); m:ss otherwise. */
-  minuteDigits?: number;
-  /**
-   * The time's own look, when the design inked it apart from the sentence —
-   * Laza's "00:20 resend confirmation code." sets the time Medium and
-   * near-black in a grey Regular line. Absent, the line is one plain Text.
-   */
-  timeStyle?: TextStyle;
-  /** A countdown the design sets on ONE line keeps to it, shrinking a hair
-   * rather than wrapping out of its box — the text path's one-line rule. */
-  numberOfLines?: number;
-  adjustsFontSizeToFit?: boolean;
-  minimumFontScale?: number;
   /** Rendered INSTEAD of the template once the countdown reaches zero —
    * the OTP pattern's "Resend in 30s" → "Resend" flip. */
   doneText?: string;
@@ -59,7 +41,6 @@ export function Countdown({
   onDone?: () => void;
 }>) {
   const [left, setLeft] = useState(initialSeconds);
-  const fit = { numberOfLines, adjustsFontSizeToFit, minimumFontScale };
   useEffect(() => {
     if (left <= 0) {
       onDone?.();
@@ -70,7 +51,7 @@ export function Countdown({
   }, [left, onDone]);
   if (left <= 0 && doneText != null) {
     return (
-      <Text testID={testID} accessibilityLabel={accessibilityLabel} style={style} {...fit}>
+      <Text testID={testID} accessibilityLabel={accessibilityLabel} style={style}>
         {doneText}
       </Text>
     );
@@ -78,24 +59,14 @@ export function Countdown({
   const h = Math.floor(left / 3600);
   const m = Math.floor((left % 3600) / 60);
   const s = left % 60;
-  const mm = h > 0 || minuteDigits === 2 ? String(m).padStart(2, '0') : String(m);
+  const mm = h > 0 ? String(m).padStart(2, '0') : String(m);
   // hours hoisted out: a template nested inside a template is hard to read and
   // Sonar flags it (S4624)
   const hrs = h > 0 ? `${h}:` : '';
   const clock = `${hrs}${mm}:${String(s).padStart(2, '0')}`;
   const time = format === 'seconds' ? `${left}${unit}` : clock;
-  const at = template.indexOf('{time}');
-  if (timeStyle && at >= 0) {
-    return (
-      <Text testID={testID} accessibilityLabel={accessibilityLabel} style={style} {...fit}>
-        {template.slice(0, at)}
-        <Text style={timeStyle}>{time}</Text>
-        {template.slice(at + 6)}
-      </Text>
-    );
-  }
   return (
-    <Text testID={testID} accessibilityLabel={accessibilityLabel} style={style} {...fit}>
+    <Text testID={testID} accessibilityLabel={accessibilityLabel} style={style}>
       {template.replace('{time}', time)}
     </Text>
   );
